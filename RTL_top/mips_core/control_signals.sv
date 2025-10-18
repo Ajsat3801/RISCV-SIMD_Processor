@@ -1,0 +1,3 @@
+/*
+    Contains characteristics of each signal for ease of use
+*/
