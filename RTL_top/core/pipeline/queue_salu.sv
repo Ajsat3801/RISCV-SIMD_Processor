@@ -1,13 +1,22 @@
 /*
-    Decode stage of the 5 stage pipeline
-    ->  Decodes the fetched instructions into control signals
-    ->  Generate immediate values
-    ->  Read source values from the register
-    ->  Handle flush from branch
-    
-    ->  Later
-        ->  Hzard detection 
-            if next instruction depends on a load still in MEM: add a stall
-            else: prepare operands and forward control
+    Queue for ALU ops
 
 */
+
+module RTL_scalar_alu_queue #(
+    parameter QUEUE_LENGTH = 4;
+) (
+    input logic illegal_instr,
+    input alu_desc_t salu_pending_op,
+    input logic queue_valid,
+    output queue_full,
+    output alu_desc_t salu_op_ex,
+    output logic salu_op_valid
+);
+
+// If ALU is empty you send the data
+// IF 
+
+
+    
+endmodule

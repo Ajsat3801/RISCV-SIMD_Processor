@@ -12,7 +12,7 @@
 
 */
 
-module decoder(){
+module decoder (
 
     // inputs from fetch
     input clk,
@@ -27,7 +27,7 @@ module decoder(){
     input logic[31:0] rs2_data,
 
     // connectivity to scalar ALU queues
-    input logic salu_queue_ready
+    input logic salu_queue_ready,
     output logic salu_queue_valid,
     output alu_desc_t salu_queue_data,
 
@@ -35,7 +35,7 @@ module decoder(){
     output logic decode_busy,                   // goes to fetch 
     output logic illegal_instr,
     output logic[31:0] pc_out
-};
+);
 
 /*
      2 stage decode
@@ -43,16 +43,21 @@ module decoder(){
      2) get operands
 */
 
-enum logic {IDLE, BUSY} state;
-logic illegal = 0;
-logic use_imm, decode_ready;
+
+decode_state_e stage;
+logic illegal;
+logic decode_ready;
 logic[4:0] rs1, rs2;
 alu_desc_t alu_ops_desc;
 
+logic holding_val;
+alu_desc_t held_uop;
+
+
 always @(posedge clk) begin
 
-    if(stage == IDLE && instr_valid) begin
-
+    if(stage == IDLE && instr_valid && !holding_val) begin
+        illegal <= 0;
         case(instruction[6:0]) 
 
             7'b0110011 : begin //add, sub, slt, sltu, XOR, OR, AND
@@ -63,7 +68,7 @@ always @(posedge clk) begin
                 case(instruction[14:12])
                     3'b000 : begin
                         if(instruction[31:25] == 7'b0000000) alu_ops_desc.operation <= ADD;
-                        else if(instruction[31:25] == 7'b0110000) alu_ops_desc.operation <= SUB;
+                        else if(instruction[31:25] == 7'b0100000) alu_ops_desc.operation <= SUB;
                         else illegal <= 1;
                     end
                     3'b010: alu_ops_desc.operation <= SLT;
@@ -71,6 +76,7 @@ always @(posedge clk) begin
                     3'b100: alu_ops_desc.operation <= XOR;
                     3'b110: alu_ops_desc.operation <= OR;
                     3'b111: alu_ops_desc.operation <= AND;
+                    default : illegal <= 1;
                 endcase
             end
 
@@ -108,34 +114,45 @@ always @(posedge clk) begin
                 //TO BE ADDRESSED LATER
             end
             default: begin
-                illegal = 1;
+                illegal <= 1;
             end
 
         endcase
-        salu_queue_valid <= 0;
+        decode_ready <= 0;
         stage <= BUSY;
 
     end
 
-    else if(stage = BUSY) begin
-        if(instr_valid) illegal = 1;
+    else if(stage == BUSY) begin
+        if(instr_valid) illegal <= 1;
+        
         else begin
-            if(!use_imm) alu_ops_desc.operand_b <= rs2_data;
+            alu_ops_desc.operand_a <= rs1_data;
+            if(!alu_ops_desc.use_imm) alu_ops_desc.operand_b <= rs2_data;
         end
         stage <= IDLE;
         decode_ready <= 1;
+
+        if(!illegal && !salu_queue_ready) begin
+            holding_val <=1;
+            held_uop <= alu_ops_desc;
+        end
     end
 
 end
 
 assign illegal_instr = illegal;
-assign decode_busy = state;
+
 assign pc_out = pc;
 
 
 assign x_rs1 = rs1;
 assign x_rs2 = rs2;
-assign salu_queue_valid = decode_ready && (!illegal)
-assign salu_queue_data = alu_ops_desc;
+
+logic decoded_live_uop = decode_ready && (!illegal)
+
+assign salu_queue_valid = salu_queue_ready && (holding_val | decoded_live_uop);
+assign salu_queue_data = holding_val? held_uop : alu_ops_desc;
+assign decode_busy = (stage != IDLE) | holding_val;
 
 endmodule

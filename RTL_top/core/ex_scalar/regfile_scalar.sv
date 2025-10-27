@@ -11,7 +11,7 @@
 
 */
 
-module RTL_Registers(){
+module RTL_Registers(
     input logic clk,
     input logic write_enable,
 
@@ -23,7 +23,7 @@ module RTL_Registers(){
 
     output logic[31:0] rs1_data,
     output logic[31:0] rs2_data
-};
+);
 
 logic[31:0] reg_addr[32];
 

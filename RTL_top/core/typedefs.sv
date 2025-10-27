@@ -3,13 +3,14 @@
 */
 
 package instr_desc;
+    enum logic {IDLE, BUSY} decode_state_e;
 
     typedef enum logic[3:0] { NOP, ADD, SUB,
     SLT, SLTU, XOR, OR, AND; 
-    } alu_ops_t;
+    } alu_ops_e;
 
     typedef struct packed {
-        alu_ops_t operation;
+        alu_ops_e operation;
         logic [4:0] rd;
         logic [31:0] operand_a;
         logic [31:0] operand_b;
