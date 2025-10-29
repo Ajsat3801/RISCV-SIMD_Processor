@@ -13,14 +13,15 @@
 
 module RTL_Registers(
     input logic clk,
+
+    // FROM WRITEBACK
     input logic write_enable,
-
-    input logic[4:0] x_rs1,
-    input logic[4:0] x_rs2,
-
     input logic[4:0] rd,
     input logic[31:0] rd_data,
 
+    // FROM DECODE
+    input logic[4:0] x_rs1,
+    input logic[4:0] x_rs2,
     output logic[31:0] rs1_data,
     output logic[31:0] rs2_data
 );

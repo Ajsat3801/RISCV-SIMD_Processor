@@ -11,11 +11,19 @@
             else: prepare operands and forward control
 
 */
+/*
 
+DECODE IS INCOMPLETE 
+TODO: 
+1) REMOVE THE USAGE OF USE_IMM 
+2) COMMUNICATION TO AND FROM THE BUSYBOARD
+3) STALL LOGIC
+*/
 module decoder (
+    input logic clk,
 
     // inputs from fetch
-    input clk,
+    
     input logic[31:0] instruction,
     input logic[31:0] pc,
     input logic instr_valid,
