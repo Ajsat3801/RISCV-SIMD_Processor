@@ -4,6 +4,7 @@
 
 package instr_desc;
     enum logic {IDLE, BUSY} decode_state_e;
+    enum logic {SALU, SMULDIV} wb_state_e;
 
     typedef enum logic[2:0] { NOP, ADD, SUB, SLT, SLTU, XOR, OR, AND; 
     } alu_ops_e;
@@ -17,7 +18,7 @@ package instr_desc;
 
     typedef struct packed {
         logic [4:0] rd;
-        logic [31:0] op_result;
+        logic [31:0] wb_data;
     } wb_desc_t;
 
     // typedefs for scalar muldiv, vector alu, vector muldiv remaining

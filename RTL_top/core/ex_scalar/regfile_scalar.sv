@@ -13,6 +13,7 @@
 
 module RTL_Registers(
     input logic clk,
+    input logic resetn,
 
     // FROM WRITEBACK
     input logic write_enable,
@@ -20,32 +21,39 @@ module RTL_Registers(
     input logic[31:0] rd_data,
 
     // FROM DECODE
-    input logic[4:0] x_rs1,
-    input logic[4:0] x_rs2,
+    input logic[4:0] rs1_addr,
+    input logic[4:0] rs2_addr,
     output logic[31:0] rs1_data,
     output logic[31:0] rs2_data
 );
 
-logic[31:0] reg_addr[32];
+logic[31:0] reg_arr[32];
+logic[31:0] rs1_data_q, rs2_data_q;
 
 always_ff @(  posedge clk ) begin
     
+    if(!resetn) begin
+        for(int i=0; i<32; i=i+1) reg_arr[i] <=32'b0;
+        rs1_data_q <= 32'b0;
+        rs2_data_q <= 32'b0;
+    end
+    
     // writing to the register
-    if(write_enable && rd ! = 0) reg_addr[rd] <= rd_data;
+    if(write_enable && rd ! = 0) reg_arr[rd] <= rd_data;
 
     // reading RS1
-    if(x_rs1 != 5'b0) op1 <= 32'b0;
-    else if(write_enable && rd == x_rs1) op1 <= rd_data;
-    else op1 <= reg_addr[x_rs1];
+    if(rs1_addr != 5'b0) rs1_data_q <= 32'b0;
+    else if(write_enable && rd == rs1_addr) rs1_data_q <= rd_data;
+    else rs1_data_q <= reg_arr[rs1_addr];
 
     // reading RS2
-    if(x_rs2 != 5'b0) op2 <= 32'b0;
-    else if(write_enable && rd == x_rs2) op2 <= rd_data;
-    else op2 <= reg_addr[x_rs2];
+    if(rs2_addr != 5'b0) rs2_data_q <= 32'b0;
+    else if(write_enable && rd == rs2_addr) rs2_data_q <= rd_data;
+    else rs2_data_q <= reg_arr[rs2_addr];
 
 end
 
-assign rs1_data = op1;
-assign rs2_data = op2;
+assign rs1_data = rs1_data_q;
+assign rs2_data = rs2_data_q;
 
 endmodule
