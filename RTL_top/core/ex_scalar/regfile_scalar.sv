@@ -10,15 +10,16 @@
     ->  forwarding of RD data done if RS1 or RS2 is same as RD
 
 */
+`include "typedefs.sv"
+import instr_desc::*;
 
-module RTL_Registers(
+module regfile_scalar(
     input logic clk,
     input logic resetn,
 
     // FROM WRITEBACK
     input logic write_enable,
-    input logic[4:0] rd,
-    input logic[31:0] rd_data,
+    input wb_desc_t wb_data,
 
     // FROM DECODE
     input logic[4:0] rs1_addr,
@@ -39,16 +40,16 @@ always_ff @(  posedge clk ) begin
     end
     
     // writing to the register
-    if(write_enable && rd ! = 0) reg_arr[rd] <= rd_data;
+    if(write_enable && wb_data.rd != 0) reg_arr[wb_data.rd] <= wb_data.wb_data;
 
     // reading RS1
-    if(rs1_addr != 5'b0) rs1_data_q <= 32'b0;
-    else if(write_enable && rd == rs1_addr) rs1_data_q <= rd_data;
+    if(rs1_addr == 5'b0) rs1_data_q <= 32'b0;
+    else if(write_enable && wb_data.rd == rs1_addr) rs1_data_q <= wb_data.wb_data;
     else rs1_data_q <= reg_arr[rs1_addr];
 
     // reading RS2
-    if(rs2_addr != 5'b0) rs2_data_q <= 32'b0;
-    else if(write_enable && rd == rs2_addr) rs2_data_q <= rd_data;
+    if(rs2_addr == 5'b0) rs2_data_q <= 32'b0;
+    else if(write_enable && wb_data.rd == rs2_addr) rs2_data_q <= wb_data.wb_data;
     else rs2_data_q <= reg_arr[rs2_addr];
 
 end
