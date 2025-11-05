@@ -95,8 +95,8 @@ module regfile_scalar_tb();
         #10 write_enable <= 0;
     end
   
-  always@(posedge clk) begin
-    if(!write_enable)
+    always@(posedge clk) begin
+        if(!write_enable)
         $display("%t, we:%b, rd:%d, rd_data:%d, rs1: %d, rs2: %d, rs1_data: %d, rs2_data:%d",
         $time, write_enable, wb_data.rd, wb_data.wb_data, rs1_addr, rs2_addr, rs1_data, rs2_data);
     end
