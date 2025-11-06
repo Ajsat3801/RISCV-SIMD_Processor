@@ -113,3 +113,27 @@ end
 
 
 endmodule
+/*
+CPU time: .431 seconds to compile + .404 seconds to elab + .385 seconds to link
+Chronologic VCS simulator copyright 1991-2023
+Contains Synopsys proprietary information.
+Compiler version U-2023.03-SP2_Full64; Runtime version U-2023.03-SP2_Full64;  Nov  4 00:03 2025
+5000  alu:0 lsu:0 alu_rd:0 alu_data:0 lsu_rd:0 lsu_data:0 rd=0 data=0 WE=0 cnt=0
+15000  alu:0 lsu:0 alu_rd:0 alu_data:0 lsu_rd:0 lsu_data:0 rd=0 data=0 WE=0 cnt=0
+25000  alu:1 lsu:0 alu_rd:1 alu_data:1 lsu_rd:0 lsu_data:0 rd=0 data=0 WE=0 cnt=1
+35000  alu:0 lsu:0 alu_rd:1 alu_data:1 lsu_rd:0 lsu_data:0 rd=1 data=1 WE=1 cnt=0
+45000  alu:1 lsu:0 alu_rd:2 alu_data:2 lsu_rd:0 lsu_data:0 rd=1 data=1 WE=0 cnt=1
+55000  alu:0 lsu:0 alu_rd:2 alu_data:2 lsu_rd:0 lsu_data:0 rd=2 data=2 WE=1 cnt=0
+65000  alu:0 lsu:1 alu_rd:2 alu_data:2 lsu_rd:4 lsu_data:4 rd=4 data=4 WE=1 cnt=0
+75000  alu:0 lsu:0 alu_rd:2 alu_data:2 lsu_rd:4 lsu_data:4 rd=4 data=4 WE=0 cnt=0
+85000  alu:1 lsu:0 alu_rd:3 alu_data:3 lsu_rd:4 lsu_data:4 rd=4 data=4 WE=0 cnt=1
+95000  alu:0 lsu:0 alu_rd:3 alu_data:3 lsu_rd:4 lsu_data:4 rd=3 data=3 WE=1 cnt=0
+105000  alu:0 lsu:0 alu_rd:3 alu_data:3 lsu_rd:4 lsu_data:4 rd=3 data=3 WE=0 cnt=0
+115000  alu:0 lsu:0 alu_rd:3 alu_data:3 lsu_rd:4 lsu_data:4 rd=3 data=3 WE=0 cnt=0
+$finish called from file "testbench.sv", line 106.
+$finish at simulation time               120000
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 120000 ps
+CPU Time:      0.500 seconds;       Data structure size:   0.0Mb
+Tue Nov  4 00:03:56 2025
+*/
