@@ -9,6 +9,8 @@
     ->  register 0 will always be 0 and cannot be touched
     ->  forwarding of RD data done if RS1 or RS2 is same as RD
 
+    TODO: Integrate Busyboard with scalar regfile
+
 */
 `include "typedefs.sv"
 import instr_desc::*;
