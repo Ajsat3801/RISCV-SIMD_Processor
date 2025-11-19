@@ -9,8 +9,10 @@
     ->  register 0 will always be 0 and cannot be touched
     ->  forwarding of RD data done if RS1 or RS2 is same as RD
 
-    TODO: Integrate Busyboard with scalar regfile
-
+    TODO:
+    1) Bypass logic for chip select, rd_address and operation
+    2) Integrate busyboard into the registers
+    3) Holding registers for 
 */
 `include "typedefs.sv"
 import instr_desc::*;
@@ -26,6 +28,8 @@ module regfile_scalar(
     // FROM DECODE
     input logic[4:0] rs1_addr,
     input logic[4:0] rs2_addr,
+
+    // To Issue logic
     output logic[31:0] rs1_data,
     output logic[31:0] rs2_data
 );

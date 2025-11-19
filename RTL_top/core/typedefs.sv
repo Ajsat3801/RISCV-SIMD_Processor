@@ -4,6 +4,7 @@
 
 package instr_desc;
     typedef enum logic {IDLE, BUSY} decode_state_e;
+    typedef enum logic {NONE, SALU, SMULDIV, SLSU} decode_select_e;
     typedef enum logic {SALU, SMULDIV} wb_state_e;
     typedef enum logic[2:0] { NOP, ADD, SUB, SLT, SLTU, XOR, OR, AND} alu_ops_e;
 
