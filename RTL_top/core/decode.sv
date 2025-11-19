@@ -19,7 +19,7 @@ TODO:
 2) COMMUNICATION TO AND FROM THE BUSYBOARD
 3) STALL LOGIC
 */
-module decoder (
+module decode (
     input logic clk,
 
     // inputs from fetch

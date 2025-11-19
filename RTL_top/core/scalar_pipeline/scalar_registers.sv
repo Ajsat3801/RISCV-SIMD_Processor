@@ -17,7 +17,7 @@
 `include "typedefs.sv"
 import instr_desc::*;
 
-module regfile_scalar(
+module scalar_registers(
     input logic clk,
     input logic resetn,
 

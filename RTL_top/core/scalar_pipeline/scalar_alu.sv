@@ -21,9 +21,9 @@
 
 */
 
-module scalar_ALU(
+module scalar_alu(
     input logic clk,
-    input logic resetn,
+    input logic reset_n,
 
     // CONNECTIONS BETWEEN SALU AND SALU QUEUE
     input alu_desc_t alu_input,
@@ -43,7 +43,7 @@ logic alu_result_valid_q, alu_ready_q, holding_val, valid_instr;
 
 
 always_ff @(posedge clk) begin
-    if(!resetn) begin
+    if(!reset_n) begin
         // reset logic
         
         alu_result_q.rd <= 5'b0;

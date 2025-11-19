@@ -3,9 +3,9 @@ Busyboard to prevent hazards
 
 */
 
-module busyboard #() (
+module scalar_busyboard #() (
     input logic clk,
-    input logic resetn,
+    input logic reset_n,
 
     //CONNECTIONS WITH DECODE
     input logic[4:0] rs1_addr, rs2_addr, rd_addr,
@@ -23,7 +23,7 @@ logic[31:0] busyboard_scalar;
 logic rs1_busy_q, rs2_busy_q, rd_busy_q;
 
 always_ff @( posedge clk ) begin
-    if(!resetn) begin
+    if(!reset_n) begin
         for(int i = 0;i<32; i++) busyboard_scalar[i] <= 0;
         rs1_busy_q <= 0;
         rs2_busy_q <= 0;

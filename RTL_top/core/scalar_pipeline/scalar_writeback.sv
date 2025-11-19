@@ -29,9 +29,9 @@ Writeback for Scalar registers
 `include "typedefs.sv"
 import instr_desc::*;
 
-module Writeback_scalar(
+module scalar_writeback(
     input logic clk,
-    input logic resetn,
+    input logic reset_n,
 
     // FROM SCALAR ALU
     input wb_desc_t scalar_alu_res,
@@ -77,7 +77,7 @@ logic smuldiv_q_full, smuldiv_q_empty;
 
 always @(posedge clk) begin
     write_enable_q <=0;
-    if(!resetn) begin
+    if(!reset_n) begin
         wb_data_q.wb_data <= 32'b0;
         wb_data_q.rd <= 5'b0;
         write_enable_q <=0;
