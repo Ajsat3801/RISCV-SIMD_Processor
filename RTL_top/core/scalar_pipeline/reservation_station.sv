@@ -13,17 +13,19 @@ module reservation_station #(
     
     // connection with operation bus 
     operation_bus_if.RS rs_data,
+    output logic rs_full,
 
     // connection with common data bus
-    common_data_bus_if.RS CDB_data,
+    common_data_bus_if.snoop CDB_data,
 
     // output to execution unit
+    input ex_ready,
     output rs_dispatch_t dispatched_op,
-    output logic dispatched_op_valid,
+    output logic dispatched_op_valid
 );
 
 rs_entry_t buffer[1:0];
-logic rs_full, newest, dispatched_op_valid_q;
+logic rs_full, dispatched_op_valid_q;
 rs_dispatch_t dispatched_op_q;
 
 
@@ -39,6 +41,8 @@ always @(posedge clk) begin
         buffer[0].operand_b <= 0;
         buffer[0].operand_a_ready <= 0;
         buffer[0].operand_b_ready <= 0;
+        buffer[0].operand_a_tag <= 0;
+        buffer[0].operand_b_tag <= 0;
 
         buffer[1] <= buffer[0];
 
@@ -55,68 +59,71 @@ always @(posedge clk) begin
 
     // snoop data from CDB and update if needed
     if(CDB_data.valid) begin
-        if(CDB_data.ROB_id == buffer[0].operand_a) begin
+        if(CDB_data.ROB_id == buffer[0].operand_a_tag && buffer[0].occupied) begin
             buffer[0].operand_a <= CDB_data.data;
             buffer[0].operand_a_ready <= 1;
-            if(buffer[0].operand_b_ready) buffer[0].ready_to_dispatch = 1;
+            if(buffer[0].operand_b_ready) buffer[0].ready_to_dispatch <= 1;
         end
 
-        if(CDB_data.ROB_id == buffer[0].operand_b) begin
+        if(CDB_data.ROB_id == buffer[0].operand_b_tag && buffer[0].occupied) begin
             buffer[0].operand_b <= CDB_data.data;
             buffer[0].operand_b_ready <= 1;
-            if(buffer[0].operand_a_ready) buffer[0].ready_to_dispatch = 1;
+            if(buffer[0].operand_a_ready) buffer[0].ready_to_dispatch <= 1;
         end
 
-        if(CDB_data.ROB_id == buffer[1].operand_a) begin
+        if(CDB_data.ROB_id == buffer[1].operand_a_tag && buffer[1].occupied) begin
             buffer[1].operand_a <= CDB_data.data;
             buffer[1].operand_a_ready <= 1;
-            if(buffer[1].operand_b_ready) buffer[1].ready_to_dispatch = 1;
+            if(buffer[1].operand_b_ready) buffer[1].ready_to_dispatch <= 1;
         end
 
-        if(CDB_data.ROB_id == buffer[1].operand_b) begin
+        if(CDB_data.ROB_id == buffer[1].operand_b_tag && buffer[1].occupied) begin
             buffer[1].operand_b <= CDB_data.data;
             buffer[1].operand_b_ready <= 1;
-            if(buffer[1].operand_a_ready) buffer[1].ready_to_dispatch = 1;
+            if(buffer[1].operand_a_ready) buffer[1].ready_to_dispatch <= 1;
         end
 
     end
 
     // dispatch instruction to ex unit
-    if(buffer[!newest].ready_to_dispatch) begin
+    if(buffer[0].ready_to_dispatch && ex_ready) begin
 
         // build RS entry into instruction
-        dispatched_op_q.operation <= buffer[!newest].operation;
-        dispatched_op_q.operand_a <= buffer[!newest].operand_a;
-        dispatched_op_q.operand_b <= buffer[!newest].operand_b;
-        dispatched_op_q.Rob_ID <= buffer[!newest].instr_ROB_ID;
+        dispatched_op_q.operation <= buffer[0].operation;
+        dispatched_op_q.operand_a <= buffer[0].operand_a;
+        dispatched_op_q.operand_b <= buffer[0].operand_b;
+        dispatched_op_q.Rob_ID <= buffer[0].instr_ROB_ID;
         dispatched_op_valid_q <= 1;
         
-        buffer[!newest].occupied <= 0; // Free RS entry
+        buffer[0].occupied <= 0; // Free RS entry
+
+        if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) buffer[0] <= rs_data.rs_entry;
 
     end
-    else if(buffer[newest].ready_to_dispatch) begin
+    else if(buffer[1].ready_to_dispatch && ex_ready) begin
         
         // build RS entry into instruction
-        dispatched_op_q.operation <= buffer[newest].operation;
-        dispatched_op_q.operand_a <= buffer[newest].operand_a;
-        dispatched_op_q.operand_b <= buffer[newest].operand_b;
-        dispatched_op_q.Rob_ID <= buffer[newest].instr_ROB_ID;
+        dispatched_op_q.operation <= buffer[1].operation;
+        dispatched_op_q.operand_a <= buffer[1].operand_a;
+        dispatched_op_q.operand_b <= buffer[1].operand_b;
+        dispatched_op_q.Rob_ID <= buffer[1].instr_ROB_ID;
         dispatched_op_valid_q <= 1;
 
-        buffer[newest].occupied <= 0; // free RS entry
-        newest <= ~newest; // newest instruction removed so other must be the newest
+        buffer[1].occupied <= 0; // free RS entry
+
+        if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) buffer[1] <= rs_data.rs_entry;
+
     end
-    else dispatched_op_valid_q <= 0;
 
-
-    // Add new instructions to Reservation stations
-    if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) begin
+    else if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) begin
 
         // Assign entry to one of the slots, map the assigned slot as newest
-        if(buffer[!newest].occupied == 0) newest = ~newest;
-        buffer[newest] <= rs_data.rs_entry;
+        if(buffer[0].occupied == 0) buffer[0] <= rs_data.rs_entry;
+        else buffer[1] <= rs_data.rs_entry;
 
     end
+    else dispatched_op_valid_q <= 0;
+    
 
     rs_full <= buffer[0].occupied && buffer[1].occupied;
 

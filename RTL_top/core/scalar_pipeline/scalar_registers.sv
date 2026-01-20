@@ -1,19 +1,3 @@
-/*
-    Scalar registers for the processor
-
-    32x32 registers
-    2 reads and 1 write in each cycle
-
-    Characteristics:
-    ->  sychronous operation; returns output in next cycle
-    ->  register 0 will always be 0 and cannot be touched
-    ->  forwarding of RD data done if RS1 or RS2 is same as RD
-
-    TODO:
-    1) Bypass logic for chip select, rd_address and operation
-    2) Integrate busyboard into the registers
-    3) Holding registers for 
-*/
 `include "typedefs.sv"
 import instr_desc::*;
 
@@ -26,19 +10,16 @@ module scalar_registers(
     input wb_desc_t wb_data,
 
     // From Instruction Queue
-    input logic[4:0] rs1_addr,
-    input logic[4:0] rs2_addr,
-    chip_select_e cs_input,
+    instr_to_reg_t instr,
 
     // To Issue logic
-    output logic[31:0] rs1_data,
-    output logic[31:0] rs2_data,
-    output chip_select_e cs_registers,
+    operation_bus_if.Registers rs_data_reg
 );
 
 logic[31:0] reg_arr[31:0];
-logic[31:0] rs1_data_q, rs2_data_q;
-chip_select_e cs_registers_q;
+logic[31:0] operand_a_q, operand_b_q;
+logic reg_input_valid_q;
+chip_select_e cs_reg_q;
 
 always_ff @(  posedge clk ) begin
     
@@ -46,9 +27,10 @@ always_ff @(  posedge clk ) begin
         for(int i=0; i<32; i=i+1) begin
             reg_arr[i] <= 32'b0;
         end
-        rs1_data_q <= 32'b0;
-        rs2_data_q <= 32'b0;
-        cs_registers_q <= 0;
+        operand_a_q <= 32'b0;
+        operand_b_q <= 32'b0;
+        cs_reg_q <= 0;
+        reg_input_valid_q <= 1;
     end
     
     else begin
@@ -56,22 +38,31 @@ always_ff @(  posedge clk ) begin
         if(write_enable && wb_data.rd != 0) reg_arr[wb_data.rd] <= wb_data.wb_data;
 
         // reading RS1
-        if(rs1_addr == 5'b0) rs1_data_q <= 32'b0;
-        else if(write_enable && wb_data.rd == rs1_addr) rs1_data_q <= wb_data.wb_data;
-        else rs1_data_q <= reg_arr[rs1_addr];
+        if(instr.read_operand_a) begin
+            if(instr.operand_a_addr == 5'b0) operand_a_q <= 32'b0;
+            else if(write_enable && wb_data.rd == instr.operand_a_addr) operand_a_q <= wb_data.wb_data;
+            else operand_a_q <= reg_arr[instr.operand_a_addr];
+        end
 
         // reading RS2
-        if(rs2_addr == 5'b0) rs2_data_q <= 32'b0;
-        else if(write_enable && wb_data.rd == rs2_addr) rs2_data_q <= wb_data.wb_data;
-        else rs2_data_q <= reg_arr[rs2_addr];
+        if(instr.read_operand_b) begin
+            if(instr.operand_b_addr == 5'b0) operand_b_q <= 32'b0;
+            else if(write_enable && wb_data.rd == instr.operand_b_addr) operand_b_q <= wb_data.wb_data;
+            else operand_b_q <= reg_arr[instr.operand_b_addr];
+        end
+        else if(instr.bypass_operand_b) begin
+            operand_b_q <= instr.operand_b_in;
+        end
 
-        cs_registers_q <= cs_input;
+        cs_reg_q <= instr.cs_reg;
+        reg_input_valid_q <= instr.read_operand_a || instr.read_operand_b || instr.bypass_operand_b;
     end
     
 end
 
-assign rs1_data = rs1_data_q;
-assign rs2_data = rs2_data_q;
-assign cs_registers = cs_registers_q;
+assign rs_data_reg.operand_a_in = operand_a_q;
+assign rs_data_reg.instr.operand_b_in = operand_b_q;
+assign rs_data_reg.reg_chip_select = cs_reg_q;
+assign rs_data_reg.reg_input_valid = reg_input_valid_q;
 
 endmodule
