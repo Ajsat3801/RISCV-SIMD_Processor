@@ -79,28 +79,31 @@ always @(posedge clk) begin
 
     // snoop data from CDB and update if needed
     if(CDB_data.valid) begin
-        if(CDB_data.ROB_id == buffer[0].operand_a_tag && buffer[0].occupied) begin
-            buffer[0].operand_a <= CDB_data.data;
-            buffer[0].operand_a_ready <= 1;
-            if(buffer[0].operand_b_ready) buffer[0].ready_to_dispatch <= 1;
-        end
+        if(buffer[0].occupied) begin
+            if(CDB_data.ROB_id == buffer[0].operand_a_tag && !buffer[0].operand_a_ready) begin
+                buffer[0].operand_a <= CDB_data.data;
+                buffer[0].operand_a_ready <= 1;
+                if(buffer[0].operand_b_ready) buffer[0].ready_to_dispatch <= 1;
+            end
 
-        if(CDB_data.ROB_id == buffer[0].operand_b_tag && buffer[0].occupied) begin
-            buffer[0].operand_b <= CDB_data.data;
-            buffer[0].operand_b_ready <= 1;
-            if(buffer[0].operand_a_ready) buffer[0].ready_to_dispatch <= 1;
+            if(CDB_data.ROB_id == buffer[0].operand_b_tag && !buffer[0].operand_b_ready) begin
+                buffer[0].operand_b <= CDB_data.data;
+                buffer[0].operand_b_ready <= 1;
+                if(buffer[0].operand_a_ready) buffer[0].ready_to_dispatch <= 1;
+            end
         end
+        if(buffer[1].occupied) begin
+            if(CDB_data.ROB_id == buffer[1].operand_a_tag && !buffer[1].operand_a_ready) begin
+                buffer[1].operand_a <= CDB_data.data;
+                buffer[1].operand_a_ready <= 1;
+                if(buffer[1].operand_b_ready) buffer[1].ready_to_dispatch <= 1;
+            end
 
-        if(CDB_data.ROB_id == buffer[1].operand_a_tag && buffer[1].occupied) begin
-            buffer[1].operand_a <= CDB_data.data;
-            buffer[1].operand_a_ready <= 1;
-            if(buffer[1].operand_b_ready) buffer[1].ready_to_dispatch <= 1;
-        end
-
-        if(CDB_data.ROB_id == buffer[1].operand_b_tag && buffer[1].occupied) begin
-            buffer[1].operand_b <= CDB_data.data;
-            buffer[1].operand_b_ready <= 1;
-            if(buffer[1].operand_a_ready) buffer[1].ready_to_dispatch <= 1;
+            if(CDB_data.ROB_id == buffer[1].operand_b_tag && !buffer[1].operand_b_ready) begin
+                buffer[1].operand_b <= CDB_data.data;
+                buffer[1].operand_b_ready <= 1;
+                if(buffer[1].operand_a_ready) buffer[1].ready_to_dispatch <= 1;
+            end
         end
 
     end

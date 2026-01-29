@@ -4,7 +4,7 @@
 
 `timescale 1ns/1ps;
 
-module regfile_scalar_tb();
+module scalar_registers_tb();
 
     logic clk, resetn;
     //connections from writeback
@@ -15,7 +15,7 @@ module regfile_scalar_tb();
     logic[4:0] rs1_addr, rs2_addr;
     logic[31:0] rs1_data, rs2_data;
 
-    regfile_scalar dut(
+    scalar_registers dut(
         .clk(clk),
         .resetn(resetn),
         .write_enable(write_enable),

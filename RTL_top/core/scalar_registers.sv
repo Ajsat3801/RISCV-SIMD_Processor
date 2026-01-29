@@ -60,8 +60,8 @@ always_ff @(  posedge clk ) begin
     
 end
 
-assign rs_data_reg.operand_a_in = operand_a_q;
-assign rs_data_reg.instr.operand_b_in = operand_b_q;
+assign rs_data_reg.operand_a = operand_a_q;
+assign rs_data_reg.instr.operand_b = operand_b_q;
 assign rs_data_reg.reg_chip_select = cs_reg_q;
 assign rs_data_reg.reg_input_valid = reg_input_valid_q;
 

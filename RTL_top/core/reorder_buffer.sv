@@ -1,3 +1,9 @@
+/*
+    has 3 fields, Reg, value and ready
+
+*/
+
+
 module reorder_buffer #(
     parameter QUEUE_DEPTH = 8
 )
@@ -10,6 +16,9 @@ module reorder_buffer #(
     
     //connection with common data bus
     common_data_bus_if.snoop CDB_data,
+
+    // connection with reservation stations
+    operation_bus_if.ROB rs_data,
 
     // connection with scalar registers
     output logic[4:0] writeback_rd,

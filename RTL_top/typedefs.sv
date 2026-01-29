@@ -57,5 +57,16 @@ package instr_desc;
         logic [31:0] wb_data;
     } wb_desc_t;
 
+    typedef struct packed {
+        logic[4:0] rd;
+        logic[4:0] ROB_id;
+        logic valid;
+    } rat_rob_comms_t;
+
+    typedef struct packed {
+        logic[4:0] pointer;
+        logic in_use; // if in use is 1, then value is ROB, else its register
+    } RAT_entry_t;
+
     // typedefs for scalar muldiv, vector alu, vector muldiv remaining
 endpackage
