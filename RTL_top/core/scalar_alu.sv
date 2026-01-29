@@ -30,7 +30,7 @@ module scalar_alu(
     input logic dispatched_op_valid,
     output logic ex_ready,
 
-    // xonnection to writeback arbitrer
+    //connection to writeback arbitrer
     input logic wb_ready,
     output wb_desc_t alu_result,
     output logic alu_result_valid
@@ -42,7 +42,7 @@ logic alu_result_valid_q, ex_ready_q, holding_val, valid_instr;
 
 always_comb begin // combinationally building the output
     valid_instr = 1;
-    current_alu_res.Rob_ID = dispatched_op.Rob_ID;
+    current_alu_res.ROB_id = dispatched_op.ROB_id;
     case(dispatched_op.operation.alu) 
         ALU_ADD: current_alu_res.wb_data = dispatched_op.operand_a + dispatched_op.operand_b;
         ALU_SUB: current_alu_res.wb_data = dispatched_op.operand_a - dispatched_op.operand_b;
@@ -62,12 +62,12 @@ always_ff @(posedge clk) begin
     if(!reset_n) begin
         // reset logic
         
-        alu_result_q.Rob_ID <= 5'b0;
+        alu_result_q.ROB_id <= 5'b0;
         alu_result_q.wb_data <= 32'b0;
         alu_result_valid_q <= 1'b0;
         ex_ready_q <= 1'b1;
 
-        hold_reg.Rob_ID <= 5'b0;
+        hold_reg.ROB_id <= 5'b0;
         hold_reg.wb_data <= 32'b0;
         holding_val <= 1'b0;
 

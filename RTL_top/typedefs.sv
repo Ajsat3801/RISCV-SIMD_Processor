@@ -32,7 +32,7 @@ package instr_desc;
         operations_e operation;
         logic [31:0] operand_a;
         logic [31:0] operand_b;
-        logic [4:0] Rob_ID;
+        logic [4:0] ROB_id;
     } rs_dispatch_t;
 
     typedef struct packed {
@@ -53,7 +53,7 @@ package instr_desc;
     } alu_desc_t;
 
     typedef struct packed {
-        logic [4:0] Rob_ID;
+        logic [4:0] ROB_id;
         logic [31:0] wb_data;
     } wb_desc_t;
 
