@@ -1,8 +1,18 @@
+/*
+    combinationally combine the data into rs_entry format
+    rs_entry.occupied is treated like a valid variable here
+
+    There is potential to make this into a sequential circuit if needed
+*/
+
+`include "typedefs.sv"
+import instr_desc::*;
+
 interface operation_bus_if #(parameter NUM_RS = 2)();
 
 // ROB signals
 logic[4:0] dest_ROB_ID;
-chip_select_e ROB_chip_select;
+chip_select_e ROB_chip_select; // 2 bits
 logic ROB_inputs_valid;
 
 // inputs from Registers
@@ -12,7 +22,7 @@ chip_select_e reg_chip_select;
 logic reg_input_valid;
 
 // inputs from RAT
-operations_e operation;
+operations_e operation; // 4 bits
 chip_select_e RAT_chip_select;
 logic[4:0] src1_ROB_ID;
 logic[4:0] src2_ROB_ID;
@@ -20,25 +30,26 @@ logic src1_ready;
 logic src2_ready;
 logic RAT_op_valid;
 
+// connections from RS
 rs_entry_t rs_entry;
 logic[NUM_RS-1:0] rs_full_vec;
 chip_select_e cs;
 
-/*
-    combinationally combine the data into rs_entry format
-    rs_entry.occupied is treated like a valid variable here
-*/
+// control signals
 assign rs_entry.occupied = (ROB_chip_select == RAT_chip_select) && (RAT_chip_select == reg_chip_select) && reg_input_valid && ROB_inputs_valid && RAT_op_valid;
 assign rs_entry.ready_to_dispatch = src1_ready && src2_ready;
+assign rs_entry.operand_a_ready = src1_ready;
+assign rs_entry.operand_b_ready = src2_ready;
+assign cs = RAT_chip_select;
+
+// data signals
 assign rs_entry.operation = operation;
 assign rs_entry.instr_ROB_ID = dest_ROB_ID;
 assign rs_entry.operand_a = operand_a;
 assign rs_entry.operand_b = operand_b;
 assign rs_entry.operand_a_tag = src1_ROB_ID;
 assign rs_entry.operand_b_tag = src2_ROB_ID;
-assign rs_entry.operand_a_ready = src1_ready;
-assign rs_entry.operand_b_ready = src2_ready;
-assign cs = RAT_chip_select;
+
 
 modport RAT (
     input rs_full_vec,

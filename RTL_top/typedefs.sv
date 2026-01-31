@@ -4,7 +4,7 @@
 
 package instr_desc;
     typedef enum logic {IDLE, BUSY} decode_state_e;
-    typedef enum logic[1:0] {NONE, SALU, SMULDIV, SLSU} chip_select_e;
+    typedef enum logic[1:0] {NONE, CS_SALU, CS_SMULDIV, CS_SLSU} chip_select_e;
     typedef enum logic {SALU, SMULDIV} wb_state_e;
     typedef enum logic[3:0] { ALU_NOP, ALU_ADD, ALU_SUB, ALU_SLT, 
                                 ALU_SLTU, ALU_XOR, ALU_OR, ALU_AND} alu_operations_e;
@@ -36,13 +36,13 @@ package instr_desc;
     } rs_dispatch_t;
 
     typedef struct packed {
-        logic[4:0] operand_a_addr,
-        logic[4:0] operand_b_addr,
-        logic[31:0] operand_b_in,
-        logic read_operand_a,
-        logic read_operand_b,
-        logic bypass_operand_b,
-        chip_select_e cs_reg,
+        logic[4:0] operand_a_addr;
+        logic[4:0] operand_b_addr;
+        logic[31:0] operand_b_in;
+        logic read_operand_a;
+        logic read_operand_b;
+        logic bypass_operand_b;
+        chip_select_e cs_reg;
     } instr_to_reg_t;
 
     typedef struct packed {
