@@ -6,7 +6,7 @@
 
 module scalar_registers_tb();
 
-    logic clk, resetn;
+    logic clk, reset_n;
     //connections from writeback
     logic write_enable;
     wb_desc_t wb_data;
@@ -17,7 +17,7 @@ module scalar_registers_tb();
 
     scalar_registers dut(
         .clk(clk),
-        .resetn(resetn),
+        .reset_n(reset_n),
         .write_enable(write_enable),
         .wb_data(wb_data),
         .rs1_addr(rs1_addr),

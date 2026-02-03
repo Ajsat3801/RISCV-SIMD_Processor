@@ -11,6 +11,10 @@
 
     Note:   RAT updates with a 1 cycle lag in issue, so when checking for an instruction ensure to check 
             the inputs from the ROB too
+            In case of a stall, RS ready bit goes to the instruction queue too, so no need to add
+            additional ready bit for holding values
+
+    TODO:   Holding buffer logic for backpressure from RS
 */
 
 module register_allocation_table #(

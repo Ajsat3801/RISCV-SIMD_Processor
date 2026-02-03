@@ -1,32 +1,35 @@
 /*
-
-Reservation Station (RS) - 2-slots only for simplicity
+Reservation Station — slot-directed + ready-FIFO scheduler (NO_OF_SLOTS parameterized)
 
 Behavior
-1) Allocation / Fill:
-   - Accepts an incoming rs_entry from the operation bus when rs_data.rs_entry.occupied == 1 AND rs_data.cs matches this RS's CHIP_SELECT.
-   - Places the entry into the first free slot (buffer[0] preferred, else buffer[1]).
+    1) Allocation / Fill (IQ-directed):
+    - Accepts an incoming rs_entry when rs_data.rs_entry.occupied==1 AND rs_data.cs==CHIP_SELECT.
+    - IQ provides rs_data.rs_slot; RS writes buffer[rs_slot] directly (no internal “find free slot” logic).
+    - If the issued entry is already ready_to_dispatch, RS enqueues rs_slot into ready_fifo immediately.
 
-2) Wakeup (CDB snoop):
-   - If CDB_data.valid, compare CDB_data.ROB_id against each slot’s operand tags.
-   - When matched, latch CDB_data.data into the operand and mark operand_*_ready.
-   - ready_to_dispatch becomes 1 when both operands are ready.
+    2) Wakeup (CDB snoop):
+    - On CDB_data.valid, scan all buffer entries where occupied==1 and ready_to_dispatch==0.
+    - Compare CDB_data.ROB_id against operand_a_tag / operand_b_tag; on match, latch CDB_data.data and 
+      set operand_*_ready.
+    - When both operands are ready, set ready_to_dispatch=1 and enqueue the slot ID (special-case handles tagA==tagB
+      to avoid double-enqueue).
 
-3) Dispatch:
-   - If a slot is ready_to_dispatch and ex_ready is asserted, build dispatched_op_q and assert dispatched_op_valid_q for that cycle.
-   - The dispatched slot is freed (occupied=0).
-   - If an incoming rs_entry is present, it is written into the just-freed slot (priority is given to dispatch path).
+    3) Dispatch:
+    - If ready_fifo is non-empty (fifo_tail!=fifo_head) and ex_ready==1, pop slot_id=ready_fifo[fifo_head] and drive
+      dispatched_op_q from buffer[slot_id].
+    - Free the slot (occupied=0, ready_to_dispatch=0, operand_*_ready=0) and return rs_slot_released_id=slot_id with
+      rs_slot_released asserted for that cycle.
 
-Notes and Assumptions: 
-- NO_OF_SLOTS parameter is present but buffer is hard-coded to 2 slots. Provision given for future increase
-- ROB ID of the instruction is used for tag compare
-- Occupied bit of incoming rs_entry used as a valid tag for input
-- rs_data will never provide a new entry when rs_full = 1
-
+Notes / Assumptions:
+    - no of slots is always a power of 2.
+    - IQ never reuses a slot ID until it observes rs_slot_released for that slot;
+    - flush/state-clearing means reset fifo and the reservation stations.
+    - ready_fifo depth is 2*NO_OF_SLOTS to simplify pointer wrap; design assumes outstanding ready slot IDs never
+      exceed NO_OF_SLOTS in correct operation.
 */
 
 module reservation_station #(
-    parameter NO_OF_SLOTS = 2, 
+    parameter NO_OF_SLOTS = 2,  // ensure always power of 2
     parameter CHIP_SELECT = 1
     )(
     input logic clk,
@@ -34,10 +37,13 @@ module reservation_station #(
     
     // connection with operation bus 
     operation_bus_if.RS rs_data,
-    output logic rs_full,
 
     // connection with common data bus
     common_data_bus_if.snoop CDB_data,
+
+    // connection with instruction queue
+    output logic[$clog2(NO_OF_SLOTS)-1:0] rs_slot_released_id,
+    output logic rs_slot_released,
 
     // output to execution unit
     input ex_ready,
@@ -45,12 +51,16 @@ module reservation_station #(
     output logic dispatched_op_valid
 );
 
-rs_entry_t buffer[1:0];
-logic rs_full, dispatched_op_valid_q;
+rs_entry_t buffer[NO_OF_SLOTS-1:0];
+logic[$clog2(NO_OF_SLOTS)-1:0] ready_fifo[(NO_OF_SLOTS*2)-1:0]; //fifo with 2x no of slots
+logic dispatched_op_valid_q;
 rs_dispatch_t dispatched_op_q;
+int unsigned i;
+logic[$clog2(NO_OF_SLOTS)-1:0] rs_slot_released_q;
+logic[$clog2(2*NO_OF_SLOTS)-1:0] fifo_head, fifo_tail;
 
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     
     if(!reset_n) begin
 
@@ -65,9 +75,11 @@ always @(posedge clk) begin
         buffer[0].operand_a_tag <= 0;
         buffer[0].operand_b_tag <= 0;
 
-        buffer[1] <= buffer[0];
+        fifo_head <= 0;
+        fifo_tail <= 0;
 
-        rs_full <= 0;
+        for(i = 1; i<NO_OF_SLOTS;i++) buffer[i]<=buffer[0];
+
         dispatched_op_valid_q <= 0;
 
         dispatched_op_q.operation <= 0;
@@ -76,87 +88,84 @@ always @(posedge clk) begin
         dispatched_op_q.ROB_id <= 0;
 
     end
+    else begin
 
-    // snoop data from CDB and update if needed
-    if(CDB_data.valid) begin
-        if(buffer[0].occupied) begin
-            if(CDB_data.ROB_id == buffer[0].operand_a_tag && !buffer[0].operand_a_ready) begin
-                buffer[0].operand_a <= CDB_data.data;
-                buffer[0].operand_a_ready <= 1;
-                if(buffer[0].operand_b_ready) buffer[0].ready_to_dispatch <= 1;
-            end
+        // snoop data from CDB and update if needed
+        // also handle adding to ready_fifo if instruction is ready
+        if(CDB_data.valid) begin
+            for(i=0;i<NO_OF_SLOTS;i++) begin
+                if(buffer[i].occupied && !buffer[i].ready_to_dispatch) begin
+                    if(buffer[i].operand_a_tag != buffer[i].operand_b_tag) begin
+                        if(CDB_data.ROB_id == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
+                            buffer[i].operand_a <= CDB_data.data;
+                            buffer[i].operand_a_ready <= 1;
+                            if(buffer[i].operand_b_ready) begin
+                                buffer[i].ready_to_dispatch <= 1;
+                                ready_fifo[fifo_tail] <= i[$clog2(NO_OF_SLOTS)-1:0];
+                                fifo_tail++;
+                            end
+                        end
+                        if(CDB_data.ROB_id == buffer[i].operand_b_tag && !buffer[i].operand_b_ready) begin
+                            buffer[i].operand_b <= CDB_data.data;
+                            buffer[i].operand_b_ready <= 1;
+                            if(buffer[i].operand_a_ready) begin
+                                buffer[i].ready_to_dispatch <= 1;
+                                ready_fifo[fifo_tail] <= i[$clog2(NO_OF_SLOTS)-1:0];
+                                fifo_tail++; 
+                            end
+                        end
+                    end
+                    else if(CDB_data.ROB_id == buffer[i].operand_a_tag) begin
+                        if (!buffer[i].operand_a_ready && !buffer[i].operand_b_ready) begin
+                            buffer[i].operand_a <= CDB_data.data;
+                            buffer[i].operand_a_ready <= 1;
+                            buffer[i].operand_b <= CDB_data.data;
+                            buffer[i].operand_b_ready <= 1;
 
-            if(CDB_data.ROB_id == buffer[0].operand_b_tag && !buffer[0].operand_b_ready) begin
-                buffer[0].operand_b <= CDB_data.data;
-                buffer[0].operand_b_ready <= 1;
-                if(buffer[0].operand_a_ready) buffer[0].ready_to_dispatch <= 1;
+                            buffer[i].ready_to_dispatch <= 1;
+                            ready_fifo[fifo_tail] <= i[$clog2(NO_OF_SLOTS)-1:0];
+                            fifo_tail++;
+                        end
+                    end
+                end
             end
         end
-        if(buffer[1].occupied) begin
-            if(CDB_data.ROB_id == buffer[1].operand_a_tag && !buffer[1].operand_a_ready) begin
-                buffer[1].operand_a <= CDB_data.data;
-                buffer[1].operand_a_ready <= 1;
-                if(buffer[1].operand_b_ready) buffer[1].ready_to_dispatch <= 1;
-            end
 
-            if(CDB_data.ROB_id == buffer[1].operand_b_tag && !buffer[1].operand_b_ready) begin
-                buffer[1].operand_b <= CDB_data.data;
-                buffer[1].operand_b_ready <= 1;
-                if(buffer[1].operand_a_ready) buffer[1].ready_to_dispatch <= 1;
+
+        // dispatch instructions
+        if((fifo_tail != fifo_head) && ex_ready) begin // queue not empty
+            dispatched_op_q.operation <= buffer[ready_fifo[fifo_head]].operation;
+            dispatched_op_q.operand_a <= buffer[ready_fifo[fifo_head]].operand_a;
+            dispatched_op_q.operand_b <= buffer[ready_fifo[fifo_head]].operand_b;
+            dispatched_op_q.ROB_id <= buffer[ready_fifo[fifo_head]].instr_ROB_ID;
+            buffer[ready_fifo[fifo_head]].occupied <= 0;
+            buffer[ready_fifo[fifo_head]].ready_to_dispatch <= 1'b0;
+            buffer[ready_fifo[fifo_head]].operand_a_ready   <= 1'b0;
+            buffer[ready_fifo[fifo_head]].operand_b_ready   <= 1'b0;
+            dispatched_op_valid_q <=1;
+            rs_slot_released_q <= ready_fifo[fifo_head];
+            
+            fifo_head++;
+        end
+        else dispatched_op_valid_q <= 0;
+
+        // instruction issued
+        if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) begin
+            buffer[rs_data.rs_slot] <= rs_data.rs_entry;
+            if(rs_data.rs_entry.ready_to_dispatch) begin
+                ready_fifo[fifo_tail] <= rs_data.rs_slot;
+                fifo_tail++;
             end
         end
 
     end
-
-    // dispatch instruction to ex unit
-    if(buffer[0].ready_to_dispatch && ex_ready) begin // dispatch at 0 if ready
-
-        // build RS entry into instruction
-        dispatched_op_q.operation <= buffer[0].operation;
-        dispatched_op_q.operand_a <= buffer[0].operand_a;
-        dispatched_op_q.operand_b <= buffer[0].operand_b;
-        dispatched_op_q.ROB_id <= buffer[0].instr_ROB_ID;
-        dispatched_op_valid_q <= 1;
-        
-        buffer[0].occupied <= 0; // Free RS entry
-        // if instruction dispatched and new instruction present, replace
-        if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) buffer[0] <= rs_data.rs_entry; // if 
-
-    end
-    else if(buffer[1].ready_to_dispatch && ex_ready) begin // dispatch at 1 if ready
-        
-        // build RS entry into instruction
-        dispatched_op_q.operation <= buffer[1].operation;
-        dispatched_op_q.operand_a <= buffer[1].operand_a;
-        dispatched_op_q.operand_b <= buffer[1].operand_b;
-        dispatched_op_q.ROB_id <= buffer[1].instr_ROB_ID;
-        dispatched_op_valid_q <= 1;
-
-        buffer[1].occupied <= 0; // free RS entry
-        // if instruction dispatched and new instruction present, replace
-        if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) buffer[1] <= rs_data.rs_entry;
-
-    end
-
-    else if(rs_data.rs_entry.occupied && rs_data.cs == CHIP_SELECT) begin // if no instruction is dispatched
-
-        // Assign entry to one of the slots, map the assigned slot as newest
-        if(buffer[0].occupied == 0) buffer[0] <= rs_data.rs_entry;
-        else buffer[1] <= rs_data.rs_entry;
-        dispatched_op_valid_q <= 0;
-
-    end
-    else dispatched_op_valid_q <= 0;
-    
-
-    rs_full <= buffer[0].occupied && buffer[1].occupied;
-
 end
 
 assign dispatched_op = dispatched_op_q;
 assign dispatched_op_valid = dispatched_op_valid_q;
 
-assign rs_data.rs_full = rs_full;
+assign rs_slot_released_id = rs_slot_released_q;
+assign rs_slot_released = dispatched_op_valid_q;
 
 
 endmodule
