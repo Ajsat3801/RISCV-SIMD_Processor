@@ -8,7 +8,7 @@
 `include "typedefs.sv"
 import instr_desc::*;
 
-interface operation_bus_if #(parameter NUM_RS = 2, parameter RS_SIZE=8)();
+interface operand_bus_if #(parameter NUM_RS = 2, parameter RS_SIZE=8)();
 
 // ROB signals
 logic[4:0] dest_ROB_ID;
@@ -29,7 +29,7 @@ logic[4:0] src2_ROB_ID;
 logic src1_ready;
 logic src2_ready;
 logic RAT_op_valid;
-logic[$clog2(RS_SIZE)-1:0] RAT_rs_slot;
+logic[$clog2(RS_SIZE)-1:0] rs_slot;
 
 // connections from RS
 rs_entry_t rs_entry;
@@ -41,7 +41,6 @@ assign rs_entry.ready_to_dispatch = src1_ready && src2_ready;
 assign rs_entry.operand_a_ready = src1_ready;
 assign rs_entry.operand_b_ready = src2_ready;
 assign cs = RAT_chip_select;
-assign rs_slot = RAT_rs_slot;
 
 // data signals
 assign rs_entry.operation = operation;
@@ -53,7 +52,7 @@ assign rs_entry.operand_b_tag = src2_ROB_ID;
 
 
 modport RAT (
-    output operation, RAT_chip_select, src1_ROB_ID, src2_ROB_ID, src1_ready, src2_ready, RAT_op_valid
+    output operation, RAT_chip_select, src1_ROB_ID, src2_ROB_ID, src1_ready, src2_ready, RAT_op_valid, rs_slot;
 );
 
 modport ROB (
@@ -65,7 +64,6 @@ modport Registers(
     );
 
 modport RS (
-    output 
     input cs, rs_slot, rs_entry
 );
 

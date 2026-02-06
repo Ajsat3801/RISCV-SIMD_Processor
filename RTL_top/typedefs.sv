@@ -16,6 +16,14 @@ package instr_desc;
     } operations_e;
 
     typedef struct packed {
+        operations_e operation;
+        logic[4:0] src1_address;
+        logic[4:0] src2_address;
+        logic[4:0] dest_address;
+        chip_select_e chip_select;
+    } decoded_instr_t;
+
+    typedef struct packed {
         logic occupied;
         logic ready_to_dispatch;
         operations_e operation;

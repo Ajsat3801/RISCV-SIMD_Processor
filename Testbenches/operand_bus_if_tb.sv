@@ -2,7 +2,7 @@
 
 import instr_desc::*;
 
-module operation_bus_if_tb;
+module operand_bus_if_tb;
 
     logic clk;
 
@@ -32,7 +32,7 @@ module operation_bus_if_tb;
     initial clk = 1'b0;
     always #5 clk = ~clk;
 
-    operation_bus_if bus();
+    operand_bus_if bus();
 
     task idle();
         begin

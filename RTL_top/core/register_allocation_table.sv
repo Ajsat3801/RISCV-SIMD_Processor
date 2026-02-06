@@ -13,8 +13,6 @@
             the inputs from the ROB too
             In case of a stall, RS ready bit goes to the instruction queue too, so no need to add
             additional ready bit for holding values
-
-    TODO:   Holding buffer logic for backpressure from RS
 */
 
 module register_allocation_table #(
@@ -24,11 +22,7 @@ module register_allocation_table #(
     input reset_n,
 
     // connection from instruction queues
-    input operations_e operation
-    input logic[4:0] rs1,
-    input logic[4:0] rs2,
-    input logic[4:0] rd, // not sure if needed
-    input chip_select_e RAT_chip_select,
+    instruction_bus_if.RAT instr,
 
     // connection from ROB (issue stage)
     input rat_rob_comms_t issue_comms;
@@ -47,7 +41,8 @@ operations_e operation_q;
 chip_select_e RAT_chip_select_q;
 
 logic src1_ready_q, src2_ready_q, RAT_op_valid_q;
-logic[4:0] src1_ROB_ID_q, src2_ROB_ID_q
+logic[4:0] src1_ROB_ID_q, src2_ROB_ID_q;
+logic[2:0] RS_slot_ID;
 
 
 always @(posedge clk) begin
@@ -64,6 +59,7 @@ always @(posedge clk) begin
         operation_q <= '0;
         RAT_chip_select_q <= '0;
         RAT_op_valid_q <= 1'b0;
+        RS_slot_q <= 3'b000;
 
     end
     else begin
@@ -82,25 +78,26 @@ always @(posedge clk) begin
 
         // check RAT entries for RS1 and RS2
 
-        if(issue_comms.valid && issue_comms.rd == rs1 && rs1 != 0) begin
+        if(issue_comms.valid && issue_comms.rd == instr.src1_address && instr.src1_address != 0) begin
             src1_ROB_ID_q <= issue_comms.ROB_id;
             src1_ready_q <=0;
         end
         else begin
-            src1_ROB_ID_q <= RAT_buffer[rs1].pointer;
-            src1_ready_q <= (rs1 != 0) ? ~RAT_buffer[rs1].in_use : 1;
+            src1_ROB_ID_q <= RAT_buffer[instr.src1_address].pointer;
+            src1_ready_q <= (instr.src1_address != 0) ? ~RAT_buffer[instr.src1_address].in_use : 1;
         end
-        if(issue_comms.valid && issue_comms.rd == rs2 && rs2 != 0) begin
+        if(issue_comms.valid && issue_comms.rd == instr.src2_address && instr.src2_address != 0) begin
             src2_ROB_ID_q <= issue_comms.ROB_id;
             src2_ready_q <= 0;
         end
         else begin
-            src2_ROB_ID_q <= RAT_buffer[rs2].pointer;
-            src2_ready_q <= (rs2 != 0) ? ~RAT_buffer[rs2].in_use : 1;
+            src2_ROB_ID_q <= RAT_buffer[instr.src2_address].pointer;
+            src2_ready_q <= (instr.src2_address != 0) ? ~RAT_buffer[instr.src2_address].in_use : 1;
         end
-        operation_q <= operation;
-        RAT_chip_select_q <= RAT_chip_select;
-        RAT_op_valid_q <= (RAT_chip_select!=0);
+        operation_q <= instr.operation;
+        RAT_chip_select_q <= instr.chip_select;
+        RAT_op_valid_q <= (instr.chip_select!=0);
+        RS_slot_q <= instr.RS_slot_ID;
     end
 
 
@@ -113,5 +110,6 @@ assign issue_data.src2_ROB_ID = src2_ROB_ID_q;
 assign issue_data.src1_ready = src1_ready_q;
 assign issue_data.src2_ready = src2_ready_q;
 assign issue_data.RAT_op_valid = RAT_op_valid_q;
+assign issue_data.rs_slot = RS_slot_ID_q;
 
 endmodule
