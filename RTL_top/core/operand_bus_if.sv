@@ -36,7 +36,7 @@ rs_entry_t rs_entry;
 chip_select_e cs;
 
 // control signals
-assign rs_entry.occupied = (ROB_chip_select == RAT_chip_select) && (RAT_chip_select == reg_chip_select) && reg_input_valid && ROB_inputs_valid && RAT_op_valid;
+assign rs_entry.occupied = reg_input_valid && ROB_inputs_valid && RAT_op_valid;
 assign rs_entry.ready_to_dispatch = src1_ready && src2_ready;
 assign rs_entry.operand_a_ready = src1_ready;
 assign rs_entry.operand_b_ready = src2_ready;

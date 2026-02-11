@@ -22,7 +22,7 @@ module register_allocation_table #(
     input reset_n,
 
     // connection from instruction queues
-    instruction_bus_if.RAT instr,
+    instruction_bus_if.RAT alloc_instr,
 
     // connection from ROB (issue stage)
     input rat_rob_comms_t issue_comms;
@@ -78,26 +78,26 @@ always @(posedge clk) begin
 
         // check RAT entries for RS1 and RS2
 
-        if(issue_comms.valid && issue_comms.rd == instr.src1_address && instr.src1_address != 0) begin
+        if(issue_comms.valid && issue_comms.rd == alloc_instr.src1_address && alloc_instr.src1_address != 0) begin
             src1_ROB_ID_q <= issue_comms.ROB_id;
             src1_ready_q <=0;
         end
         else begin
-            src1_ROB_ID_q <= RAT_buffer[instr.src1_address].pointer;
-            src1_ready_q <= (instr.src1_address != 0) ? ~RAT_buffer[instr.src1_address].in_use : 1;
+            src1_ROB_ID_q <= RAT_buffer[alloc_instr.src1_address].pointer;
+            src1_ready_q <= (alloc_instr.src1_address != 0) ? ~RAT_buffer[alloc_instr.src1_address].in_use : 1;
         end
-        if(issue_comms.valid && issue_comms.rd == instr.src2_address && instr.src2_address != 0) begin
+        if(issue_comms.valid && issue_comms.rd == alloc_instr.src2_address && alloc_instr.src2_address != 0) begin
             src2_ROB_ID_q <= issue_comms.ROB_id;
             src2_ready_q <= 0;
         end
         else begin
-            src2_ROB_ID_q <= RAT_buffer[instr.src2_address].pointer;
-            src2_ready_q <= (instr.src2_address != 0) ? ~RAT_buffer[instr.src2_address].in_use : 1;
+            src2_ROB_ID_q <= RAT_buffer[alloc_instr.src2_address].pointer;
+            src2_ready_q <= (alloc_instr.src2_address != 0) ? ~RAT_buffer[alloc_instr.src2_address].in_use : 1;
         end
-        operation_q <= instr.operation;
-        RAT_chip_select_q <= instr.chip_select;
-        RAT_op_valid_q <= (instr.chip_select!=0);
-        RS_slot_q <= instr.RS_slot_ID;
+        operation_q <= alloc_instr.operation;
+        RAT_chip_select_q <= alloc_instr.chip_select;
+        RAT_op_valid_q <= (alloc_instr.chip_select!=0);
+        RS_slot_q <= alloc_instr.RS_slot_ID;
     end
 
 

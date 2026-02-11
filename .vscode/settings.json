@@ -1,0 +1,16 @@
+{
+    "editor.quickSuggestions": {
+        "other": "off"
+    },
+    "editor.snippetSuggestions": "none",
+    "editor.wordBasedSuggestions": "off",
+    "emmet.showAbbreviationSuggestions": false,
+    "editor.inlineSuggest.edits.showLongDistanceHint": false,
+    "editor.suggest.showFunctions": false,
+    "editor.suggest.showIcons": false,
+    "markdown.suggest.paths.includeWorkspaceHeaderCompletions": "never",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.inlineSuggest.edits.renderSideBySide": "never",
+    "editor.inlineSuggest.enabled": false
+}
