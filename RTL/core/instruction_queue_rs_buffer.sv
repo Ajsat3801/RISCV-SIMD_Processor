@@ -1,4 +1,7 @@
-// circular FIFO with first word fall through i.e. the head value will be the output even before dequeue asks for it
+/*
+modification of circular FIFO with first word fall through
+only change is on reset where we do not make it empty, we set it to full
+*/
 
 module circular_FIFO_fwft #(parameter BUFFER_SIZE = 8, DATA_SIZE = 16)
 (
@@ -35,8 +38,11 @@ end
 always_ff @(posedge clk) begin
 
     if(!reset_n) begin
-        head <= '0;
-        tail <= '0;
+        for(int j=0;j<BUFFER_SIZE;j++) begin
+            main_FIFO[j] <= DATA_SIZE'(j);
+        end
+        head <= 0;
+        tail <= BUFFER_SIZE;
     end
 
     else begin // body
@@ -52,5 +58,6 @@ always_ff @(posedge clk) begin
     end
 
 end
+
 
 endmodule

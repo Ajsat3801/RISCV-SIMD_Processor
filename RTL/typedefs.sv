@@ -6,8 +6,8 @@ package instr_desc;
     typedef enum logic {IDLE, BUSY} decode_state_e;
     typedef enum logic[1:0] {NONE, CS_SALU, CS_SMULDIV, CS_SLSU} chip_select_e;
     typedef enum logic {SALU, SMULDIV} wb_state_e;
-    typedef enum logic[3:0] { ALU_NOP, ALU_ADD, ALU_SUB, ALU_SLT, 
-                                ALU_SLTU, ALU_XOR, ALU_OR, ALU_AND} alu_operations_e;
+    typedef enum logic[3:0] {   4'b0000 = ALU_ADD, 4'b0010 = ALU_SLT, 4'b0011 = ALU_SLTU, 
+                                4'b0100 = ALU_XOR, 4'b0110 = ALU_OR,  4'b0111 = ALU_AND } alu_operations_e;
     typedef enum logic [3:0] {NOP, MUL, DIV} muldiv_ops_e;
 
     typedef union packed {
@@ -20,12 +20,14 @@ package instr_desc;
         logic[4:0] src1_address;
         logic[4:0] src2_address;
         logic[4:0] dest_address;
+        logic read_src2;
+        logic branch;
+        logic[31:0] target_pc;
         chip_select_e chip_select;
     } decoded_instr_t;
 
     typedef struct packed {
         logic occupied;
-        logic ready_to_dispatch;
         operations_e operation;
         logic[4:0] instr_ROB_ID;
         logic[31:0] operand_a;
@@ -38,8 +40,9 @@ package instr_desc;
 
     typedef struct packed {
         operations_e operation;
-        logic [31:0] operand_a;
-        logic [31:0] operand_b;
+        logic[31:0] operand_a;
+        logic[31:0] operand_b;
+        logic sign;
         logic [4:0] ROB_id;
     } rs_dispatch_t;
 
@@ -72,7 +75,7 @@ package instr_desc;
     } rat_rob_comms_t;
 
     typedef struct packed {
-        logic[4:0] pointer;
+        logic[4:0] ROB_id;
         logic in_use; // if in use is 1, then value is ROB, else its register
     } RAT_entry_t;
 

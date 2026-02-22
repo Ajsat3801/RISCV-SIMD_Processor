@@ -18,12 +18,16 @@ module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
     input decoded_instr_t decoded_instr,
     output queue_ready,
 
-    // outputs to instruction bus
-    instruction_bus_if.Instruction_Queue alloc_instr,
-
     // array of inputs from Reservation Stations
     input logic[($clog2(RS_LEN)*NUM_RS)-1:0] rs_slot_released_id,
     input logic[NUM_RS-1:0] rs_released
+
+    // outputs to instruction bus
+    output IQ_ROB_t alloc_instr_ROB;
+    output IQ_RAT_t alloc_instr_RAT;
+    output IQ_Reg_t alloc_instr_Reg;
+
+    input ROB_full;
 
 );
 
@@ -85,7 +89,7 @@ always_comb begin
 
     if(!empty && cs != 0 && cs<=NUM_RS) begin
         rs_index = instr_fifo[head].chip_select - 1;
-        dequeue = !rs_empty[rs_index];
+        dequeue = !rs_empty[rs_index] && !ROB_full;
         dequeue_rs_fifo[rs_index] = dequeue;
     end
 
@@ -121,9 +125,25 @@ always_ff @(posedge clk) begin
     end
 end
 
-assign alloc_instr.alloc_instr = alloc_instr_q;
-assign alloc_instr.RS_slot_ID = rs_slot_id_q;
-assign alloc_instr.valid = (alloc_instr_q.chip_select != 0);
+assign instr_valid = (alloc_instr_q.chip_select != 0);
+
+assign alloc_instr_RAT.valid = instr_valid;
+assign alloc_instr_RAT.operation = alloc_instr_q.operation;
+assign alloc_instr_RAT.src1_address = alloc_instr_q.src1_address;
+assign alloc_instr_RAT.src2_address = alloc_instr_q.src2_address;
+assign alloc_instr_RAT.chip_select = alloc_instr_q.chip_select;
+assign alloc_instr_RAT.RS_slot_ID = rs_slot_id_q;
+
+assign alloc_instr_ROB.valid = instr_valid;
+assign alloc_instr_ROB.dest_address = alloc_instr_q.dest_address;
+assign alloc_instr_ROB.branch = alloc_instr_q.branch;
+assign alloc_instr_ROB.target_pc = alloc_instr_q.target_pc;
+
+assign alloc_instr_Reg.valid = instr_valid;
+assign alloc_instr_Reg.src1_address = alloc_instr_q.src1_address;
+assign alloc_instr_Reg.src2_address = alloc_instr_q.src2_address;
+assign alloc_instr_Reg.read_src2 = alloc_instr_q.read_src2;
+
 assign queue_ready = (!full || dequeue);
 
 endmodule

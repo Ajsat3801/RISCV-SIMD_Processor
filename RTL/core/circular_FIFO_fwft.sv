@@ -1,15 +1,19 @@
-// circular FIFO with first word fall through i.e. the head value will be the output even before dequeue asks for it
+/* 
+circular FIFO with first word fall through - general implementation
+the head value will be the output even before dequeue asks for it
+*/
 
 module circular_FIFO_fwft #(parameter BUFFER_SIZE = 8, DATA_SIZE = 16)
 (
     
-    input clk,
-    input reset_n,
+    input logic clk,
+    input logic reset_n,
     
     input logic enqueue,
     input logic[DATA_SIZE-1:0] enqueue_data,
 
     input logic dequeue,
+    
     output logic[DATA_SIZE-1:0] dequeue_data,
     output logic empty,
     output logic full
@@ -35,12 +39,8 @@ end
 always_ff @(posedge clk) begin
 
     if(!reset_n) begin
-        for(int j=0;j<BUFFER_SIZE;j++) begin
-            main_FIFO[j] <= DATA_SIZE'(j);
-        end
-        main_FIFO[BUFFER_SIZE] <= 0;
-        head <= 0;
-        tail <= BUFFER_SIZE;
+        head <= '0;
+        tail <= '0;
     end
 
     else begin // body
@@ -56,6 +56,5 @@ always_ff @(posedge clk) begin
     end
 
 end
-
 
 endmodule
