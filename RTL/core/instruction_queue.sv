@@ -6,8 +6,6 @@
 
 */
 
-
-`include "typedefs.sv"
 import instr_desc::*;
 
 module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
@@ -15,7 +13,7 @@ module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
     input logic reset_n,
 
     // inputs from decode
-    input decoded_instr_t decoded_instr,
+    input instr_pkg::decoded_instr_t decoded_instr,
     output queue_ready,
 
     // array of inputs from Reservation Stations
@@ -23,9 +21,9 @@ module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
     input logic[NUM_RS-1:0] rs_released
 
     // outputs to instruction bus
-    output queue_to_rob_t alloc_instr_rob;
-    output queue_to_rat_t alloc_instr_rat;
-    output queue_to_reg_t alloc_instr_reg;
+    output signal_pkg::queue_to_rob_t alloc_instr_rob;
+    output signal_pkg::queue_to_rat_t alloc_instr_rat;
+    output signal_pkg::queue_to_reg_t alloc_instr_reg;
 
     input rob_full;
 
@@ -41,16 +39,16 @@ logic[RS_ADDR_LEN-1:0] next_rs_slot[NUM_RS-2:0];
 logic[NUM_RS-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
 // Instruction FIFO
-decoded_instr_t instr_fifo[FIFO_LEN:0]; // N+1 entry buffer
+instr_pkg::decoded_instr_t instr_fifo[FIFO_LEN:0]; // N+1 entry buffer
 logic[FIFO_PTR_LEN-1:0] head, tail, head_next, tail_next;
 logic full, empty, enqueue, dequeue;
 
 // output flip flops
-decoded_instr_t alloc_instr_q;
+instr_pkg::decoded_instr_t alloc_instr_q;
 logic[RS_ADDR_LEN-1:0] rs_slot_id_q;
 
 logic[RS_IDX_W-1:0] rs_index;
-chip_select_e cs;
+instr_pkg::chip_select_e cs;
 
 genvar i;
 generate

@@ -34,23 +34,22 @@ module scalar_alu(
     input logic reset_n,
 
     // connection to reservation station
-    input rs_dispatch_t dispatched_op,
-    input logic dispatched_op_valid,
+    input signal_pkg::rs_to_alu_signal_t dispatched_op,
     output logic ex_ready,
 
     //connection to writeback arbitrer
     input logic wb_ready,
-    output wb_desc_t alu_result,
-    output logic alu_result_valid
+    output signal_pkg::ex_to_wb_signal_t alu_result,
 
 );
 
-wb_desc_t alu_result_q, current_alu_res, hold_reg;
-logic alu_result_valid_q, ex_ready_q, holding_val, res_valid;
+signal_pkg::ex_to_wb_signal_t alu_result_q, current_alu_res, hold_reg;
+logic ex_ready_q, holding_val;
 logic res_to_op, res_to_hold, hold_to_op, op_valid, hold_next, ready;
+logic a_lt_b, a_lt_b_u, a_eq_b;
 
 always_comb begin // combinationally building the output
-    res_valid = dispatched_op_valid;
+    current_alu_res.valid = dispatched_op.valid;
     current_alu_res.ROB_id = dispatched_op.ROB_id;
 
     a_lt_b = ($signed(dispatched_op.operand_a) < $signed(dispatched_op.operand_b)) ? 32'b1 : 32'b0;
@@ -74,13 +73,13 @@ always_comb begin // combinationally building the output
         
         default : begin
             current_alu_res.wb_data = 32'b0;
-            res_valid = 1'b0;
+            current_alu_res.valid = 1'b0;
         end
     endcase
 
     hold_to_op = wb_ready && holding_val; // send holding reg to output if wb is ready
-    res_to_op = res_valid && !holding_val && wb_ready; // send result to holding reg if writeback is not ready and holding is empty
-    res_to_hold = res_valid && (hold_to_op || !wb_ready); // send result to holding register if holding instr is out or wb is not ready
+    res_to_op = current_alu_res.valid && !holding_val && wb_ready; // send result to holding reg if writeback is not ready and holding is empty
+    res_to_hold = current_alu_res.valid && (hold_to_op || !wb_ready); // send result to holding register if holding instr is out or wb is not ready
     op_valid = hold_to_op || res_to_op;
     hold_next = (holding_val && !hold_to_op) || res_to_hold; // next state of holding reg
     ready = res_to_op || res_to_hold;
@@ -91,7 +90,6 @@ always_ff @(posedge clk) begin
     if(!reset_n) begin
         
         alu_result_q <= 'd0;
-        alu_result_valid_q <= 1'b0;
         ex_ready_q <= 1'b1;
 
         hold_reg <= 'd0;
@@ -106,16 +104,15 @@ always_ff @(posedge clk) begin
 
         if(res_to_hold) hold_reg <= current_alu_res;
 
-        holding_val <= hold_valid;
+        holding_val <= hold_next;
         ex_ready_q <= ready;
-        alu_result_valid_q <= op_valid;
+        alu_result_q.valid <= op_valid;
     end
         
 end
 
 assign ex_ready = ex_ready_q;
 assign alu_result = alu_result_q;
-assign alu_result_valid = alu_result_valid_q;
 
 
 endmodule

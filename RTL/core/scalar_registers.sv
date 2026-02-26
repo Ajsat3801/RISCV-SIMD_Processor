@@ -9,7 +9,7 @@ module scalar_registers(
     retirement_bus_if.Reg write_data,
 
     // From Instruction Queue
-    input IQ_Reg_t read_data,
+    input signal_pkg::queue_to_reg_signal_t read_data,
 
     // To Issue logic
     operand_bus_if.Registers rs_data_reg
@@ -36,8 +36,7 @@ always_comb begin
         else operand_b = reg_arr[read_data.src2_address];
 
     end
-
-
+    
 end
 
 always_ff @( posedge clk ) begin

@@ -5,10 +5,10 @@ module register_allocation_table #(
     input reset_n,
 
     // connection from instruction queues
-    input queue_to_rat_signal_t alloc_instr,
+    input signal_pkg::queue_to_rat_signal_t alloc_instr,
 
     // connection from ROB (issue stage)
-    input rob_to_rat_signal_t issue_instr,
+    input signal_pkg::rob_to_rat_signal_t issue_instr,
 
     // connection from ROB (retire stage)
     retirement_bus_if.retire retire_instr,
@@ -17,9 +17,9 @@ module register_allocation_table #(
     operation_bus_if.rat issue_data,
 );
 
-rat_entry_t rat_buffer[31:0];
-operations_e operation_q;
-chip_select_e chip_select_q;
+storage_pkg::rat_entry_t rat_buffer[31:0];
+instr_pkg::operations_e operation_q;
+instr_pkg::chip_select_e chip_select_q;
 
 logic src1_ready_q, src2_ready_q, rat_input_valid_q;
 logic[4:0] src1_rob_id_q, src2_rob_id_q, src1_rob_id, src2_rob_id;

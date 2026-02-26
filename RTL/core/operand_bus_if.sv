@@ -5,8 +5,6 @@
     There is potential to make this into a sequential circuit if needed
 */
 
-`include "typedefs.sv"
-import instr_desc::*;
 
 interface operand_bus_if #(parameter NUM_RS = 2, parameter RS_SIZE=8)();
 
@@ -20,8 +18,8 @@ logic[31:0] operand_b;
 logic reg_input_valid;
 
 // inputs from RAT
-operations_e operation; // 4 bits
-chip_select_e chip_select;
+instr_pkg::operations_e operation; // 4 bits
+instr_pkg::chip_select_e chip_select;
 logic[4:0] src1_rob_id;
 logic[4:0] src2_rob_id;
 logic src1_ready;
@@ -31,7 +29,7 @@ logic rat_input_valid;
 logic[$clog2(RS_SIZE)-1:0] rs_slot;
 
 // connections from RS
-rs_entry_t rs_entry;
+storage_pkg::rs_entry_t rs_entry;
 
 // control signals
 assign rs_entry.occupied = reg_input_valid && rob_input_valid && rat_input_valid;

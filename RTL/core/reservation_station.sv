@@ -20,15 +20,15 @@ module reservation_station #(
 
     // output to execution unit
     input ex_ready,
-    output rs_to_alu_signal_t dispatched_op
+    output signal_pkg::rs_to_alu_signal_t dispatched_op
 );
 
 localparam ROB_ADDR_W = $clog2(ROB_SIZE);
 
-rs_entry_t buffer[NO_OF_SLOTS-1:0];
+storage_pkg::rs_entry_t buffer[NO_OF_SLOTS-1:0];
 logic[$clog2(NO_OF_SLOTS)-1:0] ready_fifo[(NO_OF_SLOTS):0]; //fifo with no of slots + 1
 logic dispatch, instr_valid, fifo_empty, bypass, snoop_cdb;
-rs_dispatch_t dispatched_op_q;
+signal_pkg::rs_to_alu_signal_t dispatched_op_q;
 logic[$clog2(NO_OF_SLOTS)-1:0] ready_fifo_head, released_id_q;
 logic[$clog2(NO_OF_SLOTS+1)-1:0] fifo_head, fifo_tail, head_next;
 logic[NO_OF_SLOTS-1:0] enqueued, eligible, snoop, ready_to_dispatch;
