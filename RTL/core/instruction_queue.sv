@@ -23,11 +23,11 @@ module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
     input logic[NUM_RS-1:0] rs_released
 
     // outputs to instruction bus
-    output IQ_ROB_t alloc_instr_ROB;
-    output IQ_RAT_t alloc_instr_RAT;
-    output IQ_Reg_t alloc_instr_Reg;
+    output queue_to_rob_t alloc_instr_rob;
+    output queue_to_rat_t alloc_instr_rat;
+    output queue_to_reg_t alloc_instr_reg;
 
-    input ROB_full;
+    input rob_full;
 
 );
 
@@ -37,7 +37,7 @@ localparam int RS_IDX_W = (NUM_RS<=2) ? 1 : $clog2(NUM_RS);
 
 // RS Slot tracking buffer
 // NOTE: track chip_select-1 field for each RS; CS=0 dont do anything
-logic[RS_ADDR_LEN-1:0] next_rs_slot[NUM_RS-1:0];
+logic[RS_ADDR_LEN-1:0] next_rs_slot[NUM_RS-2:0];
 logic[NUM_RS-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
 // Instruction FIFO
@@ -77,7 +77,7 @@ always_comb begin
     dequeue_rs_fifo = 'd0;
     dequeue = 1'b0;
     enqueue = 1'b0;
-    rs_index = 1'b0;
+    rs_index = 'd0;
     
     tail_next = (tail == FIFO_LEN) ? 0 :(tail + 1);
     head_next = (head == FIFO_LEN) ? 0 :(head + 1);
@@ -87,13 +87,19 @@ always_comb begin
 
     cs = instr_fifo[head].chip_select;
 
-    if(!empty && cs != 0 && cs<=NUM_RS) begin
-        rs_index = instr_fifo[head].chip_select - 1;
-        dequeue = !rs_empty[rs_index] && !ROB_full;
-        dequeue_rs_fifo[rs_index] = dequeue;
+    if(!empty && instr_fifo[head].valid ) begin
+        if(cs!=0 && cs<NUM_RS) begin
+            rs_index = instr_fifo[head].chip_select - 1;
+            dequeue = !rs_empty[rs_index] && !rob_full;
+            dequeue_rs_fifo[rs_index] = dequeue;
+        end
+        else begin
+            dequeue = !rob_full;
+            dequeue_rs_fifo = 'd0;
+        end
     end
 
-    enqueue = (!full || dequeue) && (decoded_instr.chip_select != 0);
+    enqueue = (!full || dequeue) && decoded_instr.valid;
     
 end
 
@@ -127,22 +133,22 @@ end
 
 assign instr_valid = (alloc_instr_q.chip_select != 0);
 
-assign alloc_instr_RAT.valid = instr_valid;
-assign alloc_instr_RAT.operation = alloc_instr_q.operation;
-assign alloc_instr_RAT.src1_address = alloc_instr_q.src1_address;
-assign alloc_instr_RAT.src2_address = alloc_instr_q.src2_address;
-assign alloc_instr_RAT.chip_select = alloc_instr_q.chip_select;
-assign alloc_instr_RAT.RS_slot_ID = rs_slot_id_q;
+assign alloc_instr_rat.valid = instr_valid;
+assign alloc_instr_rat.operation = alloc_instr_q.operation;
+assign alloc_instr_rat.src1_address = alloc_instr_q.src1_address;
+assign alloc_instr_rat.src2_address = alloc_instr_q.src2_address;
+assign alloc_instr_rat.chip_select = alloc_instr_q.chip_select;
+assign alloc_instr_rat.RS_slot_ID = rs_slot_id_q;
 
-assign alloc_instr_ROB.valid = instr_valid;
-assign alloc_instr_ROB.dest_address = alloc_instr_q.dest_address;
-assign alloc_instr_ROB.branch = alloc_instr_q.branch;
-assign alloc_instr_ROB.target_pc = alloc_instr_q.target_pc;
+assign alloc_instr_rob.valid = instr_valid;
+assign alloc_instr_rob.dest_address = alloc_instr_q.dest_address;
+assign alloc_instr_rob.branch = alloc_instr_q.branch;
+assign alloc_instr_rob.target_pc = alloc_instr_q.target_pc;
 
-assign alloc_instr_Reg.valid = instr_valid;
-assign alloc_instr_Reg.src1_address = alloc_instr_q.src1_address;
-assign alloc_instr_Reg.src2_address = alloc_instr_q.src2_address;
-assign alloc_instr_Reg.read_src2 = alloc_instr_q.read_src2;
+assign alloc_instr_reg.valid = instr_valid;
+assign alloc_instr_reg.src1_address = alloc_instr_q.src1_address;
+assign alloc_instr_reg.src2_address = alloc_instr_q.src2_address;
+assign alloc_instr_reg.read_src2 = alloc_instr_q.read_src2;
 
 assign queue_ready = (!full || dequeue);
 

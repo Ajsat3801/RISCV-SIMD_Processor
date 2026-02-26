@@ -11,60 +11,58 @@ import instr_desc::*;
 interface operand_bus_if #(parameter NUM_RS = 2, parameter RS_SIZE=8)();
 
 // ROB signals
-logic[4:0] dest_ROB_ID;
-chip_select_e ROB_chip_select; // 2 bits
-logic ROB_inputs_valid;
+logic[4:0] dest_rob_id;
+logic rob_input_valid;
 
 // inputs from Registers
 logic[31:0] operand_a;
 logic[31:0] operand_b;
-chip_select_e reg_chip_select;
 logic reg_input_valid;
 
 // inputs from RAT
 operations_e operation; // 4 bits
-chip_select_e RAT_chip_select;
-logic[4:0] src1_ROB_ID;
-logic[4:0] src2_ROB_ID;
+chip_select_e chip_select;
+logic[4:0] src1_rob_id;
+logic[4:0] src2_rob_id;
 logic src1_ready;
 logic src2_ready;
-logic RAT_op_valid;
+logic sign;
+logic rat_input_valid;
 logic[$clog2(RS_SIZE)-1:0] rs_slot;
 
 // connections from RS
 rs_entry_t rs_entry;
-chip_select_e cs;
 
 // control signals
-assign rs_entry.occupied = reg_input_valid && ROB_inputs_valid && RAT_op_valid;
+assign rs_entry.occupied = reg_input_valid && rob_input_valid && rat_input_valid;
 assign rs_entry.ready_to_dispatch = src1_ready && src2_ready;
 assign rs_entry.operand_a_ready = src1_ready;
 assign rs_entry.operand_b_ready = src2_ready;
-assign cs = RAT_chip_select;
 
 // data signals
 assign rs_entry.operation = operation;
-assign rs_entry.instr_ROB_ID = dest_ROB_ID;
+assign rs_entry.instr_rob_id = dest_rob_id;
 assign rs_entry.operand_a = operand_a;
 assign rs_entry.operand_b = operand_b;
-assign rs_entry.operand_a_tag = src1_ROB_ID;
-assign rs_entry.operand_b_tag = src2_ROB_ID;
+assign rs_entry.operand_a_tag = src1_rob_id;
+assign rs_entry.operand_b_tag = src2_rob_id;
+assign rs_entry.sign = sign;
 
 
 modport RAT (
-    output operation, RAT_chip_select, src1_ROB_ID, src2_ROB_ID, src1_ready, src2_ready, RAT_op_valid, rs_slot;
+    output operation, chip_select, sign, src1_rob_id, src2_rob_id, src1_ready, src2_ready, rat_input_valid, rs_slot;
 );
 
 modport ROB (
-    output dest_ROB_ID, ROB_chip_select, ROB_inputs_valid
+    output dest_rob_id, rob_input_valid
 );
 
 modport Registers(
-    output operand_a, operand_b, reg_chip_select, reg_input_valid
+    output operand_a, operand_b, reg_input_valid
     );
 
 modport RS (
-    input cs, rs_slot, rs_entry
+    input chip_select, rs_slot, rs_entry
 );
 
 endinterface

@@ -3,7 +3,7 @@
 interface instruction_bus_if();
 
 decoded_instr_t alloc_instr;
-logic[2:0]  RS_slot_ID;
+logic[2:0]  rs_slot_id;
 logic valid;
 
 operations_e operation;
@@ -23,13 +23,13 @@ assign branch = alloc_instr.branch;
 
 modport Instruction_Queue (
     output alloc_instr, 
-    RS_slot_ID, valid
+    rs_slot_id, valid
 );
 
 modport RAT (
     input valid, operation, src1_address, 
     src2_address, chip_select, 
-    RS_slot_ID
+    rs_slot_id
 );
 
 modport ROB (

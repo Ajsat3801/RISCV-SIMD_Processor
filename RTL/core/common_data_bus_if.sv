@@ -5,11 +5,8 @@ logic[31:0] data;
 logic branch; // Branch is 0 only then snoop done
 logic valid;
 
-logic instr_valid = ~branch && valid;
-
 modport writeback(output ROB_id, data, branch, valid);
-modport RSsnoop(input ROB_id, data, instr_valid);
-modport ROBsnoop(input ROB_id, data, branch, valid);
+modport snoop(input ROB_id, data, branch, valid);
 
 endinterface
 
