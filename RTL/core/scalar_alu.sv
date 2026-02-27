@@ -24,9 +24,7 @@ CODE    ALU_OPERATION           INSTRUCTIONS
 1 110 - ALU_BLTU
 1 111 - ALU_BGEU
 
-Undecided on SUB. Should we do ADD + sign bit or give seperate code.
-
-
+SUB = ADD && sign bit
 */
 
 module scalar_alu(
@@ -37,6 +35,9 @@ module scalar_alu(
     input signal_pkg::rs_to_alu_signal_t dispatched_op,
     output logic ex_ready,
 
+    output logic branch_valid,
+    output logic branch_taken,
+
     //connection to writeback arbitrer
     input logic wb_ready,
     output signal_pkg::ex_to_wb_signal_t alu_result,
@@ -44,45 +45,53 @@ module scalar_alu(
 );
 
 signal_pkg::ex_to_wb_signal_t alu_result_q, current_alu_res, hold_reg;
-logic ex_ready_q, holding_val;
+logic ex_ready_q, holding_val, is_branch_q, branch_taken_q;
 logic res_to_op, res_to_hold, hold_to_op, op_valid, hold_next, ready;
 logic a_lt_b, a_lt_b_u, a_eq_b;
+logic is_branch_val, branch_taken_val;
+logic[31:0] operand_b;
 
 always_comb begin // combinationally building the output
-    current_alu_res.valid = dispatched_op.valid;
-    current_alu_res.ROB_id = dispatched_op.ROB_id;
+    
+    current_alu_res.rob_id = dispatched_op.rob_id;
+    current_alu_res.wb_data = 32'b0;
+    branch_taken_val = 1'b0;
 
     a_lt_b = ($signed(dispatched_op.operand_a) < $signed(dispatched_op.operand_b)) ? 32'b1 : 32'b0;
     a_lt_b_u = (dispatched_op.operand_a < dispatched_op.operand_b) ? 32'b1 : 32'b0;
     a_eq_b = (dispatched_op.operand_a == dispatched_op.operand_b) ? 32'b1 : 32'b0;
 
+    if (dispatched_op.operation.alu == ALU_ADD && dispatched_op.sign) begin
+        operand_b = (~dispatched_op.operand_b) + 1; // 2s complement for subtraction
+    end
+    else operand_b = dispatched_op.operand_b; // for the rest
+
     unique case (dispatched_op.operation.alu)
-        ALU_ADD : current_alu_res.wb_data = dispatched_op.operand_a + dispatched_op.operand_b;
-        ALU_SUB : current_alu_res.wb_data = dispatched_op.operand_a - dispatched_op.operand_b;
+        ALU_ADD : current_alu_res.wb_data = dispatched_op.operand_a + operand_b;
+        //ALU_SUB : current_alu_res.wb_data = dispatched_op.operand_a - dispatched_op.operand_b;
         ALU_SLT : current_alu_res.wb_data = a_lt_b;
         ALU_SLTU: current_alu_res.wb_data = a_lt_b_u;
         ALU_XOR : current_alu_res.wb_data = dispatched_op.operand_a ^ dispatched_op.operand_b;
         ALU_OR  : current_alu_res.wb_data = dispatched_op.operand_a | dispatched_op.operand_b;
         ALU_AND : current_alu_res.wb_data = dispatched_op.operand_a & dispatched_op.operand_b;
-        ALU_BEQ : current_alu_res.wb_data = a_eq_b;
-        ALU_BNE : current_alu_res.wb_data = !a_eq_b;
-        ALU_BLT : current_alu_res.wb_data = a_lt_b;
-        ALU_BLTU: current_alu_res.wb_data = a_lt_b_u;
-        ALU_BGE : current_alu_res.wb_data = !a_lt_b;
-        ALU_BGEU: current_alu_res.wb_data = !a_lt_b_u;
-        
-        default : begin
-            current_alu_res.wb_data = 32'b0;
-            current_alu_res.valid = 1'b0;
-        end
+        ALU_BEQ : branch_taken_val = a_eq_b[0];
+        ALU_BNE : branch_taken_val = !a_eq_b[0];
+        ALU_BLT : branch_taken_val = a_lt_b[0];
+        ALU_BLTU: branch_taken_val = a_lt_b_u[0];
+        ALU_BGE : branch_taken_val = !a_lt_b[0];
+        ALU_BGEU: branch_taken_val = !a_lt_b_u[0];
     endcase
 
+    is_branch_val = dispatched_op.valid && dispatched_op.operation[3];
+    current_alu_res.valid = dispatched_op.valid && !is_branch_val;
+
     hold_to_op = wb_ready && holding_val; // send holding reg to output if wb is ready
+
     res_to_op = current_alu_res.valid && !holding_val && wb_ready; // send result to holding reg if writeback is not ready and holding is empty
     res_to_hold = current_alu_res.valid && (hold_to_op || !wb_ready); // send result to holding register if holding instr is out or wb is not ready
     op_valid = hold_to_op || res_to_op;
     hold_next = (holding_val && !hold_to_op) || res_to_hold; // next state of holding reg
-    ready = res_to_op || res_to_hold;
+    ready = res_to_op || res_to_hold || is_branch_val;
 
 end
 
@@ -107,12 +116,17 @@ always_ff @(posedge clk) begin
         holding_val <= hold_next;
         ex_ready_q <= ready;
         alu_result_q.valid <= op_valid;
+
+        is_branch_q <= is_branch_val;
+        branch_taken_q <= branch_taken_val;
     end
         
 end
 
 assign ex_ready = ex_ready_q;
 assign alu_result = alu_result_q;
+assign is_branch = is_branch_q;
+assign branch_taken = branch_taken_q;
 
 
 endmodule

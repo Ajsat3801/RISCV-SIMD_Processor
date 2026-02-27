@@ -47,19 +47,19 @@ assign rs_entry.operand_b_tag = src2_rob_id;
 assign rs_entry.sign = sign;
 
 
-modport RAT (
+modport rat (
     output operation, chip_select, sign, src1_rob_id, src2_rob_id, src1_ready, src2_ready, rat_input_valid, rs_slot;
 );
 
-modport ROB (
+modport rob (
     output dest_rob_id, rob_input_valid
 );
 
-modport Registers(
+modport registers(
     output operand_a, operand_b, reg_input_valid
     );
 
-modport RS (
+modport rs (
     input chip_select, rs_slot, rs_entry
 );
 

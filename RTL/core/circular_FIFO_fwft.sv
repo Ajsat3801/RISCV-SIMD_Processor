@@ -3,25 +3,25 @@ circular FIFO with first word fall through - general implementation
 the head value will be the output even before dequeue asks for it
 */
 
-module circular_FIFO_fwft #(parameter BUFFER_SIZE = 8, DATA_SIZE = 16)
+module circular_FIFO_fwft #(parameter BUFFER_SIZE = 8, parameter type T = logic[31:0])
 (
     
     input logic clk,
     input logic reset_n,
     
     input logic enqueue,
-    input logic[DATA_SIZE-1:0] enqueue_data,
+    input T enqueue_data,
 
     input logic dequeue,
     
-    output logic[DATA_SIZE-1:0] dequeue_data,
+    output T dequeue_data,
     output logic empty,
     output logic full
 );
 
 localparam ADDR_SIZE = $clog2(BUFFER_SIZE+1);
 
-logic[DATA_SIZE-1:0] main_FIFO[BUFFER_SIZE:0]; // N+1 entry buffer
+T main_FIFO[BUFFER_SIZE:0]; // N+1 entry buffer
 logic[ADDR_SIZE-1:0] head, tail, head_next, tail_next; // address needs one extra bit
 
 always_comb begin

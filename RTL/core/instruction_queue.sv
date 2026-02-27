@@ -6,8 +6,6 @@
 
 */
 
-import instr_desc::*;
-
 module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
     input logic clk,
     input logic reset_n,
@@ -53,7 +51,7 @@ instr_pkg::chip_select_e cs;
 genvar i;
 generate
     for(i=0; i<NUM_RS; i++) begin
-        circular_FIFO_fwft #(BUFFER_SIZE = RS_LEN, DATA_SIZE = RS_ADDR_LEN) rs_fifo (
+        instruction_queue_rs_buffer #(BUFFER_SIZE = RS_LEN, DATA_SIZE = RS_ADDR_LEN) rs_fifo (
             .clk(clk),
             .reset_n(reset_n),
             .enqueue(rs_released[i]),
@@ -62,7 +60,7 @@ generate
             .dequeue_data(next_rs_slot[i]),
             .empty(rs_empty[i]),
             .full(rs_full[i])
-        )
+        );
     end
 
 endgenerate

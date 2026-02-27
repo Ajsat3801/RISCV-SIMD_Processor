@@ -11,17 +11,17 @@ module register_allocation_table #(
     input signal_pkg::rob_to_rat_signal_t issue_instr,
 
     // connection from ROB (retire stage)
-    retirement_bus_if.retire retire_instr,
+    retirement_bus_if.rat retire_instr,
 
     // connections to reservation stations
-    operation_bus_if.rat issue_data,
+    operand_bus_if.rat issue_data,
 );
 
 storage_pkg::rat_entry_t rat_buffer[31:0];
 instr_pkg::operations_e operation_q;
 instr_pkg::chip_select_e chip_select_q;
 
-logic src1_ready_q, src2_ready_q, rat_input_valid_q;
+logic src1_ready_q, src2_ready_q, rat_input_valid_q, sign_q;
 logic[4:0] src1_rob_id_q, src2_rob_id_q, src1_rob_id, src2_rob_id;
 logic[2:0] rs_slot_id_q;
 
@@ -36,7 +36,7 @@ always_comb begin
     src1_ready = 1'b1;
     src2_ready = 1'b1;
 
-    retire = retire_instr.instr_valid && (retire_instr.dest_address != 'd0) && rat_buffer[retire_instr.dest_address].rob_id == retire_instr.rob_id;
+    retire = retire_instr.valid && (retire_instr.dest_address != 'd0) && rat_buffer[retire_instr.dest_address].rob_id == retire_instr.rob_id;
     issue = issue_instr.valid && (issue_instr.dest_address != 'd0);
     replace = issue && retire && (retire_instr.dest_address == issue_instr.dest_address);
 

@@ -15,7 +15,6 @@ typedef struct packed {
     operations_e operation;
     logic sign;
 
-    
 } rs_to_alu_signal_t;
 
 typedef struct packed {
@@ -26,9 +25,9 @@ typedef struct packed {
 
 typedef struct packed {
     logic valid;
-    logic branch;
     logic [ROB_ADDR_W-1:0] rob_id;
     logic [31:0] data;
+    logic branch_taken;
 } ex_to_wb_signal_t;
 
 typedef struct packed {

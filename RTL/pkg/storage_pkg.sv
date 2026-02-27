@@ -35,4 +35,12 @@ typedef struct packed {
 
 } rob_entry_t;
 
+typedef struct packed {
+    logic valid;
+    logic [ROB_ADDR_W-1:0] rob_id;
+    logic [31:0] data;
+    logic branch_taken;
+
+} wb_queue_entry_t;
+
 endpackage

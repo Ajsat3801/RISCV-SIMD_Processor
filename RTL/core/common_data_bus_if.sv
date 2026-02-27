@@ -1,12 +1,13 @@
 interface common_data_bus_if();
 
-logic[4:0] ROB_id;
+logic valid;
+logic[ROB_ADDR_W-1:0] rob_id;
 logic[31:0] data;
 logic branch; // Branch is 0 only then snoop done
-logic valid;
 
-modport writeback(output ROB_id, data, branch, valid);
-modport snoop(input ROB_id, data, branch, valid);
+
+modport writeback(output rob_id, data, branch, valid);
+modport snoop(input rob_id, data, branch, valid);
 
 endinterface
 
