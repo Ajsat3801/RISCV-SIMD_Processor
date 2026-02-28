@@ -27,8 +27,13 @@ typedef struct packed {
     logic valid;
     logic [ROB_ADDR_W-1:0] rob_id;
     logic [31:0] data;
-    logic branch_taken;
 } ex_to_wb_signal_t;
+
+typedef struct packed {
+    logic valid;
+    logic [ROB_ADDR_W-1:0] rob_id;
+    logic branch_taken;
+} alu_to_wb_branch_signal_t;
 
 typedef struct packed {
     logic valid;

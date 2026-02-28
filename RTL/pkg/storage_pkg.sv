@@ -32,15 +32,27 @@ typedef struct packed {
     logic [31:0] data;
     logic branch;
     
-
 } rob_entry_t;
+
+typedef struct packed{
+    logic valid;
+    logic [ROB_ADDR_W-1:0] rob_id;
+    logic [31:0] data;
+    logic branch_valid;
+    logic branch_taken
+} alu_holding_reg;
 
 typedef struct packed {
     logic valid;
     logic [ROB_ADDR_W-1:0] rob_id;
     logic [31:0] data;
-    logic branch_taken;
 
 } wb_queue_entry_t;
+
+typedef struct packed{
+    logic valid;
+    logic [ROB_ADDR_W-1:0] rob_id;
+    logic branch_taken;
+} wb_queue_branch_entry_t;
 
 endpackage
