@@ -3,8 +3,7 @@ circular FIFO with first word fall through - general implementation
 the head value will be the output even before dequeue asks for it
 */
 
-module circular_FIFO_fwft #(parameter BUFFER_SIZE = 8, parameter type T = logic[31:0])
-(
+module circular_FIFO_fwft #(parameter BUFFER_SIZE = 8, parameter type T = logic[31:0]) (
     
     input logic clk,
     input logic reset_n,
@@ -43,8 +42,7 @@ always_ff @(posedge clk) begin
         tail <= '0;
     end
 
-    else begin // body
-
+    else begin
         if(dequeue && !empty) begin
             head <= head_next;
         end
@@ -52,9 +50,7 @@ always_ff @(posedge clk) begin
             main_FIFO[tail] <= enqueue_data;
             tail <= tail_next;
         end
-
     end
-
 end
 
 endmodule

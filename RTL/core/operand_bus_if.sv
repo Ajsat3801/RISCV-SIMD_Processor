@@ -9,7 +9,7 @@
 interface operand_bus_if #(parameter NUM_RS = 2, parameter RS_SIZE=8)();
 
 // ROB signals
-logic[4:0] dest_rob_id;
+logic[4:0] rob_id;
 logic rob_input_valid;
 
 // inputs from Registers
@@ -39,7 +39,7 @@ assign rs_entry.operand_b_ready = src2_ready;
 
 // data signals
 assign rs_entry.operation = operation;
-assign rs_entry.instr_rob_id = dest_rob_id;
+assign rs_entry.instr_rob_id = rob_id;
 assign rs_entry.operand_a = operand_a;
 assign rs_entry.operand_b = operand_b;
 assign rs_entry.operand_a_tag = src1_rob_id;
@@ -52,7 +52,7 @@ modport rat (
 );
 
 modport rob (
-    output dest_rob_id, rob_input_valid
+    output rob_id, rob_input_valid
 );
 
 modport registers(

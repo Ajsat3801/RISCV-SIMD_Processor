@@ -6,7 +6,7 @@
 
 */
 
-module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
+module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=16,NUM_RS=3)(
     input logic clk,
     input logic reset_n,
 
@@ -15,8 +15,9 @@ module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=8,NUM_RS=2)(
     output queue_ready,
 
     // array of inputs from Reservation Stations
-    input logic[($clog2(RS_LEN)*NUM_RS)-1:0] rs_slot_released_id,
-    input logic[NUM_RS-1:0] rs_released
+    // Note: 1 more than NUM RS because ALU can release 2 slots
+    input logic[$clog2(RS_LEN)-1:0] rs_slot_released_id [NUM_RS:0],
+    input logic rs_released [NUM_RS:0]
 
     // outputs to instruction bus
     output signal_pkg::queue_to_rob_t alloc_instr_rob;
@@ -48,22 +49,40 @@ logic[RS_ADDR_LEN-1:0] rs_slot_id_q;
 logic[RS_IDX_W-1:0] rs_index;
 instr_pkg::chip_select_e cs;
 
-genvar i;
-generate
-    for(i=0; i<NUM_RS; i++) begin
-        instruction_queue_rs_buffer #(BUFFER_SIZE = RS_LEN, DATA_SIZE = RS_ADDR_LEN) rs_fifo (
-            .clk(clk),
-            .reset_n(reset_n),
-            .enqueue(rs_released[i]),
-            .enqueue_data(rs_slot_released_id[((i+1)*RS_ADDR_LEN)-1:i*RS_ADDR_LEN]),
-            .dequeue(dequeue_rs_fifo[i]),
-            .dequeue_data(next_rs_slot[i]),
-            .empty(rs_empty[i]),
-            .full(rs_full[i])
-        );
-    end
+iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_LEN-1:0])) alu_fifo (
+    .clk(clk),
+    .reset_n(reset_n),
+    .enqueue1(rs_released[0]),
+    .enqueue1_data(rs_slot_released_id[0]),
+    .enqueue2(rs_released[1]),
+    .enqueue2_data(rs_slot_released_id[1]),
+    .dequeue(dequeue_rs_fifo[0]),
+    .dequeue_data(next_rs_slot[0]),
+    .empty(rs_empty[0]),
+    .full(rs_full[0]),
+);
 
-endgenerate
+iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_LEN-1:0])) muldiv_fifo (
+    .clk(clk),
+    .reset_n(reset_n),
+    .enqueue(rs_released[2]),
+    .enqueue_data(rs_slot_released_id[2]),
+    .dequeue(dequeue_rs_fifo[1]),
+    .dequeue_data(next_rs_slot[1]),
+    .empty(rs_empty[1]),
+    .full(rs_full[1]),
+);
+
+iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_LEN-1:0])) lsu_fifo (
+    .clk(clk),
+    .reset_n(reset_n),
+    .enqueue(rs_released[3]),
+    .enqueue_data(rs_slot_released_id[3]),
+    .dequeue(dequeue_rs_fifo[2]),
+    .dequeue_data(next_rs_slot[2]),
+    .empty(rs_empty[2]),
+    .full(rs_full[2]),
+);
 
 // enqueue if instruction is valid
 // dequeue if buffer isnt empty && rs slot available for head of buffer

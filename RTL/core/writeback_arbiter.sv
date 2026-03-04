@@ -1,30 +1,8 @@
 /*  
 Arbiter for writeback
 Takes inputs from all the EX units and sends one instruction per cycle to CDB
-
-*/
-/* 
-    xxxx_q_count counts till n-1 values
-    xxxx_q_full acts as an overflow as well as a queue full flag
-    
-    ENQUEUE LOGIC:
-        if ( q_full == 0){
-            q[tail] <= input;
-            tail <= (tail + 1) % 8;
-            if (q_count == all ones) q_full = 1;
-            else q_count = q_count + 1;
-            q_empty = 0;
-        } 
-    
-    DEQUEUE LOGIC:
-
-        if(q_empty == 0){
-            output <= queue[head];
-            head <= (head + 1) % 8;
-            if (q_full  == 1) q_full = 0;
-            else q_count = q_count - 1;
-            if(q_count == 0) q_empty = 1;
-        }
+Round robin policy
+branches have separate inputs, fifos and outputs
 */
 
 module writeback_arbiter #(parameter NUM_EX=4, parameter NUM_BRANCH=2) (
@@ -131,7 +109,7 @@ circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t)) alu1_f
     .full(full[0])
 );
 
-circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_branch_entry_t)) branch1_fifo (
+circular_FIFO_fwft  #(.BUFFER_SIZE(2), .T(storage_pkg::wb_queue_branch_entry_t)) branch1_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue(branch_result[0].valid),
@@ -153,7 +131,7 @@ circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t)) alu2_f
     .full(full[1])
 );
 
-circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_branch_entry_t)) branch2_fifo (
+circular_FIFO_fwft  #(.BUFFER_SIZE(2), .T(storage_pkg::wb_queue_branch_entry_t)) branch2_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue(branch_result[1].valid),
@@ -164,8 +142,7 @@ circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_branch_entry_t))
     .full(branch_full[1])
 );
 
-
-circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t)) muldiv_fifo (
+circular_FIFO_fwft  #(.BUFFER_SIZE(2), .T(storage_pkg::wb_queue_entry_t)) muldiv_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue(ex_result[2].valid),
@@ -176,7 +153,7 @@ circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t)) muldiv
     .full(full[2])
 );
 
-circular_FIFO_fwft  #(.BUFFER_SIZE(2), .T(storage_pkg::wb_queue_entry_t)) lsu_fifo (
+circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t)) lsu_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue(ex_result[3].valid),

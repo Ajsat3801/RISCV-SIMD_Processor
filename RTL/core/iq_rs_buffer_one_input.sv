@@ -1,26 +1,27 @@
-/*
-modification of circular FIFO with first word fall through
-only change is on reset where we do not make it empty, we set it to full
+/* 
+circular FIFO with first word fall through - general implementation
+the head value will be the output even before dequeue asks for it
 */
 
-module circular_FIFO_fwft #(parameter BUFFER_SIZE = 8, DATA_SIZE = 16)
+module iq_rs_buffer_one_input #(parameter BUFFER_SIZE = 8, parameter type T = logic[31:0])
 (
     
-    input clk,
-    input reset_n,
+    input logic clk,
+    input logic reset_n,
     
     input logic enqueue,
-    input logic[DATA_SIZE-1:0] enqueue_data,
+    input T enqueue_data,
 
     input logic dequeue,
-    output logic[DATA_SIZE-1:0] dequeue_data,
+    
+    output T dequeue_data,
     output logic empty,
-    output logic full
+    output logic full,
 );
 
 localparam ADDR_SIZE = $clog2(BUFFER_SIZE+1);
 
-logic[DATA_SIZE-1:0] main_FIFO[BUFFER_SIZE:0]; // N+1 entry buffer
+T main_FIFO[BUFFER_SIZE:0]; // N+1 entry buffer
 logic[ADDR_SIZE-1:0] head, tail, head_next, tail_next; // address needs one extra bit
 
 always_comb begin
@@ -45,8 +46,7 @@ always_ff @(posedge clk) begin
         tail <= BUFFER_SIZE;
     end
 
-    else begin // body
-
+    else begin
         if(dequeue && !empty) begin
             head <= head_next;
         end
@@ -54,10 +54,7 @@ always_ff @(posedge clk) begin
             main_FIFO[tail] <= enqueue_data;
             tail <= tail_next;
         end
-
     end
-
 end
-
 
 endmodule

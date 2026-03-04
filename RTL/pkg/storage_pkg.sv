@@ -3,7 +3,7 @@ package storage_pkg;
 typedef struct packed {
     logic occupied;
     
-    logic [ROB_ADDR_W-1:0] dest_rob_id;
+    logic [ROB_ADDR_W-1:0] rob_id;
     
     logic [31:0] operand_a;
     logic [31:0] operand_b; 
