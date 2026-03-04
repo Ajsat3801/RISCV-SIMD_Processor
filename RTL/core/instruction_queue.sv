@@ -156,9 +156,15 @@ assign alloc_instr_rat.chip_select = alloc_instr_q.chip_select;
 assign alloc_instr_rat.RS_slot_ID = rs_slot_id_q;
 
 assign alloc_instr_rob.valid = instr_valid;
+assign alloc_instr_rob.write_to_reg = alloc_instr_q.write_to_reg;
 assign alloc_instr_rob.dest_address = alloc_instr_q.dest_address;
-assign alloc_instr_rob.branch = alloc_instr_q.branch;
-assign alloc_instr_rob.target_pc = alloc_instr_q.target_pc;
+assign alloc_instr_rob.src1_address = alloc_instr_q.src1_address;
+assign alloc_instr_rob.src2_address = alloc_instr_q.src2_address;
+assign alloc_instr_rob.imm = alloc_instr_q.imm;
+assign alloc_instr_rob.extend = alloc_instr_q.extend;
+assign alloc_instr_rob.precalc = alloc_instr_q.precalc;
+assign alloc_instr_rob.branch_taken = alloc_instr_q.branch_taken;
+assign alloc_instr_rob_ready = alloc_instr_q.valid && (alloc_instr_q.chip_select == '0);
 
 assign alloc_instr_reg.valid = instr_valid;
 assign alloc_instr_reg.src1_address = alloc_instr_q.src1_address;

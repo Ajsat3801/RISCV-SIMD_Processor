@@ -37,6 +37,13 @@ typedef struct packed {
 
 typedef struct packed {
     logic valid;
+    logic rob_id;
+    logic branch_taken;
+
+} wb_to_rob_branch_t;
+
+typedef struct packed {
+    logic valid;
     logic write_to_reg;
     logic [REG_ADDR_W-1:0] dest_address;
 
@@ -44,8 +51,9 @@ typedef struct packed {
     logic [REG_ADDR_W-1:0] src2_address;
     logic [11:0] imm;
     logic [9:0] extend;
-
-    logic write_to_rob; // 1 if JAL, LUI or AUIPC, derived from operation
+    logic precalc // 1 if the data in ROB doenst need to be written
+    logic ready; // 1 if JAL, LUI or AUIPC, derived from operation
+    logic is_branch;
 } queue_to_rob_signal_t;
 
 typedef struct packed {

@@ -30,7 +30,8 @@ typedef struct packed {
     logic[REG_ADDR_W-1:0] dest_address;
 
     logic [31:0] data;
-    logic branch;
+    logic is_branch;
+    logic branch_taken;
     
 } rob_entry_t;
 

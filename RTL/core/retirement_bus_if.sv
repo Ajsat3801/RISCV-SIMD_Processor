@@ -1,15 +1,16 @@
 interface retirement_bus_if();
 
-logic [4:0] rob_id;
-logic [31:0] data;
-logic [4:0] dest_address;
-logic branch_taken;
-logic write_to_reg;
 logic valid;
+logic write_to_reg;
+logic [4:0] dest_address;
+logic [31:0] data;
+logic is_branch;
+logic branch_taken;
+logic [4:0] rob_id;
 
-modport rob(output dest_address, data, branch_taken, write_to_reg, valid);
-modport reg(input dest_address, data, write_to_reg, valid);
-modport rat(input rob_id, dest_address, write_to_reg, valid);
-modport Branch(input data, branch_taken, valid);
+modport rob     (output valid, write_to_reg, dest_address, data, is_branch, branch_taken, rob_id);
+modport reg     (input  valid, write_to_reg, dest_address, data);
+modport rat     (input  valid, write_to_reg, dest_address, rob_id);
+modport branch  (input  valid, is_branch, branch_taken, data);
 
 endinterface

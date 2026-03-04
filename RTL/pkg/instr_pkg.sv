@@ -38,21 +38,28 @@ Data[9:0] => extend
 
 typedef struct packed {
     
-    
     logic valid;
-    logic write_to_reg; // 0 for branch, 1 for rest
+    chip_select_e chip_select;
+    operations_e operation;
+    
     logic [REG_ADDR_W-1:0] dest_address;
     logic [REG_ADDR_W-1:0] src1_address;
     logic [REG_ADDR_W-1:0] src2_address;
     
     logic [11:0] imm;
     logic [9:0] extend;
+
+    logic write_to_reg;
+    logic pre_calc; 
+    logic is_branch;
     logic read_src2;
-    
-    operations_e operation;
-    chip_select_e chip_select;
+
     logic sign; // used for sub etc
     
 } decoded_instr_t;
 
 endpackage
+
+/*
+branch
+*/

@@ -4,10 +4,5 @@
     ->  Generate immediate values
     ->  Read source values from the register
     ->  Handle flush from branch
-    
-    ->  Later
-        ->  Hazard detection 
-            if next instruction depends on a load still in MEM: add a stall
-            else: prepare operands and forward control
-
 */
+
