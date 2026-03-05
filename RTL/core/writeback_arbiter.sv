@@ -4,32 +4,33 @@ Takes inputs from all the EX units and sends one instruction per cycle to CDB
 Round robin policy
 branches have separate inputs, fifos and outputs
 */
+import config_pkg::*;
 
-module writeback_arbiter #(parameter NUM_EX=4, parameter NUM_BRANCH=2) (
+module writeback_arbiter #() (
     input logic clk,
     input logic reset_n,
 
     // EX units
-    input signal_pkg::ex_to_wb_signal_t ex_result[NUM_EX],
-    output logic wb_ready[NUM_EX],
+    input signal_pkg::ex_to_wb_signal_t ex_result[NUMBER_OF_EX-1:0],
+    output logic wb_ready[NUMBER_OF_EX-1:0],
 
-    input signal_pkg::alu_to_wb_branch_signal_t branch_result[NUM_BRANCH], 
-    output logic wb_ready_branch[NUM_BRANCH];
+    input signal_pkg::alu_to_wb_branch_signal_t branch_result[NUMBER_OF_BRANCH_EX-1:0], 
+    output logic wb_ready_branch[NUMBER_OF_BRANCH_EX-1:0];
 
     common_data_bus_if.writeback cdb_data,
 
     output signal_pkg::wb_to_rob_branch_t branch_data
 );
 
-storage_pkg::wb_queue_entry_t fifo_heads[NUM_EX-1:0]; 
-storage_pkg::wb_branch_queue_entry_t branch_fifo_heads[NUM_BRANCH-1:0];
+storage_pkg::wb_queue_entry_t fifo_heads[NUMBER_OF_EX-1:0]; 
+storage_pkg::wb_branch_queue_entry_t branch_fifo_heads[NUMBER_OF_BRANCH_EX-1:0];
 
-logic[clog2(NUM_EX)-1:0] choice, choice_idx, choice_next;
-logic[NUM_EX-1:0] empty, full, dequeue, request;
+logic[EX_IDX_W-1:0] choice, choice_idx, choice_next;
+logic[NUMBER_OF_EX-1:0] empty, full, dequeue, request;
 logic wb_chosen, any_full;
 
-logic[$clog2(NUM_BRANCH)-1:0] branch_choice, branch_choice_idx;
-logic[NUM_BRANCH-1:0] branch_empty, branch_full, branch_dequeue, branch_request;
+logic[BRANCH_IDX_W-1:0] branch_choice, branch_choice_idx;
+logic[NUMBER_OF_BRANCH_EX-1:0] branch_empty, branch_full, branch_dequeue, branch_request;
 logic branch_chosen, branch_any_full;
 
 int i;
@@ -44,7 +45,7 @@ always_comb begin
     any_full = |(full & ~empty);
     request = (any_full) ? (full & ~empty) : ~empty;
 
-    for(i = choice;i<NUM_EX;i++) begin
+    for(i = choice;i<NUMBER_OF_EX;i++) begin
         if(request[i] && !wb_chosen) begin
             choice_idx = i;
             wb_chosen = 1'b1;
@@ -73,7 +74,7 @@ always_comb begin
     branch_any_full = |(branch_full & ~branch_empty);
     branch_request = (branch_any_full) ? (branch_full & ~branch_empty) : ~branch_empty;
 
-    for(i=branch_choice; i<NUM_BRANCH; i++) begin
+    for(i=branch_choice; i<NUMBER_OF_BRANCH_EX; i++) begin
         if(branch_request[i] && !branch_chosen) begin
             branch_choice_idx = i;
             branch_chosen = 1'b1;
@@ -98,7 +99,7 @@ end
 
 // circular FIFOs with FWFT, so we know what the head of the queue is immediately
 
-circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t)) alu1_fifo (
+circular_FIFO_fwft #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t) ) alu1_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue(ex_result[0].valid),
@@ -142,6 +143,8 @@ circular_FIFO_fwft  #(.BUFFER_SIZE(2), .T(storage_pkg::wb_queue_branch_entry_t))
     .full(branch_full[1])
 );
 
+/* FIFOS which will cater to future EX units
+
 circular_FIFO_fwft  #(.BUFFER_SIZE(2), .T(storage_pkg::wb_queue_entry_t)) muldiv_fifo (
     .clk(clk),
     .reset_n(reset_n),
@@ -163,6 +166,7 @@ circular_FIFO_fwft  #(.BUFFER_SIZE(4), .T(storage_pkg::wb_queue_entry_t)) lsu_fi
     .empty(empty[3]),
     .full(full[3])
 );
+*/
 
 always_ff @(posedge clk) begin
 

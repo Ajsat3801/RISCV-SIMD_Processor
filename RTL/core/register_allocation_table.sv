@@ -1,6 +1,6 @@
-module register_allocation_table #(
-    parameter REGISTER_SIZE=32
-    )(
+import config_pkg::*;
+
+module register_allocation_table #()(
     input clk,
     input reset_n,
 
@@ -17,13 +17,13 @@ module register_allocation_table #(
     operand_bus_if.rat issue_data,
 );
 
-storage_pkg::rat_entry_t rat_buffer[31:0];
+storage_pkg::rat_entry_t rat_buffer[NUMBER_REG_ADDR-1:0];
 instr_pkg::operations_e operation_q;
 instr_pkg::chip_select_e chip_select_q;
 
 logic src1_ready_q, src2_ready_q, rat_input_valid_q, sign_q;
-logic[4:0] src1_rob_id_q, src2_rob_id_q, src1_rob_id, src2_rob_id;
-logic[2:0] rs_slot_id_q;
+logic[ROB_ADDR_W-1:0] src1_rob_id_q, src2_rob_id_q, src1_rob_id, src2_rob_id;
+logic[RS_IDX_W-1:0] rs_slot_id_q;
 
 logic retire, issue, replace, alloc_src1, alloc_src2, forward_src1, forward_src2;
 logic src1_ready, src2_ready;

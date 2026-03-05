@@ -7,8 +7,9 @@
     connections: WB arbiter through CDB, branching from ALU
 
 */
+import config_pkg::*;
 
-module reorder_buffer #(parameter ROB_SIZE = 32)(
+module reorder_buffer #()(
     input logic clk,
     input logic reset_n,
 
@@ -17,8 +18,8 @@ module reorder_buffer #(parameter ROB_SIZE = 32)(
     output rob_full,
 
     // CDB
-    input signal_pkg::wb_to_rob_branch_signal_t cdb_data,
-    common_data_bus_if.writeback branch_data,
+    input signal_pkg::wb_to_rob_branch_signal_t branch_data,
+    common_data_bus_if.writeback cdb_data,
 
     // Operand bus
     operand_bus_if.rob issue_instr_rs,
@@ -29,14 +30,13 @@ module reorder_buffer #(parameter ROB_SIZE = 32)(
     output signal_pkg::rob_to_rat_signal_t issue_instr_rat
 );
 
-localparam ROB_ADDR_W = $clog2(ROB_SIZE);
-
-storage_pkg::rob_entry buffer[ROB_SIZE-1:0];
+storage_pkg::rob_entry buffer[ROB_LEN-1:0];
 storage_pkg::rob_entry new_instr;
+
 logic[ROB_ADDR_W-1:0] head, tail;
 logic[ROB_ADDR_W:0] head_next, tail_next;
 logic head_epoch, tail_epoch;
-logic[31:0] precalc_data;
+logic[DATA_SIZE-1:0] precalc_data;
 int i;
 
 logic[ROB_ADDR_W-1:0] issue_instr_rob_id_q;
@@ -59,7 +59,6 @@ always_comb begin
     new_instr.branch_taken = input_instr.ready 
     // same as ready so that JAL instructions are going.
 
-
 end
 
 always_ff @(posedge clk) begin
@@ -67,8 +66,7 @@ always_ff @(posedge clk) begin
         head <= 'd0;
         tail <= 'd0;
 
-        for(i=0;i<ROB_SIZE+1;i++) buffer[i]<= 'd0;
-
+        for(i=0;i<ROB_LEN+1;i++) buffer[i]<= 'd0;
     end
 
     // Add instruction to ROB for allocation
@@ -95,12 +93,10 @@ always_ff @(posedge clk) begin
         buffer[branch_data.rob_id].branch_taken <= branch_data.branch_valid;
         buffer[branch_data.rob_id].ready <= 1'b1;
     end
-
     if(cdb_data.valid) begin
         buffer[cdb_data.rob_id].data <= cdb_data.data;
         buffer[cdb_data.rob_id].ready <= 1'b1;
     end
-
 
     // Retire instruction if head is ready
     if(buffer[head].ready && !empty) begin
@@ -124,7 +120,5 @@ always_ff @(posedge clk) begin
 end
 
 assign rob_full = full;
-
-
 
 endmodule

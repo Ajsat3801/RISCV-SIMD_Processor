@@ -1,5 +1,4 @@
-`include "typedefs.sv"
-import instr_desc::*;
+import config_pkg::*;
 
 module scalar_registers(
     input logic clk,
@@ -15,8 +14,8 @@ module scalar_registers(
     operand_bus_if.Registers rs_data_reg
 );
 
-logic[31:0] reg_arr[31:0];
-logic[31:0] operand_a_q, operand_b_q, operand_a, operand_b;
+logic[DATA_SIZE-1:0] reg_arr[NUMBER_REG_ADDR-1:0];
+logic[DATA_SIZE-1:0] operand_a_q, operand_b_q, operand_a, operand_b;
 logic reg_input_valid_q;
 
 always_comb begin
@@ -39,7 +38,7 @@ always_comb begin
     
 end
 
-always_ff @( posedge clk ) begin
+always_ff @(posedge clk) begin
     
     if(!reset_n) begin
         reg_arr[0] <= 32'b0;

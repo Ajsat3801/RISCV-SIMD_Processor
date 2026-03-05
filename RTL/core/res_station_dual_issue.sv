@@ -2,11 +2,11 @@
     IF timing problem
     1) you can take occupied out and set as separate bitmap
 */
+import config_pkg::*;
 
 module res_station_dual_issue #(
-    parameter NO_OF_SLOTS = 2,  // ensure always power of 2
     parameter CHIP_SELECT = 1,
-    )(
+)(
     input logic clk,
     input logic reset_n,
     
@@ -17,7 +17,7 @@ module res_station_dual_issue #(
     common_data_bus_if.snoop cdb_data,
 
     // connection with instruction queue
-    output logic[$clog2(NO_OF_SLOTS)-1:0] rs_slot_released_id[1:0],
+    output logic[$clog2(DUAL_SLOT_RS_LEN)-1:0] rs_slot_released_id[1:0],
     output logic rs_slot_released[1:0],
 
     // output to execution unit
@@ -27,19 +27,19 @@ module res_station_dual_issue #(
     output signal_pkg::rs_to_alu_signal_t dispatch2_op
 );
 
-localparam INDEX_SIZE = $clog2(NO_OF_SLOTS);
+localparam DUAL_SLOT_RS_IDX_W = $clog2(DUAL_SLOT_RS_LEN);
 
-storage_pkg::rs_entry_t buffer[NO_OF_SLOTS-1:0];
+storage_pkg::rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
 
-logic[INDEX_SIZE-1:0] choice, choice_next;
+logic[DUAL_SLOT_RS_IDX_W-1:0] choice, choice_next;
 
 logic grant1, grant2;
-logic[INDEX_SIZE-1:0] grant1_idx, grant2_idx;
+logic[DUAL_SLOT_RS_IDX_W-1:0] grant1_idx, grant2_idx;
 
-logic[INDEX_SIZE-1:0] dispatch_idx1, dispatch_idx2;
+logic[DUAL_SLOT_RS_IDX_W-1:0] dispatch_idx1, dispatch_idx2;
 logic grant1_to_dispatch1, grant1_to_dispatch2, grant2_to_dispatch2, bypass_to_dispatch1, bypass_to_dispatch2;
 
-logic[NO_OF_SLOTS-1:0] occupied, operands_ready, snoop, eligible;
+logic[DUAL_SLOT_RS_LEN-1:0] occupied, operands_ready, snoop, eligible;
 logic instr_valid, any_eligible, bypass_eligible;
 
 int i;
@@ -48,7 +48,7 @@ always_comb begin
 
     instr_valid = rs_input.rs_entry.occupied && rs_input.chip_select == CHIP_SELECT;
     
-    for(i=0;i<NO_OF_SLOTS;i++) begin
+    for(i=0;i<DUAL_SLOT_RS_LEN;i++) begin
         occupied[i] = buffer[i].occupied;
         operands_ready[i] = buffer[i].operand_a_ready && buffer[i].operand_b_ready;
     end
@@ -62,7 +62,7 @@ always_comb begin
     grant1_idx = choice;
     grant2_idx = choice;
 
-    for(i=choice; i<NO_OF_SLOTS; i++) begin
+    for(i=choice; i<DUAL_SLOT_RS_LEN; i++) begin
         if(eligible[i]) begin
             if(!grant1) begin
                 grant1_idx = i;
@@ -115,7 +115,7 @@ always_ff @(posedge clk) begin
     if(!reset_n) begin
         
         buffer[0] <= 'd0;
-        for(i = 1; i<NO_OF_SLOTS;i++) buffer[i] <= buffer[0];
+        for(i = 1; i<DUAL_SLOT_RS_LEN;i++) buffer[i] <= buffer[0];
 
         rs_slot_released[0] <= 1'b0;
         rs_slot_released[1] <= 1'b1;
@@ -133,7 +133,7 @@ always_ff @(posedge clk) begin
 
         // snoop data from CDB and update if needed
         if(cdb_data.valid) begin
-            for(i=0;i<NO_OF_SLOTS;i++) begin
+            for(i=0;i<DUAL_SLOT_RS_LEN;i++) begin
                 if(occupied[i] && cdb_data.rob_id == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
                     buffer[i].operand_a <= cdb_data.data;
                     buffer[i].operand_a_ready <= 1;

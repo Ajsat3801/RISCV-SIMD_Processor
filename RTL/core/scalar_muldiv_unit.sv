@@ -1,4 +1,0 @@
-/*
-    Scalar multiply divide unit
-
-*/

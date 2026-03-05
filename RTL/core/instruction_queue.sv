@@ -6,7 +6,9 @@
 
 */
 
-module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=16,NUM_RS=3)(
+import config_pkg::*;
+
+module instruction_queue #()(
     input logic clk,
     input logic reset_n,
 
@@ -16,40 +18,36 @@ module instruction_queue #(parameter FIFO_LEN=16,RS_LEN=16,NUM_RS=3)(
 
     // array of inputs from Reservation Stations
     // Note: 1 more than NUM RS because ALU can release 2 slots
-    input logic[$clog2(RS_LEN)-1:0] rs_slot_released_id [NUM_RS:0],
-    input logic rs_released [NUM_RS:0]
+    input logic[$clog2(RS_MAX_LEN)-1:0] rs_slot_released_id [NUMBER_OF_EX-1:0],
+    input logic rs_released [NUMBER_OF_EX-1:0]
 
     // outputs to instruction bus
-    output signal_pkg::queue_to_rob_t alloc_instr_rob;
-    output signal_pkg::queue_to_rat_t alloc_instr_rat;
-    output signal_pkg::queue_to_reg_t alloc_instr_reg;
+    output signal_pkg::queue_to_rob_signal_t alloc_instr_rob;
+    output signal_pkg::queue_to_rat_signal_t alloc_instr_rat;
+    output signal_pkg::queue_to_reg_signal_t alloc_instr_reg;
 
     input rob_full;
 
 );
 
-localparam RS_ADDR_LEN = $clog2(RS_LEN);
-localparam FIFO_PTR_LEN = $clog2(FIFO_LEN+1);
-localparam int RS_IDX_W = (NUM_RS<=2) ? 1 : $clog2(NUM_RS);
-
 // RS Slot tracking buffer
 // NOTE: track chip_select-1 field for each RS; CS=0 dont do anything
-logic[RS_ADDR_LEN-1:0] next_rs_slot[NUM_RS-2:0];
-logic[NUM_RS-1:0] rs_full, rs_empty, dequeue_rs_fifo;
+logic[RS_ADDR_W-1:0] next_rs_slot[NUMBER_OF_RS-2:0];
+logic[NUMBER_OF_RS-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
 // Instruction FIFO
-instr_pkg::decoded_instr_t instr_fifo[FIFO_LEN:0]; // N+1 entry buffer
-logic[FIFO_PTR_LEN-1:0] head, tail, head_next, tail_next;
+instr_pkg::decoded_instr_t instr_fifo[INSTRUCTION_QUEUE_LEN:0]; // N+1 entry buffer
+logic[INSTRUCTION_QUEUE_PTR_LEN-1:0] head, tail, head_next, tail_next;
 logic full, empty, enqueue, dequeue;
 
 // output flip flops
 instr_pkg::decoded_instr_t alloc_instr_q;
-logic[RS_ADDR_LEN-1:0] rs_slot_id_q;
+logic[RS_ADDR_W-1:0] rs_slot_id_q;
 
 logic[RS_IDX_W-1:0] rs_index;
 instr_pkg::chip_select_e cs;
 
-iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_LEN-1:0])) alu_fifo (
+iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue1(rs_released[0]),
@@ -62,7 +60,10 @@ iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_LEN-1:0])) alu_fifo 
     .full(rs_full[0]),
 );
 
-iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_LEN-1:0])) muldiv_fifo (
+
+/* FIFOs to cater for future EX units
+
+iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue(rs_released[2]),
@@ -73,7 +74,7 @@ iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_LEN-1:0])) muldiv_fif
     .full(rs_full[1]),
 );
 
-iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_LEN-1:0])) lsu_fifo (
+iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) lsu_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .enqueue(rs_released[3]),
@@ -83,6 +84,7 @@ iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_LEN-1:0])) lsu_fifo (
     .empty(rs_empty[2]),
     .full(rs_full[2]),
 );
+*/
 
 // enqueue if instruction is valid
 // dequeue if buffer isnt empty && rs slot available for head of buffer
@@ -94,8 +96,8 @@ always_comb begin
     enqueue = 1'b0;
     rs_index = 'd0;
     
-    tail_next = (tail == FIFO_LEN) ? 0 :(tail + 1);
-    head_next = (head == FIFO_LEN) ? 0 :(head + 1);
+    tail_next = (tail == INSTRUCTION_QUEUE_LEN) ? 0 :(tail + 1);
+    head_next = (head == INSTRUCTION_QUEUE_LEN) ? 0 :(head + 1);
 
     full = (tail_next == head);
     empty = head==tail;
@@ -103,7 +105,7 @@ always_comb begin
     cs = instr_fifo[head].chip_select;
 
     if(!empty && instr_fifo[head].valid ) begin
-        if(cs!=0 && cs<NUM_RS) begin
+        if(cs!=0 && cs<NUMBER_OF_RS) begin
             rs_index = instr_fifo[head].chip_select - 1;
             dequeue = !rs_empty[rs_index] && !rob_full;
             dequeue_rs_fifo[rs_index] = dequeue;

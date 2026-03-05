@@ -4,7 +4,6 @@
 */
 
 module res_station_single_issue #(
-    parameter NO_OF_SLOTS = 2,  // ensure always power of 2
     parameter CHIP_SELECT = 1
     )(
     input logic clk,
@@ -17,7 +16,7 @@ module res_station_single_issue #(
     common_data_bus_if.snoop cdb_data,
 
     // connection with instruction queue
-    output logic[$clog2(NO_OF_SLOTS)-1:0] rs_slot_released_id,
+    output logic[SINGLE_SLOT_RS_IDX_W-1:0] rs_slot_released_id,
     output logic rs_slot_released,
 
     // output to execution unit
@@ -25,12 +24,12 @@ module res_station_single_issue #(
     output signal_pkg::rs_to_alu_signal_t dispatched_op
 );
 
-storage_pkg::rs_entry_t buffer[NO_OF_SLOTS-1:0];
+storage_pkg::rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
 signal_pkg::rs_to_alu_signal_t dispatched_op_q;
 
 logic dispatch, instr_valid, any_eligible, chosen, bypass;
-logic[$clog2(NO_OF_SLOTS)-1:0] choice, choice_idx, choice_next;
-logic[NO_OF_SLOTS-1:0] eligible, snoop, operands_ready, occupied;
+logic[SINGLE_SLOT_RS_IDX_W-1:0] choice, choice_idx, choice_next;
+logic[SINGLE_SLOT_RS_LEN-1:0] eligible, snoop, operands_ready, occupied;
 
 int i;
 
@@ -38,7 +37,7 @@ always_comb begin
     choice_idx = chosen;
     instr_valid = rs_input.rs_entry.occupied && rs_input.chip_select == CHIP_SELECT;
     
-    for(i=0;i<NO_OF_SLOTS;i++) begin
+    for(i=0;i<SINGLE_SLOT_RS_LEN;i++) begin
         occupied[i] = buffer[i].occupied;
         operands_ready[i] = buffer[i].operand_a_ready && buffer[i].operand_b_ready;
     end
@@ -48,7 +47,7 @@ always_comb begin
     any_eligible = ~|eligible;
 
     if(any_eligible) begin
-        for(i=choice; i<NO_OF_SLOTS; i++) begin
+        for(i=choice; i<SINGLE_SLOT_RS_LEN; i++) begin
             if(eligible[i]) begin
                 choice_idx = i;
                 dispatch = 1'b1;
@@ -79,7 +78,7 @@ always_ff @(posedge clk) begin
     if(!reset_n) begin
         
         buffer[0] <= 'd0;
-        for(i = 1; i<NO_OF_SLOTS;i++) buffer[i] <= buffer[0];
+        for(i = 1; i<SINGLE_SLOT_RS_LEN;i++) buffer[i] <= buffer[0];
 
         released_id_q <= '0;
         dispatched_op_q <= 'd0;
@@ -89,7 +88,7 @@ always_ff @(posedge clk) begin
 
         // snoop data from CDB and update if needed
         if(cdb_data.valid) begin
-            for(i=0;i<NO_OF_SLOTS;i++) begin
+            for(i=0;i<SINGLE_SLOT_RS_LEN;i++) begin
                 if(occupied[i] && cdb_data.rob_id == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
                     buffer[i].operand_a <= cdb_data.data;
                     buffer[i].operand_a_ready <= 1;

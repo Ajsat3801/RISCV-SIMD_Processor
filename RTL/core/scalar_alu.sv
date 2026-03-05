@@ -46,10 +46,11 @@ module scalar_alu(
 storage_pkg::alu_holding_reg_t  current_alu_res, hold_reg;
 signal_pkg::alu_to_wb_branch_signal_t branch_result_q;
 signal_pkg::ex_to_wb_signal_t alu_result_q;
+
 logic ex_ready_q, holding_val, holding_branch;
 logic res_to_op, res_to_hold, hold_to_op, op_valid, hold_next, ready;
 logic a_lt_b, a_lt_b_u, a_eq_b;
-logic[31:0] operand_b;
+logic[DATA_SIZE-1:0] operand_b;
 
 always_comb begin // combinationally building the output
     
