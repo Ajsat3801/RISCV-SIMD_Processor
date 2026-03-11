@@ -1,3 +1,6 @@
+import config_pkg::*;
+import instr_pkg::*;
+
 package storage_pkg;
 
 typedef struct packed {

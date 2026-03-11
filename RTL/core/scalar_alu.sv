@@ -56,13 +56,13 @@ always_comb begin // combinationally building the output
     
     current_alu_res.valid = dispatched_op.valid && !branch_valid;
     current_alu_res.rob_id = dispatched_op.rob_id;
-    current_alu_res.data = 32'b0;
+    current_alu_res.data = '0;
     current_alu_res.branch_taken = 1'b0;
     current_alu_res.branch_valid = dispatched_op.valid && dispatched_op.operation[3];
 
-    a_lt_b = ($signed(dispatched_op.operand_a) < $signed(dispatched_op.operand_b)) ? 32'b1 : 32'b0;
-    a_lt_b_u = (dispatched_op.operand_a < dispatched_op.operand_b) ? 32'b1 : 32'b0;
-    a_eq_b = (dispatched_op.operand_a == dispatched_op.operand_b) ? 32'b1 : 32'b0;
+    a_lt_b = ($signed(dispatched_op.operand_a) < $signed(dispatched_op.operand_b)) ? 1'b1 : 1'b0;
+    a_lt_b_u = (dispatched_op.operand_a < dispatched_op.operand_b) ? 1'b1 : 1'b0;
+    a_eq_b = (dispatched_op.operand_a == dispatched_op.operand_b) ? 1'b1 : 1'b0;
 
     if (dispatched_op.operation.alu == ALU_ADD && dispatched_op.sign) begin
         operand_b = (~dispatched_op.operand_b) + 1; // 2s complement for subtraction
@@ -71,17 +71,17 @@ always_comb begin // combinationally building the output
 
     unique case (dispatched_op.operation.alu)
         ALU_ADD : current_alu_res.data = dispatched_op.operand_a + operand_b;
-        ALU_SLT : current_alu_res.data = a_lt_b;
-        ALU_SLTU: current_alu_res.data = a_lt_b_u;
+        ALU_SLT : current_alu_res.data[0] = a_lt_b;
+        ALU_SLTU: current_alu_res.data[0] = a_lt_b_u;
         ALU_XOR : current_alu_res.data = dispatched_op.operand_a ^ dispatched_op.operand_b;
         ALU_OR  : current_alu_res.data = dispatched_op.operand_a | dispatched_op.operand_b;
         ALU_AND : current_alu_res.data = dispatched_op.operand_a & dispatched_op.operand_b;
-        ALU_BEQ : current_alu_res.branch_taken = a_eq_b[0];
-        ALU_BNE : current_alu_res.branch_taken = !a_eq_b[0];
-        ALU_BLT : current_alu_res.branch_taken = a_lt_b[0];
-        ALU_BLTU: current_alu_res.branch_taken = a_lt_b_u[0];
-        ALU_BGE : current_alu_res.branch_taken = !a_lt_b[0];
-        ALU_BGEU: current_alu_res.branch_taken = !a_lt_b_u[0];
+        ALU_BEQ : current_alu_res.branch_taken = a_eq_b;
+        ALU_BNE : current_alu_res.branch_taken = !a_eq_b;
+        ALU_BLT : current_alu_res.branch_taken = a_lt_b;
+        ALU_BLTU: current_alu_res.branch_taken = a_lt_b_u;
+        ALU_BGE : current_alu_res.branch_taken = !a_lt_b;
+        ALU_BGEU: current_alu_res.branch_taken = !a_lt_b_u;
     endcase
 
     // control signals

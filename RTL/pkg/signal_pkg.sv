@@ -1,3 +1,6 @@
+import config_pkg::*;
+import instr_pkg::*;
+
 package signal_pkg;
 
 localparam NUM_RS = 3;

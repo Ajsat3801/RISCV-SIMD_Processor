@@ -31,30 +31,30 @@ logic src1_ready, src2_ready;
 integer unsigned i;
 
 always_comb begin
-    src1_rob_id = 'd0;
-    src2_rob_id = 'd0;
+    src1_rob_id = '0;
+    src2_rob_id = '0;
     src1_ready = 1'b1;
     src2_ready = 1'b1;
 
-    retire = retire_instr.valid && (retire_instr.dest_address != 'd0) && rat_buffer[retire_instr.dest_address].rob_id == retire_instr.rob_id;
-    issue = issue_instr.valid && (issue_instr.dest_address != 'd0);
+    retire = retire_instr.valid && (retire_instr.dest_address != '0) && rat_buffer[retire_instr.dest_address].rob_id == retire_instr.rob_id;
+    issue = issue_instr.valid && (issue_instr.dest_address != '0);
     replace = issue && retire && (retire_instr.dest_address == issue_instr.dest_address);
 
-    alloc_src1 = alloc_instr.valid && alloc_instr.src1_address != 0;
-    alloc_src2 = alloc_instr.valid && alloc_instr.src2_address != 0;
+    alloc_src1 = alloc_instr.valid && alloc_instr.src1_address != 1'b0;
+    alloc_src2 = alloc_instr.valid && alloc_instr.src2_address != 1'b0;
 
-    forward_src1 = issue_instr.valid && issue_instr.dest_address == alloc_instr.src1_address && alloc_instr.src1_address != 0;
-    forward_src2 = issue_instr.valid && issue_instr.dest_address == alloc_instr.src2_address && alloc_instr.src2_address != 0;
+    forward_src1 = issue_instr.valid && issue_instr.dest_address == alloc_instr.src1_address && alloc_instr.src1_address != 1'b0;
+    forward_src2 = issue_instr.valid && issue_instr.dest_address == alloc_instr.src2_address && alloc_instr.src2_address != 1'b0;
 
     // combinational read for RS1 and RS2
     if(alloc_src1) begin
         src1_rob_id = (forward_src1) ? issue_instr.rob_id : rat_buffer[alloc_instr.src1_address].rob_id;
-        src1_ready = (forward_src1) ? 0 : ~rat_buffer[alloc_instr.src1_address].in_use;
+        src1_ready = (forward_src1) ? 1'b0 : ~rat_buffer[alloc_instr.src1_address].in_use;
     end
 
     if(alloc_src2) begin
         src2_rob_id = (forward_src2) ? issue_instr.rob_id : rat_buffer[alloc_instr.src2_address].rob_id;
-        src2_ready = (forward_src2) ? 0 : ~rat_buffer[alloc_instr.src2_address].in_use;
+        src2_ready = (forward_src2) ? 1'b0 : ~rat_buffer[alloc_instr.src2_address].in_use;
     end
 end
 
@@ -63,7 +63,7 @@ always_ff @(posedge clk) begin
     
     if(!reset_n) begin // reset
         
-        for (i = 0; i < 32; i++) rat_buffer[i]<= 'd0;
+        for (i = 0; i < 32; i++) rat_buffer[i]<= '0;
 
         src1_ready_q <= 1'b1;
         src2_ready_q <= 1'b1;

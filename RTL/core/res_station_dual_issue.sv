@@ -103,9 +103,9 @@ always_comb begin
     grant2_to_dispatch2 = ex2_ready && grant1_to_dispatch1 && grant2;
     bypass_to_dispatch2 = ex2_ready && !bypass_to_dispatch1 && !grant1_to_dispatch2 && !grant2_to_dispatch2 && bypass_eligible;
 
-    if(bypass_to_dispatch2 || bypass_to_dispatch1) choice_next = rs_input.rs_slot + 1;
-    else if(grant2_to_dispatch2) choice_next = grant2_idx + 1;
-    else if(grant1_to_dispatch1 || grant1_to_dispatch2) choice_next = grant1_idx + 1;
+    if(bypass_to_dispatch2 || bypass_to_dispatch1) choice_next = rs_input.rs_slot + 1'b1;
+    else if(grant2_to_dispatch2) choice_next = grant2_idx + 1'b1;
+    else if(grant1_to_dispatch1 || grant1_to_dispatch2) choice_next = grant1_idx + 1'b1;
     else choice_next = choice;
 
 end
@@ -114,19 +114,19 @@ always_ff @(posedge clk) begin
     
     if(!reset_n) begin
         
-        buffer[0] <= 'd0;
+        buffer[0] <= '0;
         for(i = 1; i<DUAL_SLOT_RS_LEN;i++) buffer[i] <= buffer[0];
 
         rs_slot_released[0] <= 1'b0;
         rs_slot_released[1] <= 1'b1;
 
-        rs_slot_released_id[0] <= 'd0;
-        rs_slot_released_id[1] <= 'd0;
+        rs_slot_released_id[0] <= '0;
+        rs_slot_released_id[1] <= '0;
 
-        dispatch1_op <= 'd0;
-        dispatch2_op <= 'd0;
+        dispatch1_op <= '0;
+        dispatch2_op <= '0;
 
-        choice <= 0;
+        choice <= '0;
 
     end
     else begin
@@ -136,11 +136,11 @@ always_ff @(posedge clk) begin
             for(i=0;i<DUAL_SLOT_RS_LEN;i++) begin
                 if(occupied[i] && cdb_data.rob_id == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
                     buffer[i].operand_a <= cdb_data.data;
-                    buffer[i].operand_a_ready <= 1;
+                    buffer[i].operand_a_ready <= 1'b1;
                 end
                 if(occupied[i] && cdb_data.rob_id == buffer[i].operand_b_tag && !buffer[i].operand_b_ready) begin
                     buffer[i].operand_b <= cdb_data.data;
-                    buffer[i].operand_b_ready <= 1;
+                    buffer[i].operand_b_ready <= 1'b1;
                 end
             end
         end
@@ -167,8 +167,8 @@ always_ff @(posedge clk) begin
             rs_slot_released_id[0] <= rs_input.rs_slot;
         end
         else begin// default
-            dispatch1_op <= 'd0;
-            rs_slot_released_id[0] <= 'd0;
+            dispatch1_op <= '0;
+            rs_slot_released_id[0] <= '0;
         end
 
         if(grant1_to_dispatch2) begin
@@ -202,8 +202,8 @@ always_ff @(posedge clk) begin
             rs_slot_released_id[1] <= rs_input.rs_slot;
         end
         else begin// default
-            dispatch2_op <= 'd0;
-            rs_slot_released_id[1] <= 'd0;
+            dispatch2_op <= '0;
+            rs_slot_released_id[1] <= '0;
         end
         
         choice <= choice_next;

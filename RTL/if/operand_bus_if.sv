@@ -6,8 +6,7 @@
 */
 
 
-interface operand_bus_if #(
-)();
+interface operand_bus_if;
 
 // ROB signals
 logic[ROB_ADDR_W-1:0] rob_id;

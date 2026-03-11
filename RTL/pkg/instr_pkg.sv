@@ -1,7 +1,6 @@
-package instr_pkg;
+import config_pkg::*;
 
-localparam REG_W = 32;
-localparam REG_ADDR_W = $clog2(REG_W); // 5 in case of current situation
+package instr_pkg;
 
 typedef enum logic[1:0] {NONE, CS_SALU, CS_SMULDIV, CS_SLSU} chip_select_e;
 
@@ -59,7 +58,3 @@ typedef struct packed {
 } decoded_instr_t;
 
 endpackage
-
-/*
-branch
-*/

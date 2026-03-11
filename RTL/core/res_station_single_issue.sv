@@ -77,11 +77,11 @@ always_ff @(posedge clk) begin
     
     if(!reset_n) begin
         
-        buffer[0] <= 'd0;
+        buffer[0] <= '0;
         for(i = 1; i<SINGLE_SLOT_RS_LEN;i++) buffer[i] <= buffer[0];
 
         released_id_q <= '0;
-        dispatched_op_q <= 'd0;
+        dispatched_op_q <= '0;
 
     end
     else begin
@@ -91,11 +91,11 @@ always_ff @(posedge clk) begin
             for(i=0;i<SINGLE_SLOT_RS_LEN;i++) begin
                 if(occupied[i] && cdb_data.rob_id == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
                     buffer[i].operand_a <= cdb_data.data;
-                    buffer[i].operand_a_ready <= 1;
+                    buffer[i].operand_a_ready <= 1'b1;
                 end
                 if(occupied[i] && cdb_data.rob_id == buffer[i].operand_b_tag && !buffer[i].operand_b_ready) begin
                     buffer[i].operand_b <= cdb_data.data;
-                    buffer[i].operand_b_ready <= 1;
+                    buffer[i].operand_b_ready <= 1'b1;
                 end
             end
         end
@@ -121,9 +121,9 @@ always_ff @(posedge clk) begin
             dispatched_op_q.sign <= buffer[chosen_idx].sign;
             
             // clearing buffer entry and sending released value
-            buffer[chosen_idx] <= 'd0;
+            buffer[chosen_idx] <= '0;
         end
-        else dispatched_op_q <= 'd0;
+        else dispatched_op_q <= '0;
         
         released_id_q <= chosen_idx;
         chosen <= chosen_next;

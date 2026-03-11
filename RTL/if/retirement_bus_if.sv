@@ -1,4 +1,4 @@
-interface retirement_bus_if();
+interface retirement_bus_if;
 
 logic valid;
 logic write_to_reg;

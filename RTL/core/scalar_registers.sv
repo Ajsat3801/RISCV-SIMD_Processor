@@ -19,18 +19,18 @@ logic[DATA_SIZE-1:0] operand_a_q, operand_b_q, operand_a, operand_b;
 logic reg_input_valid_q;
 
 always_comb begin
-    operand_a = 32'b0;
-    operand_b = 32'b0;
+    operand_a = '0;
+    operand_b = '0;
 
     // combinational read and registered outputs
     if(read_data.valid) begin
 
-        if(read_data.src1_address == 0) operand_a = 32'b0;
+        if(read_data.src1_address == '0) operand_a = '0;
         else if(read_data.src1_address == write_data.rd && write_data.instr_valid) operand_a = write_data.data;
         else operand_a = reg_arr[read_data.src1_address];
 
         if(!read_data.read_src2) operand_b = read_data.imm;
-        else if(read_data.src2_address == 0) operand_b = 32'b0;
+        else if(read_data.src2_address == '0) operand_b = '0;
         else if(read_data.src2_address == write_data.rd && write_data.instr_valid) operand_b = write_data.data;
         else operand_b = reg_arr[read_data.src2_address];
 
@@ -41,15 +41,15 @@ end
 always_ff @(posedge clk) begin
     
     if(!reset_n) begin
-        reg_arr[0] <= 32'b0;
-        operand_a_q <= 32'b0;
-        operand_b_q <= 32'b0;
-        reg_input_valid_q <= 0;
+        reg_arr[0] <= '0;
+        operand_a_q <= '0;
+        operand_b_q <= '0;
+        reg_input_valid_q <= 1'b0;
     end
     
     else begin
         // writing to the register
-        if(write_data.instr_valid && write_data.rd != 0) reg_arr[write_data.rd] <= write_data.data;
+        if(write_data.instr_valid && write_data.rd != '0) reg_arr[write_data.rd] <= write_data.data;
 
         operand_a_q <= operand_a;
         operand_b_q <= operand_b;

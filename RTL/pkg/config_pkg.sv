@@ -31,5 +31,7 @@ localparam int unsigned DUAL_SLOT_RS_IDX_W =$clog2(DUAL_SLOT_RS_LEN);
 localparam int unsigned SINGLE_SLOT_RS_IDX_W = $clog2(SINGLE_SLOT_RS_LEN);
 localparam int unsigned EX_IDX_W = $clog2(NUMBER_OF_EX);
 localparam int unsigned BRANCH_IDX_W = $clog2(NUMBER_OF_BRANCH_EX);
+localparam int unsigned REG_ADDR_W = $clog2(NUMBER_REG_ADDR);
 
 endpackage
+

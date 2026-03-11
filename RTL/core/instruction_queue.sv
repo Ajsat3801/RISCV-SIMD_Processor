@@ -50,12 +50,12 @@ instr_pkg::chip_select_e cs;
 iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
     .clk(clk),
     .reset_n(reset_n),
-    .enqueue1(rs_released[0]),
-    .enqueue1_data(rs_slot_released_id[0]),
-    .enqueue2(rs_released[1]),
-    .enqueue2_data(rs_slot_released_id[1]),
-    .dequeue(dequeue_rs_fifo[0]),
-    .dequeue_data(next_rs_slot[0]),
+    .push1(rs_released[0]),
+    .push1_data(rs_slot_released_id[0]),
+    .push2(rs_released[1]),
+    .push2_data(rs_slot_released_id[1]),
+    .pop(dequeue_rs_fifo[0]),
+    .data_out(next_rs_slot[0]),
     .empty(rs_empty[0]),
     .full(rs_full[0]),
 );
@@ -66,10 +66,10 @@ iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
 iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo (
     .clk(clk),
     .reset_n(reset_n),
-    .enqueue(rs_released[2]),
-    .enqueue_data(rs_slot_released_id[2]),
-    .dequeue(dequeue_rs_fifo[1]),
-    .dequeue_data(next_rs_slot[1]),
+    .push(rs_released[2]),
+    .push_data(rs_slot_released_id[2]),
+    .pop(dequeue_rs_fifo[1]),
+    .data_out(next_rs_slot[1]),
     .empty(rs_empty[1]),
     .full(rs_full[1]),
 );
@@ -77,10 +77,10 @@ iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo 
 iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) lsu_fifo (
     .clk(clk),
     .reset_n(reset_n),
-    .enqueue(rs_released[3]),
-    .enqueue_data(rs_slot_released_id[3]),
-    .dequeue(dequeue_rs_fifo[2]),
-    .dequeue_data(next_rs_slot[2]),
+    .push(rs_released[3]),
+    .push_data(rs_slot_released_id[3]),
+    .pop(dequeue_rs_fifo[2]),
+    .data_out(next_rs_slot[2]),
     .empty(rs_empty[2]),
     .full(rs_full[2]),
 );
@@ -91,10 +91,10 @@ iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) lsu_fifo (
 
 always_comb begin
 
-    dequeue_rs_fifo = 'd0;
+    dequeue_rs_fifo = '0;
     dequeue = 1'b0;
     enqueue = 1'b0;
-    rs_index = 'd0;
+    rs_index = '0;
     
     tail_next = (tail == INSTRUCTION_QUEUE_LEN) ? 0 :(tail + 1);
     head_next = (head == INSTRUCTION_QUEUE_LEN) ? 0 :(head + 1);
@@ -112,7 +112,7 @@ always_comb begin
         end
         else begin
             dequeue = !rob_full;
-            dequeue_rs_fifo = 'd0;
+            dequeue_rs_fifo = '0;
         end
     end
 
@@ -122,10 +122,10 @@ end
 
 always_ff @(posedge clk) begin
     if(!reset_n) begin
-        alloc_instr_q <= 'd0;
-        rs_slot_id_q <= 'd0;
-        head <= 'd0;
-        tail <= 'd0;
+        alloc_instr_q <= '0;
+        rs_slot_id_q <= '0;
+        head <= '0;
+        tail <= '0;
     end
 
     else begin // working logic
@@ -136,8 +136,8 @@ always_ff @(posedge clk) begin
             head <= head_next;
         end
         else begin// default value
-            alloc_instr_q <= 'd0;
-            rs_slot_id_q <= 'd0;
+            alloc_instr_q <= '0;
+            rs_slot_id_q <= '0;
         end
 
         if(enqueue) begin

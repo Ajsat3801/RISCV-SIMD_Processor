@@ -43,8 +43,8 @@ logic[ROB_ADDR_W-1:0] issue_instr_rob_id_q;
 logic issue_instr_rob_valid_q;
 
 always_comb begin
-    tail_next = {tail_epoch,tail} + 1;
-    head_next = {head_epoch,head} + 1;
+    tail_next = {tail_epoch,tail} + 1'b1;
+    head_next = {head_epoch,head} + 1'b1;
 
     precalc_data = {input_instr.src1_address, input_instr.src2_address, input_instr.imm, input_instr.extend};
 
@@ -54,7 +54,7 @@ always_comb begin
     new_instr.ready = input_instr.ready;
     new_instr.write_to_reg = input_instr.write_to_reg;
     new_instr.dest_address = input_instr.dest_address;
-    new_instr.data = (precalc) ? precalc_data : 32'b0;
+    new_instr.data = (precalc) ? precalc_data : '0;
     new_instr.is_branch = input_instr.is_branch;
     new_instr.branch_taken = input_instr.ready 
     // same as ready so that JAL instructions are going.
@@ -63,10 +63,10 @@ end
 
 always_ff @(posedge clk) begin
     if(!reset_n) begin
-        head <= 'd0;
-        tail <= 'd0;
+        head <= '0;
+        tail <= '0;
 
-        for(i=0;i<ROB_LEN+1;i++) buffer[i]<= 'd0;
+        for(i=0;i<ROB_LEN+1;i++) buffer[i]<= '0;
     end
 
     // Add instruction to ROB for allocation
@@ -84,7 +84,7 @@ always_ff @(posedge clk) begin
         tail_epoch <= tail_next[ROB_ADDR_W]
     end
     else begin
-        issue_instr_rs.rob_id <= 'd0;
+        issue_instr_rs.rob_id <= '0;
         issue_instr_rs.rob_valid <= 1'b0;
     end
 
@@ -108,13 +108,13 @@ always_ff @(posedge clk) begin
         retire_instr.branch_taken = buffer[head].branch_taken;
         retire_instr.rob_id = head;
 
-        buffer[head] <= 'd0;
+        buffer[head] <= '0;
 
         head <= head_next[ROB_ADDR_W-1:0];
         head_epoch <= head_next[ROB_ADDR_W]
     end
     else begin
-        retire_instr.valid = 'd0;
+        retire_instr.valid = '0;
     end
 
 end
