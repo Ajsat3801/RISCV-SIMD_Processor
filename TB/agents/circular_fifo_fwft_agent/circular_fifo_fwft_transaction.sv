@@ -6,6 +6,8 @@ class circular_fifo_fwft_transaction #(parameter type T = logic[31:0]) extends u
     rand bit  push;
     rand bit  pop;
 
+    T data_out;
+
     // Automation Macros
     `uvm_object_param_utils_begin(circular_fifo_fwft_transaction #(T))
         `uvm_field_int(push, UVM_ALL_ON)
@@ -33,6 +35,13 @@ class circular_fifo_fwft_transaction #(parameter type T = logic[31:0]) extends u
             $sformat("%h",push_data)
         );
 
+        printer.print_generic(
+            "data_out",
+            "T",
+            $bits(T),
+            $sformat("%h",data_out)
+        );
+
     endfunction
 
     // if we do operand_a.copy(operand_b), deep copy of b assigned to a
@@ -41,6 +50,7 @@ class circular_fifo_fwft_transaction #(parameter type T = logic[31:0]) extends u
 
         if(!$cast(rhs_,rhs)) return;
         this.push_data = rhs_.push_data;
+        this.data_out = rhs_.data_out;
     endfunction
 
 endclass

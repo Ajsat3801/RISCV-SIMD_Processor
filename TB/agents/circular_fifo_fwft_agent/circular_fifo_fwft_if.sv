@@ -1,12 +1,12 @@
 
 interface circular_fifo_fwft_if #(
-    parameter BUFFER_SIZE = 8,
+    parameter int BUFFER_SIZE = 8,
     parameter type T = logic[31:0]
 ) (
     input logic clk
 );
 
-input logic reset_n;
+logic reset_n;
 logic push, pop;
 T push_data, data_out;
 logic full, empty;
