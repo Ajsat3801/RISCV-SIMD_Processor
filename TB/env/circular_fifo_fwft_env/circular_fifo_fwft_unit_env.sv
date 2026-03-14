@@ -4,7 +4,7 @@ class circular_fifo_fwft_unit_env #(
     parameter type T = logic[31:0]
 ) extends uvm_env;
 
-    `uvm_component_param_utils(circular_fifo_fwft_env #(BUFFER_SIZE,T))
+  `uvm_component_param_utils(circular_fifo_fwft_unit_env#(BUFFER_SIZE, T))
 
     circular_fifo_fwft_agent #(BUFFER_SIZE, T) agt;
     circular_fifo_fwft_scoreboard #(T) scb;
@@ -20,7 +20,7 @@ class circular_fifo_fwft_unit_env #(
     endfunction
 
     virtual function void connect_phase(uvm_phase phase);
-        super.connect_phase();
+      super.connect_phase(phase);
         agt.mon.item_collected_port.connect(scb.act_imp);
         agt.drv.sent_input.connect(scb.exp_imp);
     endfunction

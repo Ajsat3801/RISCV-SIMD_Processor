@@ -31,7 +31,7 @@ class circular_fifo_fwft_agent #(
         if(!uvm_config_db#(virtual circular_fifo_fwft_if#(BUFFER_SIZE, T))::get(this, "", "vif", vif)) begin
             `uvm_fatal("AGT", "Could not get vif from config_db")
         end
-        uvm_config_db #(virtual circular_fifo_fwft_if#(BUFFER_SIZE,T))::set(this,"*",vif, vif);
+      uvm_config_db #(virtual circular_fifo_fwft_if#(BUFFER_SIZE,T))::set(this,"*","vif", vif);
 
     endfunction
 

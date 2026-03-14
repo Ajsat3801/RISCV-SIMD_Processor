@@ -1,7 +1,7 @@
 
 class circular_fifo_fwft_sequence #(
-    parameter int BUFFER_SIZE,
-    parameter type T
+    parameter int BUFFER_SIZE = 8,
+  parameter type T = logic[31:0]
 ) extends uvm_sequence;
 
     `uvm_object_param_utils(circular_fifo_fwft_sequence #(BUFFER_SIZE, T))
@@ -18,7 +18,7 @@ class circular_fifo_fwft_sequence #(
 
         repeat(50) begin
 
-            tr = circular_fifo_fwft_transaction #(T)::type-id::create("tr");
+          tr = circular_fifo_fwft_transaction #(T)::type_id::create("tr");
 
             start_item(tr); // wait for sequencer/driver to be ready
             

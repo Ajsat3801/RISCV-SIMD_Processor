@@ -14,6 +14,13 @@ class circular_fifo_fwft_monitor #(
         super.new(name, parent);
         item_collected_port = new("item_collected_port", this);
     endfunction
+  
+    virtual function void build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        if (!uvm_config_db#(virtual circular_fifo_fwft_if #(BUFFER_SIZE, T))::get(this, "", "vif", vif)) begin
+            `uvm_fatal("DRV/NOVIF", "virtual interface vif not set for circular_fifo_fwft_driver")
+        end
+    endfunction
 
     virtual task run_phase(uvm_phase phase);
         forever begin
@@ -29,11 +36,17 @@ class circular_fifo_fwft_monitor #(
 
         if(!vif.cb.empty) begin
             tr = circular_fifo_fwft_transaction#(T)::type_id::create("tr");
-
-            tr.push_data = vif.cb.push_data; // write hardware pin to txn
+            tr.push = vif.push;
+            tr.push_data = vif.push_data;
+            tr.pop = vif.pop;
+          
+            tr.data_out = vif.data_out;
+            tr.full = vif.full;
+            tr.empty = vif.empty;
+          	
             item_collected_port.write(tr); // broadcast txn to scoreboard
 
-            `uvm_info("MON", $sformatf("Sampled Data: %h", tr.data_out), UVM_HIGH)
+            //`uvm_info("MON", $sformatf("Sampled Data: %h", tr.data_out), UVM_NONE)
         end
     endtask
 

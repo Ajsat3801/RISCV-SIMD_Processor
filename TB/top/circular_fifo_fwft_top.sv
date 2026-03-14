@@ -1,3 +1,19 @@
+// Code your testbench here
+// or browse Examples
+
+`include "circular_fifo_fwft_if.sv"
+`include "circular_fifo_fwft_transaction.sv"
+`include "circular_fifo_fwft_sequences.sv"
+`include "circular_fifo_fwft_driver.sv"
+`include "circular_fifo_fwft_monitor.sv"
+`include "circular_fifo_fwft_sequencer.sv"
+`include "circular_fifo_fwft_agent.sv"
+`include "circular_fifo_fwft_scoreboard.sv"
+`include "circular_fifo_fwft_unit_env.sv"
+`include "circular_fifo_fwft_test.sv"
+`include "circular_fifo_fwft_test_default.sv"
+
+
 
 module top;
 
@@ -7,14 +23,14 @@ module top;
     logic clk;
     logic reset_n;
 
-    circular_fifo_fwft_if #(BUFFER_SIZE, T) intf(clk, reset_n);
+    circular_fifo_fwft_if #(BUFFER_SIZE, T) intf(clk);
 
     circular_fifo_fwft #(
         .BUFFER_SIZE(BUFFER_SIZE),
         .T(T)
     ) dut (
         .clk(clk),
-        .reset_n(reset_n),
+      .reset_n(reset_n),
         .push(intf.push),
         .push_data(intf.push_data),
         .pop(intf.pop),
@@ -25,21 +41,21 @@ module top;
 
     initial begin
         clk = 0;
-        forever #5 clk = ~clk;
+        forever #10 clk = ~clk;
     end
 
     initial begin
         reset_n = 0;
-        #20;
+        #40;
         reset_n = 1;
     end
 
     initial begin
-        uvm_config_db #(virtual circular_fifo_fwft_if #(BUFFER_SIZE, T))::set(null,"*", vif, intf);
+        uvm_config_db #(virtual circular_fifo_fwft_if #(BUFFER_SIZE, T))::set(null,"*", "vif", intf);
 
         $dumpfile("dump.vcd");
         $dumpvars(0,top);
 
-        run_test("circular_fifo_fwft_test");
+        run_test("circular_fifo_fwft_test_default");
     end
 endmodule
