@@ -11,24 +11,19 @@ class circular_fifo_fwft_sequence #(
     endfunction
 
     virtual task body();
-
+        
         circular_fifo_fwft_transaction #(T) tr;
-
-        `uvm_info("SEQ","Starting randomized FIFO sequence", UVM_LOW)
+        `uvm_info("SEQ","Starting randomized FIFO sequence", UVM_HIGH)
 
         repeat(50) begin
-
-          tr = circular_fifo_fwft_transaction #(T)::type_id::create("tr");
-
-            start_item(tr); // wait for sequencer/driver to be ready
+            tr = circular_fifo_fwft_transaction #(T)::type_id::create("tr");
             
+            start_item(tr); // wait for sequencer/driver to be ready
             if(!tr.randomize()) `uvm_error("SEQ","Randomization Failed")
-
             finish_item(tr); //send to driver and wait for completion
-
         end
-
-        `uvm_info("SEQ","Sequence complete", UVM_LOW)
+        
+        `uvm_info("SEQ","Sequence complete", UVM_HIGH)
 
     endtask
 endclass

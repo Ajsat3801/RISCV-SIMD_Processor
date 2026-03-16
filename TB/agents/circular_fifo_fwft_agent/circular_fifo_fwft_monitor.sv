@@ -7,7 +7,6 @@ class circular_fifo_fwft_monitor #(
     virtual circular_fifo_fwft_if #(BUFFER_SIZE, T) vif;
 
     uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) item_collected_port;
-
     `uvm_component_param_utils(circular_fifo_fwft_monitor #(BUFFER_SIZE, T));
 
     function new(string name, uvm_component parent);
@@ -33,8 +32,8 @@ class circular_fifo_fwft_monitor #(
         circular_fifo_fwft_transaction #(T) tr;
 
         @(vif.cb);
-
-        if(!vif.cb.empty) begin
+      
+        if(vif.reset_n) begin
             tr = circular_fifo_fwft_transaction#(T)::type_id::create("tr");
             tr.push = vif.push;
             tr.push_data = vif.push_data;
@@ -45,8 +44,8 @@ class circular_fifo_fwft_monitor #(
             tr.empty = vif.empty;
           	
             item_collected_port.write(tr); // broadcast txn to scoreboard
-
-            //`uvm_info("MON", $sformatf("Sampled Data: %h", tr.data_out), UVM_NONE)
+        
+            `uvm_info("MON", $sformatf("push_data: %h data_out: %h", tr.push_data, tr.data_out), UVM_HIGH)
         end
     endtask
 

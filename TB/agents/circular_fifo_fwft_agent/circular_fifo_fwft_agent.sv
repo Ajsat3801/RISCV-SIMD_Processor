@@ -1,4 +1,5 @@
 
+
 class circular_fifo_fwft_agent #(
     parameter int BUFFER_SIZE = 8,
     parameter type T = logic[31:0]

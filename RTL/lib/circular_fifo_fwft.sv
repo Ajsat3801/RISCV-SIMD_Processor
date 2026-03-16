@@ -2,7 +2,9 @@
 circular FIFO with first word fall through - general implementation
 the head value will be the output even before pop asks for it
 */
-
+/*
+TODO: Fix the case for simultaneous push + pop
+*/
 module circular_fifo_fwft #(
     parameter BUFFER_SIZE = 8, 
     parameter type T = logic[31:0]
@@ -22,8 +24,9 @@ module circular_fifo_fwft #(
 
 localparam ADDR_SIZE = $clog2(BUFFER_SIZE+1);
 
-T main_FIFO[BUFFER_SIZE:0]; // N+1 entry buffer
+T main_fifo[BUFFER_SIZE:0]; // N+1 entry buffer
 logic[ADDR_SIZE-1:0] head, tail, head_next, tail_next; // address needs one extra bit
+logic bypass, push_allowed, pop_allowed;
 
 always_comb begin
 
@@ -33,7 +36,13 @@ always_comb begin
     full = (tail_next == head);
     empty = head==tail;
 
-    data_out = main_FIFO[head];
+    bypass = empty && push && pop;
+    push_allowed = push && (!full || (pop && !empty)) && !bypass;
+    pop_allowed = pop && !empty && !bypass;
+
+    if(bypass) data_out = push_data;
+    else if(empty) data_out = '0;
+    else data_out = main_fifo[head];
 
 end
 
@@ -45,12 +54,13 @@ always_ff @(posedge clk) begin
     end
 
     else begin
-        if(pop && !empty) begin
-            head <= head_next;
-        end
-        if(push && (!full || (pop && !empty))) begin
-            main_FIFO[tail] <= push_data;
+        
+        if(push_allowed) begin
+            main_fifo[tail] <= push_data;
             tail <= tail_next;
+        end
+        if(pop_allowed) begin
+            head <= head_next;
         end
     end
 end

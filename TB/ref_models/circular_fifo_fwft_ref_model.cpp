@@ -10,53 +10,69 @@ typedef std::vector<uint32_t> T;
 class circular_fifo_fwft_ref_model {
     private:
         std::deque<T> buffer;
+        int size;
     public:
+        circular_fifo_fwft_ref_model(int size){
+            this->size = size;
+        }
         void push(T data) {
             buffer.push_back(data);
         }
-
-        T pop() {
-            T val = buffer.front();
+        void pop() {
             buffer.pop_front();
-            return val;
         }
-
-        bool empty(){
+        bool empty() {
             return buffer.empty();
         }
-  T peek(){
-    T val = buffer.front();
-    return val;
-  }
+        bool full() {
+            return (buffer.size() == size);
+        }
+        T head() {
+            T val = buffer.front();
+            return val;
+        }
 };
 
 // Global Registry (The Context Manager)
-static std::map<int, circular_fifo_fwft_ref_model*> registry;
+//static std::map<int, circular_fifo_fwft_ref_model*> registry;
+circular_fifo_fwft_ref_model* ref_model;
 
-extern "C" void circular_fifo_fwft_model_create(int id) {
-        registry[id] = new circular_fifo_fwft_ref_model();
-    }
+extern "C" void circular_fifo_fwft_model_create(int size){
+    ref_model = new circular_fifo_fwft_ref_model(size);
+}
 
-extern "C" void circular_fifo_fwft_model_push(int id, const svBitVecVal* data, int numwords) {
+extern "C" void circular_fifo_fwft_model_run (
+    const svBitVecVal* data,
+    svBitVecVal* data_out, 
+    svBit push,
+    svBit pop,
+    svBit* fifo_full,
+    svBit* fifo_empty,
 
-        T dataT;
-        for(int i = 0;i<numwords; i++){
-            dataT.push_back(data[i]);
-        }
-        registry[id]->push(dataT);
-    }
+    int numwords
+){
+    // casting input into vector
+    T dataT, data_outT;
+    for(int i=0; i<numwords; i++) dataT.push_back(data[i]);
 
-extern "C" void circular_fifo_fwft_model_pop(int id, svBitVecVal* output_buffer, int numwords) {
-        if (registry[id]->empty()) for(int i=0; i<numwords; i++) output_buffer[i] = 0;
-        else {
-            T outputT = registry[id]->pop();
-            for(int i = 0; i<numwords;i++) output_buffer[i] = outputT[i];
-        }
-    }
-extern "C" void circular_fifo_fwft_model_peek(int id, svOpenArrayHandle output_buffer, int numwords) {
-        if (registry[id]->empty()) for(int i=0; i<numwords; i++) output_buffer[i] = 0;
-        else {
-            T outputT = registry[id]->peek();
-            for(int i = 0; i<numwords;i++) output_buffer[i] = outputT[i];
-        }
-    }
+    // intermediate logic
+    bool empty = ref_model->empty();
+    bool full = ref_model->full();
+    bool bypass = push && pop && empty;
+    bool push_allowed = push && (!full || (full && pop)) && !bypass;
+    bool pop_allowed = pop && (!empty || (empty && push)) && !bypass; 
+
+    if(push_allowed) ref_model->push(dataT); // push if push allowed
+
+    if(pop_allowed) ref_model->pop(); // pop if pop allowed
+
+    // output is head if not bypass or empty
+    if(bypass) data_outT = dataT;
+    else if(ref_model->empty()) for(int i=0; i<numwords; i++) data_outT.push_back(0);
+    else data_outT = ref_model->head();
+
+    // casting outputs
+    for(int i=0; i<numwords; i++) data_out[i] = data_outT[i];
+    *fifo_full = ref_model->full() ? 1 : 0;
+    *fifo_empty = ref_model->empty() ? 1 : 0;
+}

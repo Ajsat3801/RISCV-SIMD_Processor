@@ -6,26 +6,25 @@ class circular_fifo_fwft_driver #(
     circular_fifo_fwft_transaction #(T)
 );
 
-    virtual circular_fifo_fwft_if #(BUFFER_SIZE, T) vif;
+virtual circular_fifo_fwft_if #(BUFFER_SIZE, T) vif;
 
-    uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) sent_input;
+uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) sent_input;
     circular_fifo_fwft_transaction #(T) tr;
+    `uvm_component_param_utils(circular_fifo_fwft_driver #(BUFFER_SIZE,T))
 
-  `uvm_component_param_utils(circular_fifo_fwft_driver #(BUFFER_SIZE,T))
-
-    //constructor
+//constructor
     function new(string name, uvm_component parent);
         super.new(name, parent);
         sent_input = new("sent_input", this);
     endfunction
-    
+  
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         if (!uvm_config_db#(virtual circular_fifo_fwft_if #(BUFFER_SIZE, T))::get(this, "", "vif", vif)) begin
             `uvm_fatal("DRV/NOVIF", "virtual interface vif not set for circular_fifo_fwft_driver")
         end
-    endfunction    
-
+    endfunction
+    
     virtual task run_phase(uvm_phase phase);
 
         // get rid of dont care cases
@@ -44,20 +43,20 @@ class circular_fifo_fwft_driver #(
         @(vif.cb);
 
         // you send all the things to the interface.
-        // handle hardware state determined constraints here
+        // handle hardware state determined constraints herw
     
         if(vif.cb.full && tr.push) begin // illegal scenario
             vif.cb.push <= 1'b0;
             `uvm_info("DRV","Blocked push: full==1 && push==1", UVM_HIGH)
         end else begin
             vif.cb.push <= tr.push;
-            vif.cb.push_data <= tr.push_data;
-        end
-
+        end;
+        
+        vif.cb.push_data <= tr.push_data;
         vif.cb.pop <= tr.pop;
-        sent_input.write(tr);
-        `uvm_info("DRV", $sformatf("data=%h,push=%b,pop=%b sent to DUT",tr.push_data, tr.push, tr.pop),UVM_HIGH);
 
-    endtask
+        `uvm_info("DRV", $sformatf("data=%h,push=%b,pop=%b sent to DUT",tr.push_data, tr.push, tr.pop),UVM_HIGH);
+        sent_input.write(tr);
+endtask
 
 endclass
