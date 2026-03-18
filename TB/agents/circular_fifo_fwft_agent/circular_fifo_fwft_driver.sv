@@ -6,13 +6,14 @@ class circular_fifo_fwft_driver #(
     circular_fifo_fwft_transaction #(T)
 );
 
-virtual circular_fifo_fwft_if #(BUFFER_SIZE, T) vif;
+    virtual circular_fifo_fwft_if #(BUFFER_SIZE, T) vif;
 
-uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) sent_input;
+    uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) sent_input;
     circular_fifo_fwft_transaction #(T) tr;
+
     `uvm_component_param_utils(circular_fifo_fwft_driver #(BUFFER_SIZE,T))
 
-//constructor
+    //constructor
     function new(string name, uvm_component parent);
         super.new(name, parent);
         sent_input = new("sent_input", this);
@@ -28,8 +29,9 @@ uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) sent_input;
     virtual task run_phase(uvm_phase phase);
 
         // get rid of dont care cases
-        vif.cb.push <= 1'b0;
-        vif.cb.pop <= 1'b0;
+        vif.drv_cb.push <= 1'b0;
+        vif.drv_cb.pop <= 1'b0;
+        vif.drv_cb.push_data <= '0;
 
         forever begin
             seq_item_port.get_next_item(tr); // get next transaction from sequencer
@@ -40,20 +42,20 @@ uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) sent_input;
 
     virtual task drive_to_interface(circular_fifo_fwft_transaction #(T) tr);
 
-        @(vif.cb);
+        @(vif.drv_cb);
 
         // you send all the things to the interface.
         // handle hardware state determined constraints herw
-    
-        if(vif.cb.full && tr.push) begin // illegal scenario
-            vif.cb.push <= 1'b0;
-            `uvm_info("DRV","Blocked push: full==1 && push==1", UVM_HIGH)
+  
+        if(vif.drv_cb.full && tr.push) begin // illegal scenario
+            vif.drv_cb.push <= 1'b0;
+            `uvm_warning("DRV","Blocked push: full==1 && push==1")
         end else begin
-            vif.cb.push <= tr.push;
+            vif.drv_cb.push <= tr.push;
         end;
         
-        vif.cb.push_data <= tr.push_data;
-        vif.cb.pop <= tr.pop;
+	    vif.drv_cb.push_data <= tr.push_data;
+        vif.drv_cb.pop <= tr.pop;
 
         `uvm_info("DRV", $sformatf("data=%h,push=%b,pop=%b sent to DUT",tr.push_data, tr.push, tr.pop),UVM_HIGH);
         sent_input.write(tr);

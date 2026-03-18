@@ -27,15 +27,14 @@ class circular_fifo_fwft_test #(
     	vif.reset_n <= 1'b1;
 	endtask
 
+    virtual task run_sequence(); // each indivudual test overrides this task
+        `uvm_fatal("TEST","run_sequence() must be overwritten")
+    endtask
+
     virtual task run_phase(uvm_phase phase);
-        circular_fifo_fwft_sequence #(BUFFER_SIZE,T) seq;
-        seq = circular_fifo_fwft_sequence #(BUFFER_SIZE,T)::type_id::create("seq");
-
-        phase.raise_objection(this);	
-        `uvm_info("TEST","Starting Random Test", UVM_LOW)
-
-		apply_reset();  	
-        seq.start(env.agt.sqr); // sequencer starts sending values
+        
+        phase.raise_objection(this);
+        run_sequence();	
 
         env.scb.stimulus_done(); // sequence generation complete
         env.scb.done(); // evaluation complete

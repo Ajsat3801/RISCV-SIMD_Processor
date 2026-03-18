@@ -1,19 +1,21 @@
 
-class circular_fifo_fwft_sequence #(
+class circular_fifo_fwft_sequence_random50 #(
     parameter int BUFFER_SIZE = 8,
-  parameter type T = logic[31:0]
-) extends uvm_sequence;
+    parameter type T = logic[31:0]
+) extends circular_fifo_fwft_sequence #(
+    .BUFFER_SIZE(BUFFER_SIZE),
+    .T(T)
+);
 
-    `uvm_object_param_utils(circular_fifo_fwft_sequence #(BUFFER_SIZE, T))
+    `uvm_object_param_utils(circular_fifo_fwft_sequence_random50 #(BUFFER_SIZE, T))
 
-    function new(string name = "circular_fifo_fwft_sequence");
+    function new(string name = "circular_fifo_fwft_sequence_random50");
         super.new(name);
     endfunction
 
-    virtual task body();
+    virtual task generate_sequence();
         
         circular_fifo_fwft_transaction #(T) tr;
-        `uvm_info("SEQ","Starting randomized FIFO sequence", UVM_HIGH)
 
         repeat(50) begin
             tr = circular_fifo_fwft_transaction #(T)::type_id::create("tr");
@@ -22,8 +24,6 @@ class circular_fifo_fwft_sequence #(
             if(!tr.randomize()) `uvm_error("SEQ","Randomization Failed")
             finish_item(tr); //send to driver and wait for completion
         end
-        
-        `uvm_info("SEQ","Sequence complete", UVM_HIGH)
 
     endtask
 endclass

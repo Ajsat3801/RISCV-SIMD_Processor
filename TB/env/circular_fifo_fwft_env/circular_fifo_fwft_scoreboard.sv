@@ -23,7 +23,7 @@ class circular_fifo_fwft_scoreboard #(
     uvm_analysis_imp_mon #(circular_fifo_fwft_transaction #(T), circular_fifo_fwft_scoreboard#(BUFFER_SIZE, T)) mon_imp;
 
     localparam int NUM_WORDS = ($bits(T) + 31)/32;
-  	bit done_flag = 1'b0
+  	bit done_flag = 1'b0;
     bit stimulus_done_flag = 1'b0;
     event done_ev;
 

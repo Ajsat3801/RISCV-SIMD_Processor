@@ -7,6 +7,7 @@ class circular_fifo_fwft_monitor #(
     virtual circular_fifo_fwft_if #(BUFFER_SIZE, T) vif;
 
     uvm_analysis_port #(circular_fifo_fwft_transaction #(T)) item_collected_port;
+
     `uvm_component_param_utils(circular_fifo_fwft_monitor #(BUFFER_SIZE, T));
 
     function new(string name, uvm_component parent);
@@ -17,7 +18,7 @@ class circular_fifo_fwft_monitor #(
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         if (!uvm_config_db#(virtual circular_fifo_fwft_if #(BUFFER_SIZE, T))::get(this, "", "vif", vif)) begin
-            `uvm_fatal("DRV/NOVIF", "virtual interface vif not set for circular_fifo_fwft_driver")
+            `uvm_fatal("MON", "virtual interface vif not set for circular_fifo_fwft_driver")
         end
     endfunction
 
@@ -31,17 +32,17 @@ class circular_fifo_fwft_monitor #(
 
         circular_fifo_fwft_transaction #(T) tr;
 
-        @(vif.cb);
+        @(vif.mon_cb);
       
-        if(vif.reset_n) begin
+        if(vif.mon_cb.reset_n) begin
             tr = circular_fifo_fwft_transaction#(T)::type_id::create("tr");
-            tr.push = vif.push;
-            tr.push_data = vif.push_data;
-            tr.pop = vif.pop;
+            tr.push = vif.mon_cb.push;
+            tr.push_data = vif.mon_cb.push_data;
+            tr.pop = vif.mon_cb.pop;
           
-            tr.data_out = vif.data_out;
-            tr.full = vif.full;
-            tr.empty = vif.empty;
+            tr.data_out = vif.mon_cb.data_out;
+            tr.full = vif.mon_cb.full;
+            tr.empty = vif.mon_cb.empty;
           	
             item_collected_port.write(tr); // broadcast txn to scoreboard
         

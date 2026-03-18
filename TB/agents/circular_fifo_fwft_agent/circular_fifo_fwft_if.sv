@@ -11,7 +11,7 @@ logic push, pop;
 T push_data, data_out;
 logic full, empty;
 
-clocking cb @(posedge clk);
+clocking drv_cb @(posedge clk);
     default input #1ns output #1ns;
 
     output reset_n;
@@ -26,10 +26,22 @@ clocking cb @(posedge clk);
 
 endclocking
 
-modport driver (clocking cb, input reset_n);
+clocking mon_cb @(posedge clk);
+    default input #0;
 
-modport monitor (input clk, reset_n, push, pop, push_data,
-                data_out, full, empty);
+    input reset_n;
+    input push;
+    input push_data;
+    input pop;
+
+    input data_out;
+    input full;
+    input empty;
+
+endclocking
+
+modport driver (clocking drv_cb, input reset_n);
+modport monitor (clocking mon_cb, input reset_n);
 
 
 endinterface
