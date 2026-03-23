@@ -1,10 +1,10 @@
 
-class circular_fifo_fwft_driver extends uvm_driver #(circular_fifo_fwft_transaction);
+class circular_fifo_fwft_drv extends uvm_driver #(circular_fifo_fwft_tr);
 
     virtual circular_fifo_fwft_if vif;
-    circular_fifo_fwft_transaction tr;
+    circular_fifo_fwft_tr tr;
 
-    `uvm_component_utils(circular_fifo_fwft_driver)
+    `uvm_component_utils(circular_fifo_fwft_drv)
 
     //constructor
     function new(string name, uvm_component parent);
@@ -14,7 +14,7 @@ class circular_fifo_fwft_driver extends uvm_driver #(circular_fifo_fwft_transact
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         if (!uvm_config_db #(virtual circular_fifo_fwft_if)::get(this, "", "vif", vif)) begin
-            `uvm_fatal("DRV/NOVIF", "virtual interface vif not set for circular_fifo_fwft_driver")
+            `uvm_fatal("DRV/NOVIF", "virtual interface vif not set for circular_fifo_fwft_drv")
         end
     endfunction
     
@@ -32,7 +32,7 @@ class circular_fifo_fwft_driver extends uvm_driver #(circular_fifo_fwft_transact
         end
     endtask
 
-    virtual task drive_to_interface(circular_fifo_fwft_transaction tr);
+    virtual task drive_to_interface(circular_fifo_fwft_tr tr);
 
         @(vif.drv_cb);
 

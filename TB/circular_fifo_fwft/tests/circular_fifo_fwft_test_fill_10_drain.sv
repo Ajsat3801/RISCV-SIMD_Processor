@@ -7,9 +7,9 @@ class circular_fifo_fwft_test_fill_10_drain extends circular_fifo_fwft_base_test
         super.new(name,parent);
     endfunction
 
-    task run_sequence();
-        circular_fifo_fwft_sequence_fill_10_drain seq;
-        seq = circular_fifo_fwft_sequence_fill_10_drain::type_id::create("seq");
+    task run_seq();
+        circular_fifo_fwft_seq_fill_10_drain seq;
+        seq = circular_fifo_fwft_seq_fill_10_drain::type_id::create("seq");
         
         `uvm_info("TEST","Starting Fill 10 Drain Test", UVM_LOW)
 

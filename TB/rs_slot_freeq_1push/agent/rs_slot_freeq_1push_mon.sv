@@ -1,20 +1,17 @@
 
-class iq_rs_buffer_one_input_monitor #(
-    parameter int BUFFER_SIZE = 8,
-    parameter type T = logic[31:0]
-) extends uvm_monitor;
+class rs_slot_freeq_1push_mon extends uvm_monitor;
 
-    virtual iq_rs_buffer_one_input_if #(BUFFER_SIZE, T) vif;
-    uvm_analysis_port(iq_rs_buffer_one_input_transaction #(T)) item_collected_port;
+    virtual rs_slot_freeq_1push_if vif;
+    uvm_analysis_port(rs_slot_freeq_1push_tr) item_collected_port;
 
-    `uvm_component_param_utils(iq_rs_buffer_one_input_monitor #(BUFFER_SIZE, T))
+    `uvm_component_utils(rs_slot_freeq_1push_mon )
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
     endfunction
 
     virtual function build_phase(uvm_phase phase);
-        if(!uvm_config_db #(virtual iq_rs_buffer_one_input_if #(BUFFER_SIZE, T))::get(this,"","vif",vif)) begin
+        if(!uvm_config_db #(virtual rs_slot_freeq_1push_if #(BUFFER_SIZE, T))::get(this,"","vif",vif)) begin
             `uvm_fatal("MON","Failed to fetch VIF from config database")
         end
     endfunction
@@ -26,11 +23,11 @@ class iq_rs_buffer_one_input_monitor #(
     endtask
 
     task collect_transactions();
-        iq_rs_buffer_one_input_transaction #(T) tr;
+        rs_slot_freeq_1push_tr tr;
         
         @(vif.mon_cb.clk)
 
-        tr = iq_rs_buffer_one_input_transaction #(T)::type_id::create("tr");
+        tr = rs_slot_freeq_1push_tr::type_id::create("tr");
 
         tr.push = vif.mon_cb.push;
         tr.pop = vif.mon_cb.pop;

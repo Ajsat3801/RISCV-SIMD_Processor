@@ -3,7 +3,7 @@ exact same logic as circular_fifo_fwft. only difference is reset
 fills the buffer from 0 to buffer_size
 */
 
-module iq_rs_buffer_one_input #(
+module rs_slot_freeq_1push #(
     parameter BUFFER_SIZE = 8,
     parameter type T = logic[31:0]
 ) (

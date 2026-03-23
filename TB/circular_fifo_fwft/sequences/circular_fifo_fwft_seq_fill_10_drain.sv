@@ -1,18 +1,18 @@
 
-class circular_fifo_fwft_sequence_fill_10_drain extends circular_fifo_fwft_base_sequence;
+class circular_fifo_fwft_seq_fill_10_drain extends circular_fifo_fwft_base_seq;
 
-    `uvm_object_param_utils(circular_fifo_fwft_sequence_fill_10_drain)
+    `uvm_object_param_utils(circular_fifo_fwft_seq_fill_10_drain)
 
-    function new(string name = "circular_fifo_fwft_sequence_fill_10_drain");
+    function new(string name = "circular_fifo_fwft_seq_fill_10_drain");
         super.new(name);
     endfunction
 
-    task generate_sequence();
+    task generate_seq();
 
-        circular_fifo_fwft_transaction tr;
+        circular_fifo_fwft_tr tr;
 
         repeat(BUFFER_SIZE) begin
-            tr = circular_fifo_fwft_transaction::type_id::create("tr");
+            tr = circular_fifo_fwft_tr::type_id::create("tr");
             
             start_item(tr);
             if (!tr.randomize()) `uvm_fatal("SEQ","transaction randomization failed")
@@ -24,7 +24,7 @@ class circular_fifo_fwft_sequence_fill_10_drain extends circular_fifo_fwft_base_
         end
 
         repeat(10) begin
-            tr = circular_fifo_fwft_transaction::type_id::create("tr");
+            tr = circular_fifo_fwft_tr::type_id::create("tr");
 
             start_item(tr);
             if (!tr.randomize()) `uvm_fatal("SEQ","transaction randomization failed")
@@ -32,7 +32,7 @@ class circular_fifo_fwft_sequence_fill_10_drain extends circular_fifo_fwft_base_
         end
 
         repeat(BUFFER_SIZE) begin
-            tr = circular_fifo_fwft_transaction::type_id::create("tr");
+            tr = circular_fifo_fwft_tr::type_id::create("tr");
 
             start_item(tr);
             if(!tr.randomize()) `uvm_fatal("SEQ","transaction randomization failed")

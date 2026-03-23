@@ -1,23 +1,18 @@
 
-class iq_rs_buffer_one_input_driver #(
-    parameter int BUFFER_SIZE = 8,
-    parameter type T = logic[31:0]
-) extends uvm_driver #(
-    iq_rs_buffer_one_input_transaction #(T)
-);
+class rs_slot_freeq_1push_drv extends uvm_driver #(rs_slot_freeq_1push_tr);
 
-    virtual iq_rs_buffer_one_input_if #(BUFFER_SIZE, T) vif;
-    iq_rs_buffer_one_input_transaction #(T) tr;
+    virtual rs_slot_freeq_1push_if vif;
+    rs_slot_freeq_1push_tr tr;
 
-    `uvm_component_param_utils(iq_rs_buffer_one_input_driver #(BUFFER_SIZE, T));
+    `uvm_component_utils(rs_slot_freeq_1push_drv);
 
-    function new(string name="iq_rs_buffer_one_input_driver", uvm_component parent);
+    function new(string name="rs_slot_freeq_1push_drv", uvm_component parent);
         super(name,parent);
     endfunction
 
     virtual function build_phase(uvm_phase phase);
         super.build_phase();
-        if(!uvm_config_db #(virtual iq_rs_buffer_one_input_if #(BUFFER_SIZE, T))::get(this,"","vif",vif)) begin
+        if(!uvm_config_db #(virtual rs_slot_freeq_1push_if)::get(this,"","vif",vif)) begin
             `uvm_fatal("DRV","Failed to retrieve vif from config database")
         end
     endfunction
@@ -36,7 +31,7 @@ class iq_rs_buffer_one_input_driver #(
         end
     endtask
 
-    task drive_to_interface(iq_rs_buffer_one_input_transaction #(T) tr);
+    task drive_to_interface(rs_slot_freeq_1push_tr tr);
 
         @(vif.drv_cb.clk)
 

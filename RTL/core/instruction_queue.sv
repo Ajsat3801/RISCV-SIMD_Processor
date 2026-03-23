@@ -47,7 +47,7 @@ logic[RS_ADDR_W-1:0] rs_slot_id_q;
 logic[RS_IDX_W-1:0] rs_index;
 instr_pkg::chip_select_e cs;
 
-iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
+rs_slot_freeq_2push #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .push1(rs_released[0]),
@@ -63,7 +63,7 @@ iq_rs_buffer_two_input #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
 
 /* FIFOs to cater for future EX units
 
-iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo (
+rs_slot_freeq_1push #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .push(rs_released[2]),
@@ -74,7 +74,7 @@ iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo 
     .full(rs_full[1]),
 );
 
-iq_rs_buffer_one_input #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) lsu_fifo (
+rs_slot_freeq_1push #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) lsu_fifo (
     .clk(clk),
     .reset_n(reset_n),
     .push(rs_released[3]),

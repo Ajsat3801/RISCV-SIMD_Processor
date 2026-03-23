@@ -24,14 +24,14 @@ class circular_fifo_fwft_base_test extends uvm_test;
     	vif.reset_n <= 1'b1;
 	endtask
 
-    virtual task run_sequence(); // each indivudual test overrides this task
-        `uvm_fatal("TEST","run_sequence() must be overwritten")
+    virtual task run_seq(); // each indivudual test overrides this task
+        `uvm_fatal("TEST","run_seq() must be overwritten")
     endtask
 
     virtual task run_phase(uvm_phase phase);
         
         phase.raise_objection(this);
-        run_sequence();	
+        run_seq();	
 
         env.scb.stimulus_done(); // sequence generation complete
         env.scb.done(); // evaluation complete

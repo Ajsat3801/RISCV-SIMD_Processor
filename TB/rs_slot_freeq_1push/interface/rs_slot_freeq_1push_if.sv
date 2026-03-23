@@ -1,8 +1,5 @@
 
-module iq_rs_buffer_one_input_if #(
-    parameter int BUFFER_SIZE = 8;
-    parameter type T = logic[31:0]
-)(
+module rs_slot_freeq_1push_if (
     input logic clk
 );
 

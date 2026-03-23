@@ -7,9 +7,9 @@ class circular_fifo_fwft_test_random50 extends circular_fifo_fwft_base_test;
         super.new(name,parent);
     endfunction
 
-    task run_sequence();
-        circular_fifo_fwft_sequence_random50 seq;
-        seq = circular_fifo_fwft_sequence_random50::type_id::create("seq");
+    task run_seq();
+        circular_fifo_fwft_seq_random50 seq;
+        seq = circular_fifo_fwft_seq_random50::type_id::create("seq");
 
         `uvm_info("TEST","Starting Random 50 Test", UVM_LOW)
 

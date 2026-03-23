@@ -10,7 +10,7 @@ Circular FIFO FWFT model with modified reset condition,
 typedef std::vector<uint32_t> T;
 
 // Each instance of our FIFO model
-class iq_rs_buffer_one_input_ref_model {
+class rs_slot_freeq_1push_ref_model {
     private:
         std::deque<T> buffer;
         int size;
@@ -23,7 +23,7 @@ class iq_rs_buffer_one_input_ref_model {
             }
         }
     public:
-        iq_rs_buffer_one_input_ref_model(int size, int numwords){
+        rs_slot_freeq_1push_ref_model(int size, int numwords){
             this->size = size;
             repopulate_buffer();
         }
@@ -49,13 +49,13 @@ class iq_rs_buffer_one_input_ref_model {
         }
 };
 
-iq_rs_buffer_one_input_ref_model* ref_model;
+rs_slot_freeq_1push_ref_model* ref_model;
 
-extern "C" void iq_rs_buffer_one_input_model_create(int size, int numwords){
-    ref_model = new iq_rs_buffer_one_input_ref_model(size,numwords);
+extern "C" void rs_slot_freeq_1push_model_create(int size, int numwords){
+    ref_model = new rs_slot_freeq_1push_ref_model(size,numwords);
 }
 
-extern "C" void iq_rs_buffer_one_input_model_run (
+extern "C" void rs_slot_freeq_1push_model_run (
     const svBitVecVal* data,
     svBitVecVal* data_out, 
     svBit push,

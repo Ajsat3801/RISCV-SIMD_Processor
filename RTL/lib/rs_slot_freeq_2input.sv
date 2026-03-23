@@ -3,7 +3,7 @@ circular fifo with first word fall through - general implementation
 the head value will be the output even before pop asks for it
 */
 
-module iq_rs_buffer_two_input #(
+module rs_slot_freeq_2push #(
     parameter BUFFER_SIZE = 8,
     parameter type T = logic[31:0]
 )(
