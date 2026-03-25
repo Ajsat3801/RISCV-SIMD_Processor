@@ -2,6 +2,7 @@
 exact same logic as circular_fifo_fwft. only difference is reset
 fills the buffer from 0 to buffer_size
 */
+import config_pkg::*;
 
 module rs_slot_freeq_1push #(
     parameter BUFFER_SIZE = 8,
@@ -17,7 +18,7 @@ module rs_slot_freeq_1push #(
     
     output T data_out,
     output logic empty,
-    output logic full,
+    output logic full
 );
 
 localparam ADDR_SIZE = $clog2(BUFFER_SIZE+1);

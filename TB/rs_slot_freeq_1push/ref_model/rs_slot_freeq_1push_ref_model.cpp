@@ -18,14 +18,14 @@ class rs_slot_freeq_1push_ref_model {
             for(int i=0; i<size; i++) {
                 T buffer_val;
                 buffer_val.push_back(i);
-                for(int j=1;i<numwords;j++) buffer_val.push_back(0);
+                for(int j=1;j<numwords;j++) buffer_val.push_back(0);
                 buffer.push_back(buffer_val);
             }
         }
     public:
         rs_slot_freeq_1push_ref_model(int size, int numwords){
             this->size = size;
-            repopulate_buffer();
+            repopulate_buffer(numwords);
         }
         void push(T data) {
             buffer.push_back(data);

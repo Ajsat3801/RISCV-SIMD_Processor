@@ -60,11 +60,11 @@ class circular_fifo_fwft_scb extends uvm_scoreboard;
 
         pass = tr.data_out === data_out && tr.empty === empty && tr.full == full;
         msg = {
-            $sformatf("\t|push_data: %h\t|push: %0d\t|pop: %0d\t|",tr.push_data, tr.push, tr.pop),
-            $sformatf("exp_out: %h\t|act_out: %h\t|",data_out, tr.data_out),
-            $sformatf("exp_empty: %0d\t|act_empty: %0d\t|",empty, tr.empty),
+            $sformatf("\t|data_in: %h\t|psh: %0d\t|pop: %0d\t||",tr.push_data, tr.push, tr.pop),
+            $sformatf("exp_out: %h\t|act_out: %h\t||",data_out, tr.data_out),
+            $sformatf("exp_empty: %0d\t|act_empty: %0d\t||",empty, tr.empty),
             $sformatf("exp_full: %0d\t|act_full:%0d", full, tr.full)
-        };
+        }
 
         if(pass) begin
             `uvm_info("SCB_MATCH", msg, UVM_MEDIUM)

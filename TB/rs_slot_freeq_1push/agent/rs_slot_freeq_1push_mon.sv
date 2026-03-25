@@ -2,7 +2,7 @@
 class rs_slot_freeq_1push_mon extends uvm_monitor;
 
     virtual rs_slot_freeq_1push_if vif;
-    uvm_analysis_port(rs_slot_freeq_1push_tr) item_collected_port;
+    uvm_analysis_port #(rs_slot_freeq_1push_tr) item_collected_port;
 
     `uvm_component_utils(rs_slot_freeq_1push_mon )
 
@@ -10,13 +10,15 @@ class rs_slot_freeq_1push_mon extends uvm_monitor;
         super.new(name, parent);
     endfunction
 
-    virtual function build_phase(uvm_phase phase);
-        if(!uvm_config_db #(virtual rs_slot_freeq_1push_if #(BUFFER_SIZE, T))::get(this,"","vif",vif)) begin
+    virtual function void build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        item_collected_port = new("item_collected_port",this);
+        if(!uvm_config_db #(virtual rs_slot_freeq_1push_if)::get(this,"","vif",vif)) begin
             `uvm_fatal("MON","Failed to fetch VIF from config database")
         end
     endfunction
 
-    virtual task run_phase(uvm_phase phase);
+    task run_phase(uvm_phase phase);
         forever begin
             collect_transactions();
         end
@@ -25,7 +27,7 @@ class rs_slot_freeq_1push_mon extends uvm_monitor;
     task collect_transactions();
         rs_slot_freeq_1push_tr tr;
         
-        @(vif.mon_cb.clk)
+        @(vif.mon_cb)
 
         tr = rs_slot_freeq_1push_tr::type_id::create("tr");
 

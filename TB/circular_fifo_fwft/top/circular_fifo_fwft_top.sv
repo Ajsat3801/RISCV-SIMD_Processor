@@ -4,7 +4,6 @@ import circular_fifo_fwft_tb_config_pkg::*;
 module top;
 
     logic clk;
-    logic reset_n;
 
     circular_fifo_fwft_if intf(clk);
 
@@ -24,7 +23,7 @@ module top;
 
     initial begin
         clk = 0;
-        forever #10 clk = ~clk;
+        forever #2.5 clk = ~clk;
     end
 
     initial begin

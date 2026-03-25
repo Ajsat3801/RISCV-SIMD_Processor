@@ -1,5 +1,6 @@
+import rs_slot_freeq_1push_tb_config_pkg::*;
 
-module rs_slot_freeq_1push_if (
+interface rs_slot_freeq_1push_if (
     input logic clk
 );
 
@@ -8,7 +9,7 @@ module rs_slot_freeq_1push_if (
     logic push, pop, full, empty;
 
     clocking drv_cb @(posedge clk);
-        defaut input #1ns output #1ns;
+        default input #1ns output #1ns;
 
         output reset_n;
         
@@ -40,4 +41,4 @@ module rs_slot_freeq_1push_if (
     modport driver (clocking drv_cb);
     modport monitor(clocking mon_cb);
 
-endmodule
+endinterface

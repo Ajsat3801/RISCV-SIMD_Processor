@@ -1,4 +1,4 @@
-package rs_slot_freeq_1input_dpi_pkg;
+package rs_slot_freeq_1push_dpi_pkg;
 
     import "DPI-C" function void rs_slot_freeq_1push_model_create(
         int size,

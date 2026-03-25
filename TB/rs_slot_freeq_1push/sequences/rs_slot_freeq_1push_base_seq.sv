@@ -3,7 +3,7 @@ class rs_slot_freeq_1push_base_seq extends uvm_sequence #(rs_slot_freeq_1push_tr
 
     `uvm_object_utils(rs_slot_freeq_1push_base_seq)
 
-    function void new(string name);
+    function new(string name = "rs_slot_freeq_1push_base_seq");
         super.new(name);
     endfunction
 
@@ -11,7 +11,7 @@ class rs_slot_freeq_1push_base_seq extends uvm_sequence #(rs_slot_freeq_1push_tr
         `uvm_error("SEQ", "Generate_seq() not overwritten");
     endtask
 
-    virtual task body()l
+    virtual task body();
         `uvm_info("SEQ", "Starting sequence generation", UVM_HIGH);
         generate_seq();
         `uvm_info("SEQ", "Sequence generation complete", UVM_HIGH);
