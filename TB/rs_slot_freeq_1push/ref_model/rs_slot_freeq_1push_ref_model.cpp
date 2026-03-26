@@ -27,7 +27,7 @@ class rs_slot_freeq_1push_ref_model {
             this->size = size;
             repopulate_buffer(numwords);
         }
-        void push(T data) {
+        void push(const data) {
             buffer.push_back(data);
         }
         void pop() {

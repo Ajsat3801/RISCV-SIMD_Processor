@@ -1,0 +1,188 @@
+UVM_INFO @ 0: reporter [RNTST] Running test circular_fifo_fwft_test_random50...
+UVM_INFO circular_fifo_fwft_scoreboard.sv(37) @ 0: uvm_test_top.env.scb [SCB_BUILD] Scoreboard built
+UVM_INFO circular_fifo_fwft_test_random50.sv(14) @ 0: uvm_test_top [TEST] Starting Random 50 Test
+UVM_INFO circular_fifo_fwft_base_sequence.sv(15) @ 23000: uvm_test_top.env.agt.sqr@@seq [SEQ] Starting Sequence
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 23000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 00000000	|psh: 0	|pop: 0	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 23000: uvm_test_top.env.agt.mon [MON] push_data: 00000000 data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 23000: uvm_test_top.env.agt.drv [DRV] data=f4ddc0cc,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 28000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: f4ddc0cc	|psh: 1	|pop: 1	||exp_out: f4ddc0cc	|act_out: f4ddc0cc	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 28000: uvm_test_top.env.agt.mon [MON] push_data: f4ddc0cc data_out: f4ddc0cc
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 28000: uvm_test_top.env.agt.drv [DRV] data=0c48d785,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 33000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 0c48d785	|psh: 1	|pop: 0	||exp_out: 0c48d785	|act_out: 0c48d785	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 33000: uvm_test_top.env.agt.mon [MON] push_data: 0c48d785 data_out: 0c48d785
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 33000: uvm_test_top.env.agt.drv [DRV] data=13190ada,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 38000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 13190ada	|psh: 0	|pop: 0	||exp_out: 0c48d785	|act_out: 0c48d785	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 38000: uvm_test_top.env.agt.mon [MON] push_data: 13190ada data_out: 0c48d785
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 38000: uvm_test_top.env.agt.drv [DRV] data=14eae83e,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 43000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 14eae83e	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 43000: uvm_test_top.env.agt.mon [MON] push_data: 14eae83e data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 43000: uvm_test_top.env.agt.drv [DRV] data=84cf17ad,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 48000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 84cf17ad	|psh: 1	|pop: 0	||exp_out: 84cf17ad	|act_out: 84cf17ad	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 48000: uvm_test_top.env.agt.mon [MON] push_data: 84cf17ad data_out: 84cf17ad
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 48000: uvm_test_top.env.agt.drv [DRV] data=f4060482,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 53000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: f4060482	|psh: 1	|pop: 1	||exp_out: f4060482	|act_out: f4060482	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 53000: uvm_test_top.env.agt.mon [MON] push_data: f4060482 data_out: f4060482
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 53000: uvm_test_top.env.agt.drv [DRV] data=9f8baf4f,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 58000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 9f8baf4f	|psh: 0	|pop: 0	||exp_out: f4060482	|act_out: f4060482	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 58000: uvm_test_top.env.agt.mon [MON] push_data: 9f8baf4f data_out: f4060482
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 58000: uvm_test_top.env.agt.drv [DRV] data=26c071ee,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 63000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 26c071ee	|psh: 1	|pop: 1	||exp_out: 26c071ee	|act_out: 26c071ee	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 63000: uvm_test_top.env.agt.mon [MON] push_data: 26c071ee data_out: 26c071ee
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 63000: uvm_test_top.env.agt.drv [DRV] data=b15ca9ee,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 68000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: b15ca9ee	|psh: 0	|pop: 0	||exp_out: 26c071ee	|act_out: 26c071ee	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 68000: uvm_test_top.env.agt.mon [MON] push_data: b15ca9ee data_out: 26c071ee
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 68000: uvm_test_top.env.agt.drv [DRV] data=75b6a2fb,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 73000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 75b6a2fb	|psh: 1	|pop: 0	||exp_out: 26c071ee	|act_out: 26c071ee	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 73000: uvm_test_top.env.agt.mon [MON] push_data: 75b6a2fb data_out: 26c071ee
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 73000: uvm_test_top.env.agt.drv [DRV] data=dc596456,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 78000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: dc596456	|psh: 1	|pop: 0	||exp_out: 26c071ee	|act_out: 26c071ee	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 78000: uvm_test_top.env.agt.mon [MON] push_data: dc596456 data_out: 26c071ee
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 78000: uvm_test_top.env.agt.drv [DRV] data=129c4af7,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 83000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 129c4af7	|psh: 1	|pop: 1	||exp_out: 75b6a2fb	|act_out: 75b6a2fb	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 83000: uvm_test_top.env.agt.mon [MON] push_data: 129c4af7 data_out: 75b6a2fb
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 83000: uvm_test_top.env.agt.drv [DRV] data=64f2ca06,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 88000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 64f2ca06	|psh: 0	|pop: 1	||exp_out: dc596456	|act_out: dc596456	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 88000: uvm_test_top.env.agt.mon [MON] push_data: 64f2ca06 data_out: dc596456
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 88000: uvm_test_top.env.agt.drv [DRV] data=43642029,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 93000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 43642029	|psh: 1	|pop: 1	||exp_out: 129c4af7	|act_out: 129c4af7	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 93000: uvm_test_top.env.agt.mon [MON] push_data: 43642029 data_out: 129c4af7
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 93000: uvm_test_top.env.agt.drv [DRV] data=f15c8230,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 98000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: f15c8230	|psh: 0	|pop: 0	||exp_out: 129c4af7	|act_out: 129c4af7	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 98000: uvm_test_top.env.agt.mon [MON] push_data: f15c8230 data_out: 129c4af7
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 98000: uvm_test_top.env.agt.drv [DRV] data=0cbe873b,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 103000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 0cbe873b	|psh: 0	|pop: 1	||exp_out: 43642029	|act_out: 43642029	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 103000: uvm_test_top.env.agt.mon [MON] push_data: 0cbe873b data_out: 43642029
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 103000: uvm_test_top.env.agt.drv [DRV] data=98759e03,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 108000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 98759e03	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 108000: uvm_test_top.env.agt.mon [MON] push_data: 98759e03 data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 108000: uvm_test_top.env.agt.drv [DRV] data=55256213,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 113000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 55256213	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 113000: uvm_test_top.env.agt.mon [MON] push_data: 55256213 data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 113000: uvm_test_top.env.agt.drv [DRV] data=a79fd785,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 118000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: a79fd785	|psh: 1	|pop: 1	||exp_out: a79fd785	|act_out: a79fd785	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 118000: uvm_test_top.env.agt.mon [MON] push_data: a79fd785 data_out: a79fd785
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 118000: uvm_test_top.env.agt.drv [DRV] data=dc1f827e,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 123000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: dc1f827e	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 123000: uvm_test_top.env.agt.mon [MON] push_data: dc1f827e data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 123000: uvm_test_top.env.agt.drv [DRV] data=6f903567,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 128000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 6f903567	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 128000: uvm_test_top.env.agt.mon [MON] push_data: 6f903567 data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 128000: uvm_test_top.env.agt.drv [DRV] data=d69f69ab,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 133000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: d69f69ab	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 133000: uvm_test_top.env.agt.mon [MON] push_data: d69f69ab data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 133000: uvm_test_top.env.agt.drv [DRV] data=74a6d714,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 138000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 74a6d714	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 138000: uvm_test_top.env.agt.mon [MON] push_data: 74a6d714 data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 138000: uvm_test_top.env.agt.drv [DRV] data=176b1826,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 143000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 176b1826	|psh: 1	|pop: 1	||exp_out: 176b1826	|act_out: 176b1826	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 143000: uvm_test_top.env.agt.mon [MON] push_data: 176b1826 data_out: 176b1826
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 143000: uvm_test_top.env.agt.drv [DRV] data=14cf0196,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 148000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 14cf0196	|psh: 0	|pop: 1	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 148000: uvm_test_top.env.agt.mon [MON] push_data: 14cf0196 data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 148000: uvm_test_top.env.agt.drv [DRV] data=a4ed3b50,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 153000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: a4ed3b50	|psh: 0	|pop: 0	||exp_out: 00000000	|act_out: 00000000	||exp_empty: 1	|act_empty: 1	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 153000: uvm_test_top.env.agt.mon [MON] push_data: a4ed3b50 data_out: 00000000
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 153000: uvm_test_top.env.agt.drv [DRV] data=f34a4a9a,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 158000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: f34a4a9a	|psh: 1	|pop: 0	||exp_out: f34a4a9a	|act_out: f34a4a9a	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 158000: uvm_test_top.env.agt.mon [MON] push_data: f34a4a9a data_out: f34a4a9a
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 158000: uvm_test_top.env.agt.drv [DRV] data=c021f0d6,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 163000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: c021f0d6	|psh: 1	|pop: 0	||exp_out: f34a4a9a	|act_out: f34a4a9a	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 163000: uvm_test_top.env.agt.mon [MON] push_data: c021f0d6 data_out: f34a4a9a
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 163000: uvm_test_top.env.agt.drv [DRV] data=e8a11f4c,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 168000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: e8a11f4c	|psh: 1	|pop: 0	||exp_out: f34a4a9a	|act_out: f34a4a9a	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 168000: uvm_test_top.env.agt.mon [MON] push_data: e8a11f4c data_out: f34a4a9a
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 168000: uvm_test_top.env.agt.drv [DRV] data=af27b679,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 173000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: af27b679	|psh: 0	|pop: 1	||exp_out: c021f0d6	|act_out: c021f0d6	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 173000: uvm_test_top.env.agt.mon [MON] push_data: af27b679 data_out: c021f0d6
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 173000: uvm_test_top.env.agt.drv [DRV] data=9ad7adae,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 178000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 9ad7adae	|psh: 0	|pop: 0	||exp_out: c021f0d6	|act_out: c021f0d6	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 178000: uvm_test_top.env.agt.mon [MON] push_data: 9ad7adae data_out: c021f0d6
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 178000: uvm_test_top.env.agt.drv [DRV] data=ce7048ad,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 183000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: ce7048ad	|psh: 0	|pop: 0	||exp_out: c021f0d6	|act_out: c021f0d6	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 183000: uvm_test_top.env.agt.mon [MON] push_data: ce7048ad data_out: c021f0d6
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 183000: uvm_test_top.env.agt.drv [DRV] data=37745bc5,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 188000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 37745bc5	|psh: 0	|pop: 0	||exp_out: c021f0d6	|act_out: c021f0d6	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 188000: uvm_test_top.env.agt.mon [MON] push_data: 37745bc5 data_out: c021f0d6
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 188000: uvm_test_top.env.agt.drv [DRV] data=37929721,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 193000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 37929721	|psh: 1	|pop: 1	||exp_out: e8a11f4c	|act_out: e8a11f4c	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 193000: uvm_test_top.env.agt.mon [MON] push_data: 37929721 data_out: e8a11f4c
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 193000: uvm_test_top.env.agt.drv [DRV] data=646ad0cc,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 198000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 646ad0cc	|psh: 0	|pop: 0	||exp_out: e8a11f4c	|act_out: e8a11f4c	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 198000: uvm_test_top.env.agt.mon [MON] push_data: 646ad0cc data_out: e8a11f4c
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 198000: uvm_test_top.env.agt.drv [DRV] data=1e2eafb9,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 203000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 1e2eafb9	|psh: 1	|pop: 1	||exp_out: 37929721	|act_out: 37929721	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 203000: uvm_test_top.env.agt.mon [MON] push_data: 1e2eafb9 data_out: 37929721
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 203000: uvm_test_top.env.agt.drv [DRV] data=d8646e23,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 208000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: d8646e23	|psh: 0	|pop: 0	||exp_out: 37929721	|act_out: 37929721	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 208000: uvm_test_top.env.agt.mon [MON] push_data: d8646e23 data_out: 37929721
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 208000: uvm_test_top.env.agt.drv [DRV] data=6c66aa3e,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 213000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 6c66aa3e	|psh: 1	|pop: 1	||exp_out: 1e2eafb9	|act_out: 1e2eafb9	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 213000: uvm_test_top.env.agt.mon [MON] push_data: 6c66aa3e data_out: 1e2eafb9
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 213000: uvm_test_top.env.agt.drv [DRV] data=c8e7f605,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 218000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: c8e7f605	|psh: 0	|pop: 0	||exp_out: 1e2eafb9	|act_out: 1e2eafb9	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 218000: uvm_test_top.env.agt.mon [MON] push_data: c8e7f605 data_out: 1e2eafb9
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 218000: uvm_test_top.env.agt.drv [DRV] data=b4d3029d,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 223000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: b4d3029d	|psh: 0	|pop: 0	||exp_out: 1e2eafb9	|act_out: 1e2eafb9	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 223000: uvm_test_top.env.agt.mon [MON] push_data: b4d3029d data_out: 1e2eafb9
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 223000: uvm_test_top.env.agt.drv [DRV] data=fada97ef,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 228000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: fada97ef	|psh: 1	|pop: 1	||exp_out: 6c66aa3e	|act_out: 6c66aa3e	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 228000: uvm_test_top.env.agt.mon [MON] push_data: fada97ef data_out: 6c66aa3e
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 228000: uvm_test_top.env.agt.drv [DRV] data=8a2c1486,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 233000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 8a2c1486	|psh: 0	|pop: 1	||exp_out: fada97ef	|act_out: fada97ef	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 233000: uvm_test_top.env.agt.mon [MON] push_data: 8a2c1486 data_out: fada97ef
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 233000: uvm_test_top.env.agt.drv [DRV] data=8387a0c9,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 238000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 8387a0c9	|psh: 1	|pop: 0	||exp_out: fada97ef	|act_out: fada97ef	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 238000: uvm_test_top.env.agt.mon [MON] push_data: 8387a0c9 data_out: fada97ef
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 238000: uvm_test_top.env.agt.drv [DRV] data=7a612f76,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 243000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 7a612f76	|psh: 0	|pop: 1	||exp_out: 8387a0c9	|act_out: 8387a0c9	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 243000: uvm_test_top.env.agt.mon [MON] push_data: 7a612f76 data_out: 8387a0c9
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 243000: uvm_test_top.env.agt.drv [DRV] data=54ba587d,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 248000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 54ba587d	|psh: 1	|pop: 0	||exp_out: 8387a0c9	|act_out: 8387a0c9	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 248000: uvm_test_top.env.agt.mon [MON] push_data: 54ba587d data_out: 8387a0c9
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 248000: uvm_test_top.env.agt.drv [DRV] data=4a41eb6f,push=0,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 253000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 4a41eb6f	|psh: 0	|pop: 1	||exp_out: 54ba587d	|act_out: 54ba587d	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 253000: uvm_test_top.env.agt.mon [MON] push_data: 4a41eb6f data_out: 54ba587d
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 253000: uvm_test_top.env.agt.drv [DRV] data=f4f1eb56,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 258000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: f4f1eb56	|psh: 0	|pop: 0	||exp_out: 54ba587d	|act_out: 54ba587d	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 258000: uvm_test_top.env.agt.mon [MON] push_data: f4f1eb56 data_out: 54ba587d
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 258000: uvm_test_top.env.agt.drv [DRV] data=13a319ae,push=0,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 263000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 13a319ae	|psh: 0	|pop: 0	||exp_out: 54ba587d	|act_out: 54ba587d	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 263000: uvm_test_top.env.agt.mon [MON] push_data: 13a319ae data_out: 54ba587d
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 263000: uvm_test_top.env.agt.drv [DRV] data=8cec953b,push=1,pop=1 sent to DUT
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 268000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 8cec953b	|psh: 1	|pop: 1	||exp_out: 8cec953b	|act_out: 8cec953b	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 268000: uvm_test_top.env.agt.mon [MON] push_data: 8cec953b data_out: 8cec953b
+UVM_INFO circular_fifo_fwft_driver.sv(52) @ 268000: uvm_test_top.env.agt.drv [DRV] data=50947abc,push=1,pop=0 sent to DUT
+UVM_INFO circular_fifo_fwft_base_sequence.sv(17) @ 268000: uvm_test_top.env.agt.sqr@@seq [SEQ] Sequence complete
+UVM_INFO circular_fifo_fwft_scoreboard.sv(70) @ 273000: uvm_test_top.env.scb [SCB_MATCH] 	|data_in: 50947abc	|psh: 1	|pop: 0	||exp_out: 8cec953b	|act_out: 8cec953b	||exp_empty: 0	|act_empty: 0	||exp_full: 0	|act_full:0
+UVM_INFO circular_fifo_fwft_scoreboard.sv(28) @ 273000: uvm_test_top.env.scb [SCB] Evaluation Complete
+UVM_INFO circular_fifo_fwft_monitor.sv(46) @ 273000: uvm_test_top.env.agt.mon [MON] push_data: 50947abc data_out: 8cec953b
+UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_objection.svh(1276) @ 273000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+UVM_INFO circular_fifo_fwft_base_test.sv(52) @ 273000: uvm_test_top [TEST_RESULT] ------ TEST PASSED ------
+UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_report_server.svh(904) @ 273000: reporter [UVM/REPORT/SERVER] 
+--- UVM Report Summary ---
+
+** Report counts by severity
+UVM_INFO :  161
+UVM_WARNING :    0
+UVM_ERROR :    0
+UVM_FATAL :    0
+** Report counts by id
+[DRV]    50
+[MON]    51
+[RNTST]     1
+[SCB]     1
+[SCB_BUILD]     1
+[SCB_MATCH]    51
+[SEQ]     2
+[TEST]     1
+[TEST_DONE]     1
+[TEST_RESULT]     1
+[UVM/RELNOTES]     1
+
+$finish called from file "/apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_root.svh", line 532.
+$finish at simulation time               272500
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 272500 ps
+CPU Time:      0.520 seconds;       Data structure size:   0.3Mb
+Thu Mar 26 19:00:53 2026
+Done
