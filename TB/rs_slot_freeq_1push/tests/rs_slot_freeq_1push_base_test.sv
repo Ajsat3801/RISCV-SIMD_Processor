@@ -10,7 +10,7 @@ class rs_slot_freeq_1push_base_test extends uvm_test;
         super.new(name, parent);
     endfunction
 
-    function void build_phase(uvm_phase phase);
+    virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
         env = rs_slot_freeq_1push_env::type_id::create("env", this);
@@ -31,7 +31,7 @@ class rs_slot_freeq_1push_base_test extends uvm_test;
         `uvm_fatal("TEST", "run_seq() not overwritten")
     endtask
 
-    task run_phase(uvm_phase phase);
+    virtual task run_phase(uvm_phase phase);
         
         phase.raise_objection(this);
 

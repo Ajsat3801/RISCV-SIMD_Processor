@@ -32,7 +32,7 @@ class circular_fifo_fwft_drv extends uvm_driver #(circular_fifo_fwft_tr);
         end
     endtask
 
-    virtual task drive_to_interface(circular_fifo_fwft_tr tr);
+    task drive_to_interface(circular_fifo_fwft_tr tr);
 
         @(vif.drv_cb);
 
@@ -50,6 +50,6 @@ class circular_fifo_fwft_drv extends uvm_driver #(circular_fifo_fwft_tr);
         vif.drv_cb.pop <= tr.pop;
 
         `uvm_info("DRV", $sformatf("data=%h,push=%b,pop=%b sent to DUT",tr.push_data, tr.push, tr.pop),UVM_HIGH);
-endtask
+    endtask
 
 endclass

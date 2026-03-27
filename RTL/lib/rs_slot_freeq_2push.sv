@@ -13,10 +13,10 @@ module rs_slot_freeq_2push #(
     input logic reset_n,
     
     input logic push1,
-    input T push1_data,
+    input T push_data1,
 
     input logic push2,
-    input T push2_data,
+    input T push_data2,
 
     input logic pop,
     
@@ -60,16 +60,16 @@ always_ff @(posedge clk) begin
             head <= head_next;
         end
         if(push1 && push2 && enqueue_allowed) begin
-            main_fifo[tail] <= push1_data;
-            main_fifo[tail_next] <= push2_data;
+            main_fifo[tail] <= push_data1;
+            main_fifo[tail_next] <= push_data2;
             tail <= tail_next_next;
         end
         else if(push1 && enqueue_allowed) begin
-            main_fifo[tail] <= push1_data;
+            main_fifo[tail] <= push_data1;
             tail <= tail_next;
         end
         else if(push2 && enqueue_allowed) begin
-            main_fifo[tail] <= push2_data;
+            main_fifo[tail] <= push_data2;
             tail <= tail_next;
         end
     end

@@ -51,6 +51,7 @@ extern "C" void rs_slot_freeq_2push_create_model(
 }
 
 extern "C" void rs_slot_freeeq_2push_run_model(
+    svBit reset_n,
     svBitVecVal* push_data1,
     svBitVecVal* push_data2,
     svBit push1,
@@ -60,27 +61,34 @@ extern "C" void rs_slot_freeeq_2push_run_model(
     svBit* fifo_full,
     svBit* fifo_empty
 ) {  
-    bool empty = ref_model->empty();
-    bool full = ref_model->full();
+    if(!reset_n){
+        ref_model->reset();
+        *data_out = ref_model->head();
+        *fifo_full = 1;
+        *fifo_empty = 0;
+    } else {
+        bool empty = ref_model->empty();
+        bool full = ref_model->full();
 
-    bool bypass_data1 = push1 && pop && empty;
-    bool bypass_data2 = !push1 && push2 && pop && empty;
-    bool push1_allowed = push1 && !full && !bypass_data1;
-    bool push2_allowed = push2 && !full && !bypass_data2;
-    bool pop_allowed = pop && !empty && !bypass_data1 && !bypass_data2;
+        bool bypass_data1 = push1 && pop && empty;
+        bool bypass_data2 = !push1 && push2 && pop && empty;
+        bool push1_allowed = push1 && !full && !bypass_data1;
+        bool push2_allowed = push2 && !full && !bypass_data2;
+        bool pop_allowed = pop && !empty && !bypass_data1 && !bypass_data2;
 
-    // if multiple valid, we can push data1 first followed by data2, inherent priority given
+        // if multiple valid, we can push data1 first followed by data2, inherent priority given
 
-    if(push1_allowed) ref_model->push(*push_data1);
-    if(push2_allowed) ref_model->push(*push_data2);
-    if(pop_allowed)   ref_model->pop();
+        if(push1_allowed) ref_model->push(*push_data1);
+        if(push2_allowed) ref_model->push(*push_data2);
+        if(pop_allowed)   ref_model->pop();
 
-    // setting value of data out, returns 0 if buffer is empty and no output
-    if(bypass_data1) *data_out = push_data1;
-    else if(bypass_data2) *data_out = push_data2;
-    else if(ref_model->empty()) *data_out = ref_model->zeros();
-    else *data_out = ref_model->head();
+        // setting value of data out, returns 0 if buffer is empty and no output
+        if(bypass_data1) *data_out = push_data1;
+        else if(bypass_data2) *data_out = push_data2;
+        else if(ref_model->empty()) *data_out = ref_model->zeros();
+        else *data_out = ref_model->head();
 
-    *fifo_full = ref_model->full() ? 1 : 0;
-    *fifo_empty = ref_model->empty() ? 1 : 0;
+        *fifo_full = ref_model->full() ? 1 : 0;
+        *fifo_empty = ref_model->empty() ? 1 : 0;
+    }
 }

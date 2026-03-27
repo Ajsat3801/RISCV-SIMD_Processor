@@ -18,7 +18,7 @@ class rs_slot_freeq_1push_mon extends uvm_monitor;
         end
     endfunction
 
-    task run_phase(uvm_phase phase);
+    virtual task run_phase(uvm_phase phase);
         forever begin
             collect_transactions();
         end

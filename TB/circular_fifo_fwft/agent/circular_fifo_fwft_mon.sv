@@ -24,7 +24,7 @@ class circular_fifo_fwft_mon extends uvm_monitor;
         end
     endtask
 
-    virtual task collect_transactions();
+    task collect_transactions();
 
         circular_fifo_fwft_tr tr;
 

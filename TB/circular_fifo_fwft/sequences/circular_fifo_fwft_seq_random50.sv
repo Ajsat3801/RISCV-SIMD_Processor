@@ -7,7 +7,7 @@ class circular_fifo_fwft_seq_random50 extends circular_fifo_fwft_base_seq;
         super.new(name);
     endfunction
 
-    virtual task generate_seq();
+    task generate_seq();
         
         circular_fifo_fwft_tr tr;
 
