@@ -5,7 +5,6 @@ package rs_slot_freeq_1push_dpi_pkg;
         int numwords
     );
     
-
     import "DPI-C" function void rs_slot_freeq_1push_model_run(
         input bit[159:0] push_data,
         output bit[159:0] data_out,
