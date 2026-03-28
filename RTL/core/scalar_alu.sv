@@ -7,12 +7,12 @@
 
 ALU OPERATIONS CODES
 CODE    ALU_OPERATION           INSTRUCTIONS
-0 000 - ALL_ADD                 ADD, ADDI
-0 001 -                                             <originally SLL, SLLI>
+0 000 - ALU_ADD                 ADD, ADDI, SUB*
+0 001 - ALU_SLL                 SLL, SLLI
 0 010 - ALU_SLT                 SLT, SLTI
 0 011 - ALU_SLTU                SLTU, SLTIU
 0 100 - ALU_XOR                 XOR, XORI
-0 101 -                                             <originally SRL SRLI>
+0 101 - ALU_SRL                 SRL, SRLI
 0 110 - ALU_OR                  OR, ORI
 0 111 - ALU_AND                 AND, ANDI
 1 000 - ALU_BEQ
@@ -24,7 +24,7 @@ CODE    ALU_OPERATION           INSTRUCTIONS
 1 110 - ALU_BLTU
 1 111 - ALU_BGEU
 
-SUB = ADD && sign bit
+ *SUB = ADD && sign bit
 */
 
 module scalar_alu(
@@ -71,9 +71,11 @@ always_comb begin // combinationally building the output
 
     unique case (dispatched_op.operation.alu)
         ALU_ADD : current_alu_res.data = dispatched_op.operand_a + operand_b;
+        ALU_SLL : current_alu_res.data = dispatched_op.operand_a << dispatched_op.operand_b;
         ALU_SLT : current_alu_res.data[0] = a_lt_b;
         ALU_SLTU: current_alu_res.data[0] = a_lt_b_u;
         ALU_XOR : current_alu_res.data = dispatched_op.operand_a ^ dispatched_op.operand_b;
+        ALU_SRL : current_alu_res.data = dispatched_op.operand_a >> dispatched_op.operand_b;
         ALU_OR  : current_alu_res.data = dispatched_op.operand_a | dispatched_op.operand_b;
         ALU_AND : current_alu_res.data = dispatched_op.operand_a & dispatched_op.operand_b;
         ALU_BEQ : current_alu_res.branch_taken = a_eq_b;

@@ -54,7 +54,7 @@ always_comb begin
     new_instr.ready = input_instr.ready;
     new_instr.write_to_reg = input_instr.write_to_reg;
     new_instr.dest_address = input_instr.dest_address;
-    new_instr.data = (precalc) ? precalc_data : '0;
+    new_instr.data = (input_instr.precalc) ? precalc_data : '0;
     new_instr.is_branch = input_instr.is_branch;
     new_instr.branch_taken = input_instr.ready 
     // same as ready so that JAL instructions are going.

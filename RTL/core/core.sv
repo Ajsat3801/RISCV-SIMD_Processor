@@ -15,8 +15,20 @@ module core #()(
     input reset_n,
 
     // input of phase 1 is the decoded instructions
-    input decoded_instr_t instruction,
+    input logic[31:0] instruction,
+    input logic[31:0] pc,
     output logic ready
+);
+
+decoded_instr_t decoder_to_queue;
+
+decoder u_decoder(
+    .clk(clk),
+    .reset_n(reset_n),
+    .raw_instr(instruction),
+    .pc(pc),
+    .fetch_valid(instr_valid),
+    .decoded_instr(decoder_to_queue)
 );
 
 logic[RS_ADDR_W-1:0] rs_slot_released_id_arr[NUMBER_OF_EX-1:0];
@@ -31,7 +43,7 @@ logic rob_full;
 instruction_queue #() u_instruction_queue(
     .clk(clk),
     .reset_n(reset_n),
-    .decoded_instr(instruction),
+    .decoded_instr(decoder_to_queue),
     .queue_ready(ready),
     .rs_slot_released_id(rs_slot_released_id_arr),
     .rs_released(rs_released_arr),
@@ -82,7 +94,7 @@ rs_to_ex_signal_t dispatch1_op, dispatch2_op;
 logic ex1_ready, ex2_ready;
 
 res_station_dual_issue #(
-    .CHIP_SELECT(1)
+    .CHIP_SELECT(CS_ALU)
 ) u_alu_rs (
     .clk(clk),
     .reset_n(reset_n),

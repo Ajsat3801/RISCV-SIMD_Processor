@@ -16,19 +16,32 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 
 ### Supported Instructions
 
-| Instruction                                | Processing Unit     |
-|--------------------------------------------|---------------------|
-|ADD, SUB, AND, OR, XOR, SLT, SLTU           | Scalar ALU          |
-|ADDI, ANDI, ORI, XORI, SLTI, SLTIU          | Scalar ALU          |
-|BEQ, BNE, BLT, BGE, BLTU, BGEU              | Scalar ALU          |
-| JAL, LUI, AUIPC                            | Procesed in decoder |
-| **FUTURE EXPANSION**                       |                     |
-| MUL, DIV                                   | Scalar MULDIV       |
-| LW, SW                                     | LSU                 |
-| vadd.vv, vsub.vv, vand.vv, vor.vv, vxor.vv | Vector ALU          | 
-| vadd.vx, vsub.vx, vand.vx, vor.vx, vxor.vx | Vector ALU          | 
-| vmul.vx, vdivu.vx                          | Vector LSU          |
-| vmul.vv, vdivu.vv                          | Vector LSU          |
+| Instruction                                          | Processing Unit     |
+|------------------------------------------------------|---------------------|
+|ADD, SLL, SRL, SRA, SUB, AND, OR, XOR, SLT, SLTU      | Scalar ALU          |
+|ADDI, SLLI, SRLI, ANDI, ORI, XORI, SLTI, SLTIU        | Scalar ALU          |
+|BEQ, BNE, BLT, BGE, BLTU, BGEU                        | Scalar ALU          |
+| JAL, LUI, AUIPC                                      | Procesed in decoder |
+| **FUTURE EXPANSION**                                 |                     |
+| MUL, DIV                                             | Scalar MULDIV       |
+| LW, SW                                               | LSU                 |
+| vadd.vv, vsub.vv, vand.vv, vor.vv, vxor.vv           | Vector ALU          | 
+| vadd.vx, vsub.vx, vand.vx, vor.vx, vxor.vx, vrsub.vx | Vector ALU          | 
+| vle32.v, vse32.v                                     | Vector LSU          |
+
+### Decoded instruction format
+
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/docs/decoding.png "Decoded instruction format")
+
+**Key**
+
+| Color   |                                         |
+|---------| --------------------------------------- |
+Green     | Source or destination address           | 
+Blue      | Immediate                               |
+Turquiose | Control values derived from instruction |
+Yellow    | Derived or hardcoded values             |
+Gray      | Don't care for that instruction         |
 
 ## Verification
 

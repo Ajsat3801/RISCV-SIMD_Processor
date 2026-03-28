@@ -15,21 +15,23 @@ module scalar_registers(
 );
 
 logic[DATA_SIZE-1:0] reg_arr[NUMBER_REG_ADDR-1:0];
-logic[DATA_SIZE-1:0] operand_a_q, operand_b_q, operand_a, operand_b;
+logic[DATA_SIZE-1:0] operand_a, operand_b;
 logic reg_input_valid_q;
 
 always_comb begin
     operand_a = '0;
     operand_b = '0;
 
-    // combinational read and registered outputs
+    // combinational read
     if(read_data.valid) begin
 
+        // read source1, guard for 0 address and bypass if read and write to same address
         if(read_data.src1_address == '0) operand_a = '0;
         else if(read_data.src1_address == write_data.rd && write_data.instr_valid) operand_a = write_data.data;
         else operand_a = reg_arr[read_data.src1_address];
 
-        if(!read_data.read_src2) operand_b = read_data.imm;
+        // send sign extended imm or read source2; same policy as read source1
+        if(!read_data.read_src2) operand_b = {{4{read_data.imm[11]}},read_data.imm}; 
         else if(read_data.src2_address == '0) operand_b = '0;
         else if(read_data.src2_address == write_data.rd && write_data.instr_valid) operand_b = write_data.data;
         else operand_b = reg_arr[read_data.src2_address];
@@ -41,25 +43,18 @@ end
 always_ff @(posedge clk) begin
     
     if(!reset_n) begin
-        reg_arr[0] <= '0;
-        operand_a_q <= '0;
-        operand_b_q <= '0;
-        reg_input_valid_q <= 1'b0;
+        for(int i=0; i<NUMBER_REG_ADDR;i++) reg_arr[i] <= '0;
     end
     
     else begin
         // writing to the register
         if(write_data.instr_valid && write_data.rd != '0) reg_arr[write_data.rd] <= write_data.data;
 
-        operand_a_q <= operand_a;
-        operand_b_q <= operand_b;
-        reg_input_valid_q <= read_data.valid;
+        rs_data_reg.operand_a <= operand_a;
+        rs_data_reg.operand_b <= operand_b;
+        rs_data_reg.reg_input_valid <= read_data.valid;
     end
     
 end
-
-assign rs_data_reg.operand_a = operand_a_q;
-assign rs_data_reg.operand_b = operand_b_q;
-assign rs_data_reg.reg_input_valid = reg_input_valid_q;
 
 endmodule
