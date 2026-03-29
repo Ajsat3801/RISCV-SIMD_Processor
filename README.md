@@ -31,17 +31,7 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 
 ### Decoded instruction format
 
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/docs/decoding.png "Decoded instruction format")
-
-**Key**
-
-| Color   |                                         |
-|---------| --------------------------------------- |
-Green     | Source or destination address           | 
-Blue      | Immediate                               |
-Turquiose | Control values derived from instruction |
-Yellow    | Derived or hardcoded values             |
-Gray      | Don't care for that instruction         |
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/decoding.png "Decoded instruction format")
 
 ## Verification
 
