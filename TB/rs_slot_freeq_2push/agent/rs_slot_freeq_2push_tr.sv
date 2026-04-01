@@ -9,10 +9,9 @@ class rs_slot_freeq_2push_tr extends uvm_sequence_item;
     T data_out;    
     bit reset_n, full, empty;
 
-
     `uvm_object_utils(rs_slot_freeq_2push_tr)
 
-    function new(string name);
+    function new(string name="rs_slot_freeq_2push_tr");
         super.new(name);
     endfunction
 

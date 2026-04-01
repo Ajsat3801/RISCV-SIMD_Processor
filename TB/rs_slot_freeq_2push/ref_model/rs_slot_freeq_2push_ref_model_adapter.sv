@@ -5,6 +5,9 @@ class rs_slot_freeq_2push_ref_model_adapter;
 
     local int numwords = ($bits(T)+31)/32;
 
+    function new();
+    endfunction
+
     virtual function void create_model();
         rs_slot_freeq_2push_create_model(BUFFER_SIZE, numwords);
     endfunction
@@ -19,12 +22,12 @@ class rs_slot_freeq_2push_ref_model_adapter;
         output T data_outT,
         output bit fifo_full,
         output bit fifo_empty
-    )
+    );
 
         bit[159:0] push_data1, push_data2, data_out;
 
-        push_data1[$bits(T)-1:0] push_data1T;
-        push_data2[$bits(T)-1:0] push_data2T;
+        push_data1[$bits(T)-1:0] = push_data1T;
+        push_data2[$bits(T)-1:0] = push_data2T;
 
         rs_slot_freeq_2push_run_model(
             .reset_n(reset_n),
@@ -36,7 +39,7 @@ class rs_slot_freeq_2push_ref_model_adapter;
             .data_out(data_out),
             .fifo_full(fifo_full),
             .fifo_empty(fifo_empty)
-        )
+        );
 
         data_outT = data_out[$bits(T)-1:0];
 

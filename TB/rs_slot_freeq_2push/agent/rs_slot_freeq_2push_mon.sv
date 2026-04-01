@@ -3,8 +3,8 @@ class rs_slot_freeq_2push_mon extends uvm_monitor;
 
     `uvm_component_utils(rs_slot_freeq_2push_mon)
     virtual rs_slot_freeq_2push_if vif;
-    `uvm_analysis_port #(rs_slot_freeq_2push_tr) item_collected_port;
-    rs_slot_freeq_2_push_tr tr;
+    uvm_analysis_port #(rs_slot_freeq_2push_tr) item_collected_port;
+    rs_slot_freeq_2push_tr tr;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -25,7 +25,7 @@ class rs_slot_freeq_2push_mon extends uvm_monitor;
 
             @(vif.mon_cb) 
 
-            tr = rs_slot_freeq_2_push_tr::type_id::create("tr");
+            tr = rs_slot_freeq_2push_tr::type_id::create("tr");
 
             tr.reset_n = vif.mon_cb.reset_n;
             tr.push1 = vif.mon_cb.push1;
@@ -37,7 +37,7 @@ class rs_slot_freeq_2push_mon extends uvm_monitor;
             tr.empty = vif.mon_cb.empty;
             tr.full = vif.mon_cb.full;
 
-            item_collected_port.write(tr)
+            item_collected_port.write(tr);
 
             `uvm_info("MON", $sformatf("push_data1: %h | push_data2: %h | data_out: %h", tr.push_data1, tr.push_data2, tr.data_out), UVM_HIGH)
 

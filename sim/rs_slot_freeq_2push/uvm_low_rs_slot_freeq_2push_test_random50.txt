@@ -1,0 +1,37 @@
+UVM_INFO @ 0: reporter [RNTST] Running test rs_slot_freeq_2push_test_random50...
+UVM_INFO rs_slot_freeq_2push_base_seq.sv(16) @ 23000: uvm_test_top.env.agt.sqr@@seq [SEQ] Starting Sequence
+UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 23000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 28000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 183000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 188000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 198000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 228000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 248000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO rs_slot_freeq_2push_base_seq.sv(18) @ 268000: uvm_test_top.env.agt.sqr@@seq [SEQ] Sequence Complete
+UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_objection.svh(1276) @ 273000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+UVM_INFO rs_slot_freeq_2push_base_test.sv(38) @ 273000: uvm_test_top [TEST RESULT] ----- TEST PASSED -----
+UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_report_server.svh(904) @ 273000: reporter [UVM/REPORT/SERVER] 
+--- UVM Report Summary ---
+
+** Report counts by severity
+UVM_INFO :    6
+UVM_WARNING :    9
+UVM_ERROR :    0
+UVM_FATAL :    0
+** Report counts by id
+[DRV]     9
+[RNTST]     1
+[SEQ]     2
+[TEST RESULT]     1
+[TEST_DONE]     1
+[UVM/RELNOTES]     1
+
+$finish called from file "/apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_root.svh", line 532.
+$finish at simulation time               272500
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 272500 ps
+CPU Time:      0.480 seconds;       Data structure size:   0.3Mb
+Wed Apr  1 18:18:10 2026
+Done

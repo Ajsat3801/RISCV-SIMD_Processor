@@ -48,41 +48,41 @@ logic[RS_IDX_W-1:0] rs_index;
 instr_pkg::chip_select_e cs;
 
 rs_slot_freeq_2push #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
-    .clk(clk),
-    .reset_n(reset_n),
-    .push1(rs_released[0]),
-    .push_data1(rs_slot_released_id[0]),
-    .push2(rs_released[1]),
-    .push_data2(rs_slot_released_id[1]),
-    .pop(dequeue_rs_fifo[0]),
-    .data_out(next_rs_slot[0]),
-    .empty(rs_empty[0]),
-    .full(rs_full[0]),
+    .clk_i(clk),
+    .reset_ni(reset_n),
+    .push1_i(rs_released[0]),
+    .push_data1_i(rs_slot_released_id[0]),
+    .push2_i(rs_released[1]),
+    .push_data2_i(rs_slot_released_id[1]),
+    .pop_o(dequeue_rs_fifo[0]),
+    .data_out_o(next_rs_slot[0]),
+    .empty_o(rs_empty[0]),
+    .full_o(rs_full[0]),
 );
 
 
 /* FIFOs to cater for future EX units
 
 rs_slot_freeq_1push #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo (
-    .clk(clk),
-    .reset_n(reset_n),
-    .push(rs_released[2]),
-    .push_data(rs_slot_released_id[2]),
-    .pop(dequeue_rs_fifo[1]),
-    .data_out(next_rs_slot[1]),
-    .empty(rs_empty[1]),
-    .full(rs_full[1]),
+    .clk_i(clk),
+    .reset_ni(reset_n),
+    .push_i(rs_released[2]),
+    .push_data_i(rs_slot_released_id[2]),
+    .pop_o(dequeue_rs_fifo[1]),
+    .data_out_o(next_rs_slot[1]),
+    .empty_o(rs_empty[1]),
+    .full_o(rs_full[1]),
 );
 
 rs_slot_freeq_1push #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) lsu_fifo (
-    .clk(clk),
-    .reset_n(reset_n),
-    .push(rs_released[3]),
-    .push_data(rs_slot_released_id[3]),
-    .pop(dequeue_rs_fifo[2]),
-    .data_out(next_rs_slot[2]),
-    .empty(rs_empty[2]),
-    .full(rs_full[2]),
+    .clk_i(clk),
+    .reset_ni(reset_n),
+    .push_i(rs_released[3]),
+    .push_data_i(rs_slot_released_id[3]),
+    .pop_o(dequeue_rs_fifo[2]),
+    .data_out_o(next_rs_slot[2]),
+    .empty_o(rs_empty[2]),
+    .full_o(rs_full[2]),
 );
 */
 

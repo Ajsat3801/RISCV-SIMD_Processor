@@ -3,8 +3,6 @@ import rs_slot_freeq_1push_tb_config_pkg::*;
 module top;
 
     logic clk;
-    //T data_out;
-    //logic empty, full;
 
     rs_slot_freeq_1push_if intf(.clk(clk));
 
