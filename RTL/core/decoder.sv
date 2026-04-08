@@ -13,8 +13,8 @@ module decoder(
     input logic clk,
     input logic reset_n,
 
-    input logic[DATA_SIZE-1:0] raw_instr,
-    input logic[DATA_SIZE-1:0] pc,
+    input instr_pkg::data_t raw_instr,
+    input instr_pkg::data_t pc,
     input logic fetch_valid,
 
     output decoded_instr_t decoded_instr
@@ -42,7 +42,10 @@ module decoder(
         decoded_instr_d.pre_calc     = 1'b0;
         decoded_instr_d.is_branch    = 1'b0;
         decoded_instr_d.read_src2    = 1'b0;
+        decoded_instr_d.src1_vector  = 1'b0;
+        decoded_instr_d.src2_vector  = 1'b0;
         decoded_instr_d.sign         = 1'b0;
+
 
         if (decoded_instr_d.valid) begin
             unique case(opcode) 
@@ -114,18 +117,22 @@ module decoder(
                 7'b1010111: begin // vector ALU Ops
                     decoded_instr_d.chip_select = CS_VALU;
                     decoded_instr_d.operation = raw_instr[29:26];
-                    decoded_instr_d.read_src2 = raw_instr[14];
+                    decoded_instr_d.read_src2 = 1'b1;
+                    decoded_instr_d.src1_vector = !raw_instr[14];
+                    decoded_instr_d.src2_vector = 1'b1;
+
                 end
                 7'b0000111: begin // vector load
                     decoded_instr_d.chip_select = CS_VALU;
                     decoded_instr_d.operation = {raw_instr[5],instr[14:12]};
-                    decoded_instr_d.read_src2 = 1'b1;
+                    
                 end
                 7'b0100111: begin // vector store
                     decoded_instr_d.chip_select = CS_VLSU;
                     decoded_instr_d.operation = {raw_instr[5],raw_instr[14:12]};
+                    decoded_instr_d.src2_address = instr[11:7];
                     decoded_instr_d.write_to_reg = 1'b0;
-                    decoded_instr_d.read_src2 = 1'b1;
+                    decoded_instr_d.src2_vector = 1'b1;
                 end
             endcase
         end

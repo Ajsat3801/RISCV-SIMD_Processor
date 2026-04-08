@@ -1,124 +1,98 @@
-/*
-    has 3 fields, Reg, value and ready
 
-    For branch and Jump, target address calculated in decode and stored directly
-    for branch, taken/not taken is stored in rd[0]
-    
-    connections: WB arbiter through CDB, branching from ALU
+module reorder_buffer (
+    input logic clk_i,
+    input logic reset_ni,
+    input logic flush,
 
-*/
-import config_pkg::*;
+    // instruction bus
+    allocation_bus_if.rob allocate_instr_io,
 
-module reorder_buffer #()(
-    input logic clk,
-    input logic reset_n,
+    // scalar databus
+    scalar_data_bus_if.snoop scalar_wb_i;
+    //modport snoop (input  valid, rob_id, prf_tag, data);
 
-    // Instruction Queues
-    input signal_pkg::queue_to_rob_signal_t input_instr,
-    output rob_full,
+    // vector databus
+    vector_data_bus_if.snoop vector_wb_i;
+    //modport snoop (input  valid, rob_id, prf_tag, data);
 
-    // CDB
-    input signal_pkg::wb_to_rob_branch_signal_t branch_data,
-    common_data_bus_if.writeback cdb_data,
+    // output to retirement bus
+    retirement_bus_if.rob retire_instr_o,
+    /*modport rob (output   valid, write_to_reg, dest_address,  
+                            is_branch, branch_taken, tag)*/
 
-    // Operand bus
-    operand_bus_if.rob issue_instr_rs,
-
-    // Retirement Bus
-    retirement_bus_if.rob retire_instr,
-    // RAT
-    output signal_pkg::rob_to_rat_signal_t issue_instr_rat
+    output logic rob_full_o
 );
 
-storage_pkg::rob_entry buffer[ROB_LEN-1:0];
-storage_pkg::rob_entry new_instr;
+/*
+ *
+ *
+ */
 
-logic[ROB_ADDR_W-1:0] head, tail;
-logic[ROB_ADDR_W:0] head_next, tail_next;
-logic head_epoch, tail_epoch;
-logic[DATA_SIZE-1:0] precalc_data;
-int i;
+storage_pkg::rob_entry_t rob_table[ROB_LEN-1:0];
+storage_pkg::rob_entry_t rob_input;
+instr_pkg::rob_address_t head, tail, head_next, tail_next;
+logic head_epoch, tail_epoch, head_epoch_next, tail_epoch_next;
+logic full, empty;
+/*
+typedef struct packed {
+        logic ready;
+        
+        logic write_to_reg;
+        instr_pkg::tag_t prf_tag;
+        instr_pkg::arf_address_t dest_address;
 
-logic[ROB_ADDR_W-1:0] issue_instr_rob_id_q;
-logic issue_instr_rob_valid_q;
+        instr_pkg::data_t data;
+        logic is_branch;
+        logic branch_taken;
+        
+    } rob_entry_t;
+*/
 
 always_comb begin
-    tail_next = {tail_epoch,tail} + 1'b1;
-    head_next = {head_epoch,head} + 1'b1;
 
-    precalc_data = {input_instr.src1_address, input_instr.src2_address, input_instr.imm, input_instr.extend};
+    {head_epoch_next, head_next} = {head_epoch, head} + 1'b1;
+    {tail_epoch_next, tail_next} = {tail_epoch, tail} + 1'b1;
 
-    full = (head == tail) && (head_epoch != tail_epoch);
+    full  = (head == tail) && (head_epoch != tail_epoch);
     empty = (head == tail) && (head_epoch == tail_epoch);
 
-    new_instr.ready = input_instr.ready;
-    new_instr.write_to_reg = input_instr.write_to_reg;
-    new_instr.dest_address = input_instr.dest_address;
-    new_instr.data = (input_instr.precalc) ? precalc_data : '0;
-    new_instr.is_branch = input_instr.is_branch;
-    new_instr.branch_taken = input_instr.ready 
-    // same as ready so that JAL instructions are going.
+    push_allowed = !full && allocate_instr_i.valid;
+    pop_allowed  = !empty && rob_table[head].ready;
 
+    // compiling instruction into rob entry
+    // inputs valid and instr
+    rob_input.ready
+    rob_input.write_to_reg
+    rob_input.prf_tag
+    rob_input.arf_address_t
+    rob_input.data
+    rob_input.is_branch
+    rob_input.branch_taken
+
+    
 end
 
 always_ff @(posedge clk) begin
-    if(!reset_n) begin
+    if(!reset_ni) begin
+        
+        for (i=0; i<ROB_LEN; i++) rob_table[i] <= '0;
+        
         head <= '0;
         tail <= '0;
+        head_epoch <= '0;
+        tail_epoch <= '0;
+        
+        sprf_rob_id_o <= '0;
+        sprf_rob_id_valid_o <= 1'b0;
 
-        for(i=0;i<ROB_LEN+1;i++) buffer[i]<= '0;
+        vprf_rob_id_o <= '0;
+        vprf_rob_id_valid_o <= 1'b0;
+
     end
-
-    // Add instruction to ROB for allocation
-    if(input_instr.valid && !full) begin
-        buffer[tail] <= new_instr;
-
-        issue_instr_rs.rob_id <= tail;
-        issue_instr_rs.rob_valid <= 1'b0;
-
-        //change this if removing lag in RAT update
-        issue_instr_rat.rob_id <= tail;
-        issue_instr_rat.dest_address <= input_instr.dest_address;
-
-        tail <= tail_next[ROB_ADDR_W-1:0];
-        tail_epoch <= tail_next[ROB_ADDR_W]
+    if(flush_i) begin
     end
     else begin
-        issue_instr_rs.rob_id <= '0;
-        issue_instr_rs.rob_valid <= 1'b0;
     end
-
-    // Snoop CDB for updates to instructions and branches
-    if(branch_data.valid && buffer[branch_data.rob_id].is_branch) begin
-        buffer[branch_data.rob_id].branch_taken <= branch_data.branch_valid;
-        buffer[branch_data.rob_id].ready <= 1'b1;
-    end
-    if(cdb_data.valid) begin
-        buffer[cdb_data.rob_id].data <= cdb_data.data;
-        buffer[cdb_data.rob_id].ready <= 1'b1;
-    end
-
-    // Retire instruction if head is ready
-    if(buffer[head].ready && !empty) begin
-        retire_instr.valid = 1'b1;
-        retire_instr.write_to_reg = buffer[head].write_to_reg;
-        retire_instr.dest_address = buffer[head].dest_address;
-        retire_instr.data = buffer[head].data;
-        retire_instr.is_branch = buffer[head].is_branch;
-        retire_instr.branch_taken = buffer[head].branch_taken;
-        retire_instr.rob_id = head;
-
-        buffer[head] <= '0;
-
-        head <= head_next[ROB_ADDR_W-1:0];
-        head_epoch <= head_next[ROB_ADDR_W]
-    end
-    else begin
-        retire_instr.valid = '0;
-    end
-
 end
-
-assign rob_full = full;
 
 endmodule
