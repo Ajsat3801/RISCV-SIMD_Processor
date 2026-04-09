@@ -34,9 +34,9 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 ![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/decoding.png 
 "Decoded instruction format")
 
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/block_diagram.drawio.svg)
+![Alt text](https://raw.githubusercontent.com/Ajsat3801/RISCV-SIMD_Processor/refs/heads/main/doc/block_diagram.drawio.svg?token=GHSAT0AAAAAADX2B5S2XU4MGMVNEOWRG2SS2OXFS2Q)
 
-<object data="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/block_diagram.drawio.svg" type="image/svg+xml"></object>
+<object data="https://raw.githubusercontent.com/Ajsat3801/RISCV-SIMD_Processor/refs/heads/main/doc/block_diagram.drawio.svg?token=GHSAT0AAAAAADX2B5S2XU4MGMVNEOWRG2SS2OXFS2Q" type="image/svg+xml"></object>
 
 ## Verification
 
