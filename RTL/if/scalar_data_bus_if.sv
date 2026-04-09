@@ -7,5 +7,7 @@ interface scalar_data_bus_if();
 
     modport writeback (output valid, rob_id, prf_tag, data);
     modport snoop     (input  valid, rob_id, prf_tag, data);
+    modport rob       (input  valid, rob_id);
+    modport prf       (input  valid, prf_tag, data)
 
 endinterface

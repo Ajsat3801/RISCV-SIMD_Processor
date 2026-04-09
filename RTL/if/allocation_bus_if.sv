@@ -9,11 +9,9 @@ interface allocation_bus_if;
     instr_pkg::prf_tag_t operand_b_tag;
 
     instr_pkg::rob_address_t rob_tail;
-    logic rob_tail_epoch
 
     modport alloc_rename (
         input rob_tail,
-        input rob_tail_epoch,
 
         output valid,
         output rs_slot,
@@ -30,7 +28,6 @@ interface allocation_bus_if;
         input rob_id, 
 
         output rob_tail,
-        output rob_tail_epoch
     );
 
     modport prf (

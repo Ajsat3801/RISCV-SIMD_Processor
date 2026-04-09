@@ -8,6 +8,7 @@
 module scalar_alu(
     input logic clk,
     input logic reset_n,
+    input logic flush_i,
 
     // connection to reservation station
     input signal_pkg::rs_to_alu_signal_t dispatched_op,
@@ -89,7 +90,7 @@ module scalar_alu(
     end
 
     always_ff @(posedge clk) begin
-        if(!reset_n) begin
+        if(!reset_n || flush_i) begin
             
             alu_result_q <= 'd0;
             ex_ready_q <= 1'b1;

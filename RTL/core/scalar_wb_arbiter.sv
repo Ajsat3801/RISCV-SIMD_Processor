@@ -7,8 +7,9 @@ branches have separate inputs, fifos and outputs
 import config_pkg::*;
 
 module scalar_wb_arbiter #() (
-    input logic clk,
-    input logic reset_n,
+    input logic clk_i,
+    input logic reset_ni,
+    input logic flush_i,
 
     // EX units
     input signal_pkg::ex_to_wb_signal_t ex_result[NUMBER_OF_EX-1:0],
@@ -32,6 +33,8 @@ module scalar_wb_arbiter #() (
     logic[BRANCH_IDX_W-1:0] branch_choice, branch_choice_idx;
     logic[NUMBER_OF_BRANCH_EX-1:0] branch_empty, branch_full, branch_dequeue, branch_request;
     logic branch_chosen, branch_any_full;
+
+    logic reset_wb_n;
 
     int i;
 
@@ -95,62 +98,64 @@ module scalar_wb_arbiter #() (
         
     end
 
+    reset_wb_n = reset_ni && !flush_i;
+
     // circular FIFOs with FWFT, so we know what the head of the queue is immediately
 
     circular_fifo_fwft #(
         .BUFFER_SIZE(4), 
         .T(storage_pkg::wb_queue_entry_t) 
     ) alu0_fifo (
-        .clk(clk),
-        .reset_n(reset_n),
-        .push(ex_result[0].valid),
-        .push_data(ex_result[0]),
-        .pop(dequeue[0]),
-        .data_out(fifo_heads[0]),
-        .empty(empty[0]),
-        .full(full[0])
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(ex_result[0].valid),
+        .push_data_i(ex_result[0]),
+        .pop_i(dequeue[0]),
+        .data_out_o(fifo_heads[0]),
+        .empty_o(empty[0]),
+        .full_o(full[0])
     );
 
     circular_fifo_fwft #(
         .BUFFER_SIZE(2),
         .T(storage_pkg::wb_queue_branch_entry_t)
     ) branch0_fifo (
-        .clk(clk),
-        .reset_n(reset_n),
-        .push(branch_result[0].valid),
-        .push_data(branch_result[0]),
-        .pop(branch_dequeue[0]),
-        .data_out(branch_fifo_heads[0]),
-        .empty(branch_empty[0]),
-        .full(branch_full[0])
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(branch_result[0].valid),
+        .push_data_i(branch_result[0]),
+        .pop_i(branch_dequeue[0]),
+        .data_out_o(branch_fifo_heads[0]),
+        .empty_o(branch_empty[0]),
+        .full_o(branch_full[0])
     );
 
     circular_fifo_fwft #(
         .BUFFER_SIZE(4),
         .T(storage_pkg::wb_queue_entry_t)
     ) alu1_fifo (
-        .clk(clk),
-        .reset_n(reset_n),
-        .push(ex_result[1].valid),
-        .push_data(ex_result[1]),
-        .pop(dequeue[1]),
-        .data_out(fifo_heads[1]),
-        .empty(empty[1]),
-        .full(full[1])
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(ex_result[1].valid),
+        .push_data_i(ex_result[1]),
+        .pop_i(dequeue[1]),
+        .data_out_o(fifo_heads[1]),
+        .empty_o(empty[1]),
+        .full_o(full[1])
     );
 
     circular_fifo_fwft #(
         .BUFFER_SIZE(2),
         .T(storage_pkg::wb_queue_branch_entry_t)
     ) branch1_fifo (
-        .clk(clk),
-        .reset_n(reset_n),
-        .push(branch_result[1].valid),
-        .push_data(branch_result[1]),
-        .pop(branch_dequeue[1]),
-        .data_out(branch_fifo_heads[1]),
-        .empty(branch_empty[1]),
-        .full(branch_full[1])
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(branch_result[1].valid),
+        .push_data_i(branch_result[1]),
+        .pop_i(branch_dequeue[1]),
+        .data_out_o(branch_fifo_heads[1]),
+        .empty_o(branch_empty[1]),
+        .full_o(branch_full[1])
     );
 
     /* FIFOS which will cater to future EX units
@@ -159,34 +164,34 @@ module scalar_wb_arbiter #() (
         .BUFFER_SIZE(2),
         .T(storage_pkg::wb_queue_entry_t)
     ) muldiv_fifo (
-        .clk(clk),
-        .reset_n(reset_n),
-        .push(ex_result[2].valid),
-        .push_data(ex_result[2]),
-        .pop(dequeue[2]),
-        .data_out(fifo_heads[2]),
-        .empty(empty[2]),
-        .full(full[2])
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(ex_result[2].valid),
+        .push_data_i(ex_result[2]),
+        .pop_i(dequeue[2]),
+        .data_out_o(fifo_heads[2]),
+        .empty_o(empty[2]),
+        .full_o(full[2])
     );
 
     circular_fifo_fwft #(
         .BUFFER_SIZE(4),
         .T(storage_pkg::wb_queue_entry_t)
     ) lsu_fifo (
-        .clk(clk),
-        .reset_n(reset_n),
-        .push(ex_result[3].valid),
-        .push_data(ex_result[3]),
-        .pop(dequeue[3]),
-        .data_out(fifo_heads[3]),
-        .empty(empty[3]),
-        .full(full[3])
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(ex_result[3].valid),
+        .push_data_i(ex_result[3]),
+        .pop_i(dequeue[3]),
+        .data_out_o(fifo_heads[3]),
+        .empty_o(empty[3]),
+        .full_o(full[3])
     );
     */
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk_i) begin
 
-        if(!reset_n) begin
+        if(!reset_ni || flush_i) begin
             choice  <= '0;
             dequeue <= '0;
             branch_choice  <= '0;

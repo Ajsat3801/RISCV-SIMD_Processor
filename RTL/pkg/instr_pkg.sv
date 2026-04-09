@@ -49,7 +49,6 @@ package instr_pkg;
  * operations_e[3:0] is LSB 4 bits of funct7 (instr[29:26])
  */
     typedef enum logic [3:0] { 
-     
         VALU_ADD = 4'b0000, VALU_SUB = 4'b0010, VALU_RSUB = 4'b0011
         VALU_AND = 4'b1001, VALU_OR  = 4'b1010, VALU_XOR  = 4'b1011
     } valu_operations_e;
@@ -59,7 +58,6 @@ package instr_pkg;
  * operations_e[2:0] indicate vector size (32 fixed for now)
  */
     typedef enum logic [3:0] { 
-     
         VLSU_VSE32 = 4'b1110,
         VLSU_VLE32 = 4'b0110
     } vlsu_operations_e;
@@ -77,7 +75,7 @@ package instr_pkg;
     typedef logic [DATA_SIZE-1:0] data_t;
     typedef logic [REG_ADDR_W-1:0] arf_address_t;
     typedef logic [RS_ADDR_W-1:0]  rs_slot_id_t;
-    typedef logic [ROB_ADDR_W-1:0] rob_address_t;
+    
     typedef logic [3:0] [DATA_SIZE-1:0] vec_data_t;
     
 /*
@@ -89,11 +87,16 @@ package instr_pkg;
 	typedef struct {
      
         logic vector;
-        logic [(PRF_ADDR_W-1):0] tag 
+        logic [(PRF_ADDR_W-1):0] tag;
     } prf_tag_t;
+    
+    typedef struct packed {
+        logic epoch;
+        logic [ROB_ADDR_W-1:0] address;
+    } rob_address_t;
 
 /*
- * Decoded instruction
+ * DECODED INSTRUCTION
  * see previous typedefs for chip_select & operations
  * addresses are of architectural regs, not physical. 
  * 12 bit imm used for i type, loads, stores, b type etc

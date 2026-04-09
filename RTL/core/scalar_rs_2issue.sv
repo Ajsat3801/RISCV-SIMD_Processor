@@ -5,6 +5,7 @@ module scalar_rs_2issue #(
 )(
     input logic clk,
     input logic reset_n,
+    input logic flush_i,
     
     // connection with operation bus 
     operand_bus_if.rs rs_input,
@@ -105,7 +106,7 @@ module scalar_rs_2issue #(
 
     always_ff @(posedge clk) begin
         
-        if(!reset_n) begin
+        if(!reset_n || flush_i) begin
             
             buffer[0] <= '0;
             for(i = 1; i<DUAL_SLOT_RS_LEN;i++) buffer[i] <= buffer[0];

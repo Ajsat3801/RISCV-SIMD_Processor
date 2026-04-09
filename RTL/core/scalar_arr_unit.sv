@@ -5,7 +5,7 @@ module scalar_arr_unit (
 
     instruction_bus_if.arr pre_alloc_instr_i,
     retirement_bus_if.arr retire_instr_i,
-    allocation_bus_if.arr allocated_instr_o,
+    allocation_bus_if.arr sc_sc_allocated_instr_io,
 
     output logic scalar_rat_full;
 );
@@ -33,7 +33,7 @@ module scalar_arr_unit (
     logic tail_epoch_flushed;
 
     logic full, empty;
-    logic retirement_valid, allocation_valid;
+    logic retirement_valid, allocation_valid, allocation_op_valid;
 
     int i;
 
@@ -64,6 +64,7 @@ module scalar_arr_unit (
             end
 
         end
+
         /*  CONDITIONS FOR RETIREMENT TO BE VALID
          *  1)  retirment signal is valid
          *  2)  instruction to be retired writes to a register
@@ -83,14 +84,23 @@ module scalar_arr_unit (
          */
         allocation_valid =  pre_alloc_instr_i.valid &&
                             (pre_alloc_instr_i.instr.dest_address != '0) &&
-                            !pre_alloc_instr_i.instr.chip_select[3] && 
+                            !pre_alloc_instr_i.instr.chip_select[3] &&
                             pre_alloc_instr_i.instr.write_to_reg;
+
+        /*  CONDITIONS FOR ALLOCATION OUTPUT TO BE VALID
+         *  1)  allocation signal is valid
+         *  2)  source1 of the instruction is scalar
+         *  checking source 1 is enough because the only case where the input is
+         *  valid but the output is not is when both the sources are vector
+         */
+        allocation_op_valid =   pre_alloc_instr_i.valid &&
+                                (pre_alloc_instr_i.src1_vector == 1'b0);
 
     end
 
     always_ff @(posedge clk) begin
         if (!reset_ni) begin
-            /*
+            /* RESET
              * Arch reg gets allocated to corresponding physical reg
              * Both commit and speculation tables are written
              * prf_used is set to 1 for 0 to arch reg and 0 for rest
@@ -121,6 +131,13 @@ module scalar_arr_unit (
         end
         else begin
 
+            /* INSTRUCTION RETIREMENT
+             * 1)   ROB sends the destination address and the prf tag of the instruction
+             *      to be retired
+             * 2)   The current prf tag of the value in destination addresss is freed i.e.
+             *      its pushed into the free list & prf_used is set to 0.
+             * 3)   the commit table is updated with the new prf tag & prf_used is set to 1
+             */
             if (retirement_valid) begin
                 prf_used[commit_table[retire_instr_i.dest_address]] <= 1'b0;
                 
@@ -130,24 +147,28 @@ module scalar_arr_unit (
                 commit_table[retire_instr_i.dest_address] <= retire_instr_i.prf_tag;
                 prf_used[retire_instr_i.prf_tag] <= 1'b1;
             end
+
+            /* INSTRUCTION ALLOCATION
+             * - if allocation is valid (see comb block for conditions) assign a PRF
+             *   for the instruction from the free list and add to reg_alloc_table
+             * - Other instruction data sent directly without gating (to handle .vx
+             *   instructions
+             */
+            sc_allocated_instr_io_valid <= allocation_op_valid;
+            sc_allocated_instr_io.rs_slot <= allocated_instr_i.rs_slot;
+            sc_allocated_instr_io.instr <= pre_alloc_instr_i.instr;
             
             if (allocation_valid) begin
-                allocated_instr_o.valid <= 1'b1;
-                allocated_instr_o.prf_tag <= free_list[head];
+                sc_allocated_instr_io.prf_tag <= free_list[head];
 
                 reg_alloc_table[pre_alloc_instr_i.instr.dest_address] <= free_list[head];
                 head <= head_next;
             end
-            else begin
-                allocated_instr_o.valid <= 1'b0;
-                allocated_instr_o.prf_tag <= '0;
-            end
+            else sc_allocated_instr_io.prf_tag <= '0;
 
-            allocated_instr_o.operand_a_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src1_address];
-            allocated_instr_o.operand_b_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src2_address];
-
-            allocated_instr_o.instr <= pre_alloc_instr_i.instr;
-            allocated_instr_o.rs_slot <= allocated_instr_i.rs_slot;
+            sc_allocated_instr_io.rob_id <= sc_allocated_instr_io.rob_tail;
+            sc_allocated_instr_io.operand_a_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src1_address];
+            sc_allocated_instr_io.operand_b_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src2_address];
 
         end
     end

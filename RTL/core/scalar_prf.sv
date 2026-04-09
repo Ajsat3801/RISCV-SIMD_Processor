@@ -21,7 +21,7 @@ module scalar_prf(
     allocated_instr_if.prf allocated_instr_i,
 
     // snooping from CDB
-    scalar_data_bus_if.snoop writeback_instr_i,
+    scalar_data_bus_if.prf writeback_instr_i,
 
     // sending operands and instruction data to RS
     operand_bus_if.prf instr_o,

@@ -5,6 +5,7 @@ module scalar_rs_1isssue #(
 )(
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
     
     // connection with operation bus 
     operand_bus_if.rs dispatched_instr_i,
@@ -74,7 +75,7 @@ module scalar_rs_1isssue #(
 
     always_ff @(posedge clk_i) begin
         
-        if (!reset_ni) begin
+        if (!reset_ni || flush_i) begin
             for (i=0; i<SINGLE_SLOT_RS_LEN; i++) buffer[i] <= '0;
 
             released_id_q <= '0;
