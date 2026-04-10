@@ -5,9 +5,9 @@ module scalar_arr_unit (
 
     instruction_bus_if.arr pre_alloc_instr_i,
     retirement_bus_if.arr retire_instr_i,
-    allocation_bus_if.arr sc_sc_allocated_instr_io,
+    allocation_bus_if.arr sc_allocated_instr_io,
 
-    output logic scalar_rat_full;
+    output logic scalar_arr_full;
 );
 
 /* Allocate-Rename-Retire Unit for scalar operations
@@ -95,6 +95,8 @@ module scalar_arr_unit (
          */
         allocation_op_valid =   pre_alloc_instr_i.valid &&
                                 (pre_alloc_instr_i.src1_vector == 1'b0);
+
+        scalar_arr_full = empty;
 
     end
 

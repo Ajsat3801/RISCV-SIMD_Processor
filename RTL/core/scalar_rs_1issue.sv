@@ -11,7 +11,7 @@ module scalar_rs_1isssue #(
     operand_bus_if.rs dispatched_instr_i,
 
     // connection with common data bus
-    scalar_data_bus_if.snoop s_data_bus_i,
+    data_bus_if.snoop s_data_bus_i,
 
     // connection with instruction queue
     output instr_pkg::rs_slot_id_t rs_slot_released_id_o,

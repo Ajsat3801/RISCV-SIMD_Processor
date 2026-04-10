@@ -8,7 +8,7 @@ module reorder_buffer (
     allocation_bus_if.rob vc_allocated_instr_io,
 
     // scalar databus
-    scalar_data_bus_if.snoop scalar_wb_i,
+    data_bus_if.snoop scalar_wb_i,
     //modport snoop (input  valid, rob_id, prf_tag, data);
 
     input signal_pkg::wb_to_rob_branch_signal_t branch_i,

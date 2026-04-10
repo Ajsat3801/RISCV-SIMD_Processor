@@ -11,140 +11,156 @@ import config_pkg::*;
 import signal_pkg::*;
 
 module core #()(
-    input clk,
-    input reset_n,
+    input clk_i,
+    input reset_ni,
 
     // input of phase 1 is the decoded instructions
-    input logic[31:0] instruction,
-    input logic[31:0] pc,
-    output logic ready
+    input instr_pkg::data_t raw_instr_i,
+    input instr_pkg::data_t pc_i,
+    input logic fetch_valid_i,
+    output logic ready_o
 );
 
-decoded_instr_t decoder_to_queue;
+    logic flush;
+    instr_pkg::decoded_instr_t decoded_instr;
+    instr_pkg::rs_slot_id_t released_rs_slot_id_arr [NUMBER_OF_EX-1:0];
+    logic rs_slot_released_arr[NUMBER_OF_EX-1:0];
+    logic rob_full, scalar_arr_full, vector_arr_full;
+    signal_pkg::wb_to_rob_branch_signal_t branch_wb;
+    instr_pkg::rob_address_t rob_id;
+    instr_pkg::rs_to_alu_signal_t alu0_input, alu1_input;
+    logic alu0_ready, alu1_ready;
+    signal_pkg::alu_to_wb_branch_signal branch_result[NUMBER_OF_BRANCH_EX-1:0];
+    signal_pkg::ex_to_wb_signal_t ex_result[NUMBER_OF_EX-1:0];
+    logic wb_ready[NUMBER_OF_EX-1:0];
+    logic wb_ready_branch[NUMBER_OF_BRANCH_EX-1:0];
 
-decoder u_decoder(
-    .clk(clk),
-    .reset_n(reset_n),
-    .raw_instr(instruction),
-    .pc(pc),
-    .fetch_valid(instr_valid),
-    .decoded_instr(decoder_to_queue)
-);
+    instruction_bus_if u_instruction_bus();
+    allocation_bus_if u_scalar_alloc_bus();
+    allocation_bus_if u_vector_alloc_bus();
+    data_bus_if #(.T(instr_pkg::data_t)) u_scalar_data_bus();
+    data_bus_if #(.T(instr_pkg::vector_data_t)) u_vector_data_bus();
+    operand_bus_if #(.T(instr_pkg::data_t)) u_scalar_operand_bus();
+    operand_bus_if #(.T(instr_pkg::vector_data_t)) u_vector_operand_bus();
+    retirement_bus_if u_retirement_bus();
 
-logic[RS_ADDR_W-1:0] rs_slot_released_id_arr[NUMBER_OF_EX-1:0];
-logic rs_released_arr[NUMBER_OF_EX-1:0];
+    always_comb begin
+        /*
+         * Placeholder for vector inputs
+         * Currently behaves as a fully scalar unit
+         */
 
-queue_to_rob_signal_t queue_to_rob;
-queue_to_rat_signal_t queue_to_rat;
-queue_to_reg_signal_t queue_to_reg;
+        vector_arr_full = 1'b0;
+        u_vector_alloc_bus.valid = 1'b0;
+        u_vector_data_bus.valid = 1'b0;
+        u_vector_operand_bus.valid = 1'b0;
 
-logic rob_full;
+    end
 
-instruction_queue #() u_instruction_queue(
-    .clk(clk),
-    .reset_n(reset_n),
-    .decoded_instr(decoder_to_queue),
-    .queue_ready(ready),
-    .rs_slot_released_id(rs_slot_released_id_arr),
-    .rs_released(rs_released_arr),
-    .alloc_instr_rob(queue_to_rob),
-    .alloc_instr_rat(queue_to_rat),
-    .alloc_instr_reg(queue_to_reg),
-    .rob_full(rob_full)
-);
+    decoder u_decoder (
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .raw_instr_i(raw_instr_i),
+        .pc_i(pc_i),
+        .fetch_valid_i(fetch_valid_i),
+        .decoded_instr_o(decoded_instr)
+    );
 
-operand_bus_if #() u_operand_bus();
-retirement_bus_if #() u_retirement_bus();
-common_data_bus_if #() u_common_data_bus();
+    instruction_queue u_instr_q (
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .flush_i(flush),
+        .decoded_instr_i(decoded_instr),
+        .released_rs_slot_id_i(released_rs_slot_id_arr),
+        .rs_slot_released_i(rs_slot_released_arr),
+        .rob_full_i(rob_full),
+        .scalar_arr_full_i(scalar_arr_full),
+        .vector_arr_full_i(vector_arr_full),
+        .alloc_instr_o(u_instruction_bus),
+        .queue_ready_o(ready_o)
+    );
 
-rob_to_rat_signal_t rob_to_rat;
+    scalar_arr_unit u_scalar_arr(
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .flush_i(flush),
+        .pre_alloc_instr_i(u_instruction_bus),
+        .retire_instr_i(u_retirement_bus),
+        .sc_allocated_instr_io(u_scalar_alloc_bus),
+        .scalar_arr_full_o(scalar_arr_full)
+    );
 
-register_allocation_table #() u_register_allocation_table(
-    .clk(clk),
-    .reset_n(reset_n),
-    .alloc_instr(queue_to_rat),
-    .issue_instr(rob_to_rat),
-    .retire_instr(u_retirement_bus),
-    .issue_data(u_operand_bus)
-);
+    reorder_buffer u_reorder_buffer(
+        .clk_i(clk_i),
+        .reset_n_i(reset_ni),
+        .sc_allocated_instr_io(u_scalar_alloc_bus),
+        .vc_allocated_instr_io(u_vector_alloc_bus),
+        .scalar_wb_i(u_scalar_data_bus),
+        .vector_wb_i(u_vector_data_bus),
+        .branch_i(branch_wb),
+        .retire_instr_o(u_retirement_bus),
+        .rob_exp_full_o(rob_full),
+        .flush_o(flush)
+    );
 
-wb_to_rob_branch_signal_t branch_data;
+    scalar_prf u_scalar_prf(
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .allocated_instr_i(scalar_alloc_bus),
+        .writeback_instr_i(u_scalar_data_bus),
+        .instr_o(u_scalar_operand_bus),
+    );
 
-reorder_buffer #() u_reorder_buffer(
-    .clk(clk),
-    .reset_n(reset_n),
-    .input_instr(queue_to_rob),
-    .rob_full(rob_full),
-    .cdb_data(u_common_data_bus),
-    .branch_data(branch_data),
-    .issue_instr_rs(u_operand_bus),
-    .retire_instr(u_retirement_bus),
-    .issue_instr_rat(rob_to_rat)
-);
+    scalar_rs_2issue #(
+        .CHIP_SELECT(CS_ALU)
+    ) u_scalar_alu_rs (
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .flush_i(flush),
+        .rs_input_i(u_scalar_operand_bus),
+        .s_data_bus_i(u_scalar_data_bus),
+        .released_rs_slot_id_o(released_slot_id_arr[1:0]),
+        .rs_slot_released_o(rs_slot_released_arr[1:0]),
+        .ex1_ready_i(alu0_ready),
+        .ex2_ready_i(alu1_ready),
+        .dispatch1_o(alu0_input),
+        .dispatch2_o(alu1_input)
+    );
 
-scalar_registers #() u_scalar_registers (
-    .clk(clk),
-    .reset_n(reset_n),
-    .write_data(u_retirement_bus),
-    .read_data(queue_to_reg),
-    .rs_data_reg(u_operand_bus)
-);
+    scalar_alu u_scalar_alu0 (
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .flush_i(flush),
+        .alu_input_i(alu0_input),
+        .ex_ready_o(alu0_ready),
+        .wb_ready_i(wb_ready[0]),
+        .branch_ready_i(wb_ready_branch[0]),
+        .alu_result_o(ex_result[0]),
+        .branch_result_o(branch_result[0])
+    );
 
-rs_to_ex_signal_t dispatch1_op, dispatch2_op;
-logic ex1_ready, ex2_ready;
+    scalar_alu u_scalar_alu1 (
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .flush_i(flush),
+        .alu_input_i(alu1_input),
+        .ex_ready_o(alu1_ready),
+        .wb_ready_i(wb_ready[1]),
+        .branch_ready_i(wb_ready_branch[1]),
+        .alu_result_o(ex_result[1]),
+        .branch_result_o(branch_result[1])
+    );
 
-res_station_dual_issue #(
-    .CHIP_SELECT(CS_ALU)
-) u_alu_rs (
-    .clk(clk),
-    .reset_n(reset_n),
-    .rs_input(u_operand_bus),
-    .cdb_data(u_common_data_bus),
-    .rs_slot_released_id(rs_slot_released_id_arr[1:0]),
-    .rs_slot_released(rs_released_arr[1:0]),
-    .ex1_ready(ex1_ready),
-    .ex2_ready(ex2_ready),
-    .dispatch1_op(dispatch1_op),
-    .dispatch2_op(dispatch2_op)
-);
-
-ex_to_wb_signal_t ex_result_arr[NUMBER_EX-1:0];
-logic wb_ready_arr[NUMBER_EX-1:0];
-
-alu_to_wb_branch_signal_t branch_result_arr[NUMBER_OF_BRANCH_EX-1:0];
-logic wb_ready_branch_arr[NUMBER_EX-1:0];
-
-scalar_alu #() alu0 (
-    .clk(clk),
-    .reset_n(reset_n),
-    .dispatched_op(dispatch1_op),
-    .ex_ready(ex1_ready),
-    .wb_ready(wb_ready_arr[0]),
-    .branch_ready(wb_ready_branch_arr[0]),
-    .alu_result(ex_result_arr[0]),
-    .branch_result(branch_result_arr[0])
-);
-
-scalar_alu #() alu1 (
-    .clk(clk),
-    .reset_n(reset_n),
-    .dispatched_op(dispatch2_op),
-    .ex_ready(ex2_ready),
-    .wb_ready(wb_ready_arr[1]),
-    .branch_ready(wb_ready_branch_arr[1]),
-    .alu_result(ex_result_arr[1]),
-    .branch_result(branch_result_arr[1])
-);
-
-writeback_arbiter #()(
-    .clk(clk),
-    .reset_n(reset_n),
-    .ex_result(ex_result_arr),
-    .wb_ready(wb_ready_arr),
-    .branch_result(branch_result_arr),
-    .wb_ready_branch(wb_ready_branch_arr),
-    .cdb_data(u_common_data_bus),
-    .branch_data(branch_data)
-);
+    scalar_wb_arbiter u_scalar_writeback (
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .flush_i(flush_i),
+        .ex_result_i(ex_result),
+        .wb_ready_o(wb_ready),
+        .branch_result_i(branch_result),
+        .wb_ready_branch_o(wb_ready_branch),
+        .scalar_data_bus_o(u_scalar_data_bus),
+        .branch_wb_o(branch_wb)
+    );
 
 endmodule

@@ -18,15 +18,13 @@ module scalar_prf(
     input logic reset_ni,
 
     // inputs from scalar RAT
-    allocated_instr_if.prf allocated_instr_i,
+    allocation_bus_if.prf allocated_instr_i,
 
     // snooping from CDB
-    scalar_data_bus_if.prf writeback_instr_i,
+    data_bus_if.prf writeback_instr_i,
 
     // sending operands and instruction data to RS
     operand_bus_if.prf instr_o,
-
-    input rob_address_t rob_id
 );
 
     logic[SCALAR_PRF_SIZE-1:0] ready;

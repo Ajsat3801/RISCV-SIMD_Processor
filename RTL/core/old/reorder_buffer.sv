@@ -19,7 +19,7 @@ module reorder_buffer #()(
 
     // From writeback
     input signal_pkg::wb_to_rob_branch_signal_t branch_data,
-    scalar_data_bus_if.writeback scalar_wb_data_i,
+    data_bus_if.writeback scalar_wb_data_i,
     vector_data_bus_if.writeback vector_wb_data_i,
 
     // Retirement Bus

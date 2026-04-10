@@ -11,12 +11,15 @@ module instruction_queue #()(
  */
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
 
     input instr_pkg::decoded_instr_t decoded_instr_i,
-    input instr_pkg::rs_slot_id_t rs_slot_released_id_i [NUMBER_OF_EX-1:0],
-    input logic rs_released_i [NUMBER_OF_EX-1:0]
+    input instr_pkg::rs_slot_id_t released_rs_slot_id_i [NUMBER_OF_EX-1:0],
+    input logic rs_slot_released_i [NUMBER_OF_EX-1:0]
     
-    input rob_full_i;
+    input logic rob_full_i;
+    input logic scalar_arr_full_i,
+    input logic vector_arr_full_i;
 /*
  * Outputs
  *    - signal to decoder indicating availability of slot in FIFO
@@ -62,14 +65,15 @@ module instruction_queue #()(
     // intermediate variables
     logic[RS_IDX_W-1:0] rs_index;
     instr_pkg::chip_select_e cs;
+    logic reset_wb_n;
 
     rs_slot_freeq_2push #(.BUFFER_SIZE(16), .T(logic[RS_ADDR_W-1:0])) alu_fifo (
         .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .push1_i(rs_released_i[0]),
-        .push_data1_i(rs_slot_released_id_i[0]),
-        .push2_i(rs_released_i[1]),
-        .push_data2_i(rs_slot_released_id_i[1]),
+        .reset_ni(reset_wb_n),
+        .push1_i(rs_slot_released_i[0]),
+        .push_data1_i(released_rs_slot_id_i[0]),
+        .push2_i(rs_slot_released_i[1]),
+        .push_data2_i(released_rs_slot_id_i[1]),
         .pop_o(dequeue_rs_fifo[0]),
         .data_out_o(next_rs_slot[0]),
         .empty_o(rs_empty[0]),
@@ -80,9 +84,9 @@ module instruction_queue #()(
 
     rs_slot_freeq_1push #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) muldiv_fifo (
         .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .push_i(rs_released_i[2]),
-        .push_data_i(rs_slot_released_id_i[2]),
+        .reset_ni(reset_wb_n),
+        .push_i(rs_slot_released_i[2]),
+        .push_data_i(released_rs_slot_id_i[2]),
         .pop_o(dequeue_rs_fifo[1]),
         .data_out_o(next_rs_slot[1]),
         .empty_o(rs_empty[1]),
@@ -91,9 +95,9 @@ module instruction_queue #()(
 
     rs_slot_freeq_1push #(.BUFFER_SIZE(8), .T(logic[RS_ADDR_W-1:0])) lsu_fifo (
         .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .push_i(rs_released_i[3]),
-        .push_data_i(rs_slot_released_id_i[3]),
+        .reset_ni(reset_wb_n),
+        .push_i(rs_slot_released_i[3]),
+        .push_data_i(released_rs_slot_id_i[3]),
         .pop_o(dequeue_rs_fifo[2]),
         .data_out_o(next_rs_slot[2]),
         .empty_o(rs_empty[2]),
@@ -102,6 +106,8 @@ module instruction_queue #()(
     */
 
     always_comb begin
+
+        
 
         dequeue_rs_fifo = '0;
         dequeue = 1'b0;
@@ -116,24 +122,30 @@ module instruction_queue #()(
 
         cs = instr_fifo[head].chip_select;
 
+        ready = !rob_full_i &&
+                !(scalar_arr_full_i && !chip_select[2]) &&
+                !(vector_arr_full_i &&  chip_select[2]);
+
         if (!empty && instr_fifo[head].valid ) begin
             if (cs!=0 && cs<NUMBER_OF_RS) begin
                 rs_index = instr_fifo[head].chip_select - 1;
-                dequeue = !rs_empty[rs_index] && !rob_full_i;
+                dequeue = !rs_empty[rs_index] && ready;
                 dequeue_rs_fifo[rs_index] = dequeue;
             end
             else begin
-                dequeue = !rob_full_i;
+                dequeue = ready;
                 dequeue_rs_fifo = '0;
             end
         end
 
         enqueue = (!full || dequeue) && decoded_instr_i.valid;
+
+        reset_wb_n = reset_ni && !flush_i;
         
     end
 
     always_ff @(posedge clk_i) begin
-        if (!reset_ni) begin
+        if (!reset_ni || flush_i) begin
             alloc_instr_q <= '0;
             rs_slot_id_q <= '0;
             head <= '0;

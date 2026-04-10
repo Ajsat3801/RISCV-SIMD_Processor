@@ -6,19 +6,19 @@
 */
 
 module scalar_alu(
-    input logic clk,
-    input logic reset_n,
+    input logic clk_i,
+    input logic reset_ni,
     input logic flush_i,
 
     // connection to reservation station
-    input signal_pkg::rs_to_alu_signal_t dispatched_op,
-    output logic ex_ready,
+    input signal_pkg::rs_to_alu_signal_t alu_input_i,
+    output logic ex_ready_o,
 
     //connection to writeback arbitrer
-    input logic wb_ready,
-    input logic branch_ready,
-    output signal_pkg::ex_to_wb_signal_t alu_result,
-    output signal_pkg::alu_to_wb_branch_signal_t branch_result
+    input logic wb_ready_i,
+    input logic branch_ready_i,
+    output signal_pkg::ex_to_wb_signal_t alu_result_o,
+    output signal_pkg::alu_to_wb_branch_signal_t branch_result_o
 
 );
 
@@ -33,31 +33,31 @@ module scalar_alu(
 
     always_comb begin // combinationally building the output
         
-        current_alu_res.valid = dispatched_op.valid && !branch_valid;
-        current_alu_res.prf_tag = dispatched_op.prf_tag;
-        current_alu_res.rob_id = dispatched_op.rob_id;
+        current_alu_res.valid = alu_input_i.valid && !branch_valid;
+        current_alu_res.prf_tag = alu_input_i.prf_tag;
+        current_alu_res.rob_id = alu_input_i.rob_id;
         current_alu_res.data = '0;
         current_alu_res.branch_taken = 1'b0;
-        current_alu_res.branch_valid = dispatched_op.valid && dispatched_op.operation[3];
+        current_alu_res.branch_valid = alu_input_i.valid && alu_input_i.operation[3];
 
-        a_lt_b = ($signed(dispatched_op.operand_a) < $signed(dispatched_op.operand_b)) ? 1'b1 : 1'b0;
-        a_lt_b_u = (dispatched_op.operand_a < dispatched_op.operand_b) ? 1'b1 : 1'b0;
-        a_eq_b = (dispatched_op.operand_a == dispatched_op.operand_b) ? 1'b1 : 1'b0;
+        a_lt_b = ($signed(alu_input_i.operand_a) < $signed(alu_input_i.operand_b)) ? 1'b1 : 1'b0;
+        a_lt_b_u = (alu_input_i.operand_a < alu_input_i.operand_b) ? 1'b1 : 1'b0;
+        a_eq_b = (alu_input_i.operand_a == alu_input_i.operand_b) ? 1'b1 : 1'b0;
 
-        if (dispatched_op.operation.alu == ALU_ADD && dispatched_op.sign) begin
-            operand_b = (~dispatched_op.operand_b) + 1; // 2s complement for subtraction
+        if (alu_input_i.operation.alu == ALU_ADD && alu_input_i.sign) begin
+            operand_b = (~alu_input_i.operand_b) + 1; // 2s complement for subtraction
         end
-        else operand_b = dispatched_op.operand_b; // for the rest
+        else operand_b = alu_input_i.operand_b; // for the rest
 
-        unique case (dispatched_op.operation.alu)
-            ALU_ADD : current_alu_res.data = dispatched_op.operand_a + operand_b;
-            ALU_SLL : current_alu_res.data = dispatched_op.operand_a << dispatched_op.operand_b;
+        unique case (alu_input_i.operation.alu)
+            ALU_ADD : current_alu_res.data = alu_input_i.operand_a + operand_b;
+            ALU_SLL : current_alu_res.data = alu_input_i.operand_a << alu_input_i.operand_b;
             ALU_SLT : current_alu_res.data[0] = a_lt_b;
             ALU_SLTU: current_alu_res.data[0] = a_lt_b_u;
-            ALU_XOR : current_alu_res.data = dispatched_op.operand_a ^ dispatched_op.operand_b;
-            ALU_SRL : current_alu_res.data = dispatched_op.operand_a >> dispatched_op.operand_b;
-            ALU_OR  : current_alu_res.data = dispatched_op.operand_a | dispatched_op.operand_b;
-            ALU_AND : current_alu_res.data = dispatched_op.operand_a & dispatched_op.operand_b;
+            ALU_XOR : current_alu_res.data = alu_input_i.operand_a ^ alu_input_i.operand_b;
+            ALU_SRL : current_alu_res.data = alu_input_i.operand_a >> alu_input_i.operand_b;
+            ALU_OR  : current_alu_res.data = alu_input_i.operand_a | alu_input_i.operand_b;
+            ALU_AND : current_alu_res.data = alu_input_i.operand_a & alu_input_i.operand_b;
             ALU_BEQ : current_alu_res.branch_taken = a_eq_b;
             ALU_BNE : current_alu_res.branch_taken = !a_eq_b;
             ALU_BLT : current_alu_res.branch_taken = a_lt_b;
@@ -68,18 +68,18 @@ module scalar_alu(
 
         // control signals
         // send value from holding register to writeback or branch
-        hold_to_wb = holding_val && wb_ready && !holding_val.branch_valid; // send holding reg to output if wb is ready
-        hold_to_branch = holding_val && branch_ready && holding_val.branch_valid // send holding reg to branch output
+        hold_to_wb = holding_val && wb_ready_i && !holding_val.branch_valid; // send holding reg to output if wb is ready
+        hold_to_branch = holding_val && branch_ready_i && holding_val.branch_valid // send holding reg to branch output
 
         // send current results directly to writeback or branch
         res_to_op = current_alu_res.valid && !holding_val;
-        res_to_wb = res_to_op && (wb_ready && !current_alu_res.branch_valid);
-        res_to_branch = res_to_op && (branch_ready && current_alu_res.branch_valid);
+        res_to_wb = res_to_op && (wb_ready_i && !current_alu_res.branch_valid);
+        res_to_branch = res_to_op && (branch_ready_i && current_alu_res.branch_valid);
 
         // send result to holding reg if writeback/branch is not ready and holding is empty
 
-        wb_not_ready = !current_alu_res.branch_valid && (hold_to_wb || !wb_ready);
-        branch_not_ready = current_alu_res.branch_valid && (hold_to_branch || !branch_ready);
+        wb_not_ready = !current_alu_res.branch_valid && (hold_to_wb || !wb_ready_i);
+        branch_not_ready = current_alu_res.branch_valid && (hold_to_branch || !branch_ready_i);
         res_to_hold = current_alu_res.valid && (wb_not_ready || branch_not_ready);
 
         wb_valid = hold_to_wb || res_to_wb;
@@ -89,8 +89,8 @@ module scalar_alu(
 
     end
 
-    always_ff @(posedge clk) begin
-        if(!reset_n || flush_i) begin
+    always_ff @(posedge clk_i) begin
+        if(!reset_ni || flush_i) begin
             
             alu_result_q <= 'd0;
             ex_ready_q <= 1'b1;
@@ -136,8 +136,8 @@ module scalar_alu(
             
     end
 
-    assign ex_ready = ex_ready_q;
-    assign alu_result = alu_result_q;
-    assign branch_result = branch_result_q;
+    assign ex_ready_o = ex_ready_q;
+    assign alu_result_o = alu_result_q;
+    assign branch_result_o = branch_result_q;
 
 endmodule
