@@ -32,12 +32,12 @@ module rs_slot_freeq_1push #(
         tail_next = (tail == BUFFER_SIZE) ? '0 :(tail + 1);
         head_next = (head == BUFFER_SIZE) ? '0 :(head + 1);
 
-        full = (tail_next == head);
-        empty = head==tail;
+        full  = (tail_next == head);
+        empty = (head == tail);
 
         bypass = empty && push && pop;
         push_allowed = push && (!full || (pop && !empty)) && !bypass;
-        pop_allowed = pop && !empty && !bypass;
+        pop_allowed  = pop && !empty && !bypass;
 
         if(bypass) data_out = push_data;
         else if(empty) data_out = '0;
@@ -47,8 +47,8 @@ module rs_slot_freeq_1push #(
 
     always_ff @(posedge clk) begin
 
-        if(!reset_n) begin
-            for(int j=0;j<BUFFER_SIZE;j++) begin
+        if (!reset_n) begin
+            for(int j=0; j<BUFFER_SIZE; j++) begin
                 main_fifo[j] <= DATA_SIZE'(j);
             end
             head <= '0;

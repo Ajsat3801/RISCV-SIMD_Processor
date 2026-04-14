@@ -1,7 +1,7 @@
-import config_pkg::*;
+//import config_pkg::*;
 
 module scalar_rs_2issue #(
-    parameter chip_select_e CHIP_SELECT = 1,
+    parameter chip_select_e CHIP_SELECT = CS_SALU
 )(
     input logic clk_i,
     input logic reset_ni,
@@ -36,7 +36,7 @@ module scalar_rs_2issue #(
     logic[DUAL_SLOT_RS_LEN-1:0] occupied, operands_ready, snoop, eligible;
     logic instr_valid, any_eligible, bypass_eligible;
 
-    int i;
+    int i, i_ff;
 
     always_comb begin
 
@@ -47,7 +47,7 @@ module scalar_rs_2issue #(
             operands_ready[i] = buffer[i].operand_a_ready && buffer[i].operand_b_ready;
         end
 
-        snoop = occupied & ~operands_ready;
+        snoop    = occupied & ~operands_ready;
         eligible = occupied & operands_ready;
         any_eligible = ~|eligible;
         
@@ -106,10 +106,9 @@ module scalar_rs_2issue #(
 
     always_ff @(posedge clk_i) begin
         
-        if(!reset_ni || flush_i) begin
+        if (!reset_ni || flush_i) begin
             
-            buffer[0] <= '0;
-            for(i = 1; i<DUAL_SLOT_RS_LEN;i++) buffer[i] <= buffer[0];
+            for (i_ff=0; i_ff<DUAL_SLOT_RS_LEN; i_ff++) buffer[i_ff] <= '0;
 
             rs_slot_released_o[0] <= 1'b0;
             rs_slot_released_o[1] <= 1'b1;
@@ -126,15 +125,15 @@ module scalar_rs_2issue #(
         else begin
 
             // snoop data from CDB and update if needed
-            if(s_data_bus_i.valid) begin
-                for(i=0;i<DUAL_SLOT_RS_LEN;i++) begin
-                    if(occupied[i] && s_data_bus_i.prf_tag == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
-                        buffer[i].operand_a <= s_data_bus_i.data;
-                        buffer[i].operand_a_ready <= 1'b1;
+            if (s_data_bus_i.valid) begin
+                for (i_ff=0; i_ff<DUAL_SLOT_RS_LEN; i_ff++) begin
+                    if (occupied[i_ff] && s_data_bus_i.prf_tag == buffer[i_ff].operand_a_tag && !buffer[i_ff].operand_a_ready) begin 
+                        buffer[i_ff].operand_a <= s_data_bus_i.data;
+                        buffer[i_ff].operand_a_ready <= 1'b1;
                     end
-                    if(occupied[i] && s_data_bus_i.prf_tag == buffer[i].operand_b_tag && !buffer[i].operand_b_ready) begin
-                        buffer[i].operand_b <= s_data_bus_i.data;
-                        buffer[i].operand_b_ready <= 1'b1;
+                    if(occupied[i_ff] && s_data_bus_i.prf_tag == buffer[i_ff].operand_b_tag && !buffer[i_ff].operand_b_ready) begin
+                        buffer[i_ff].operand_b <= s_data_bus_i.data;
+                        buffer[i_ff].operand_b_ready <= 1'b1;
                     end
                 end
             end
@@ -142,8 +141,8 @@ module scalar_rs_2issue #(
             // dispatch instructions
             if(grant1_to_dispatch1) begin
                 dispatch1_o.valid <= 1'b1;
-                dispatch1_o.prf_tag <= buffer[grant1_idx].prf_tag;
-                dispatch1_o.rob_id  <= buffer[grant1_idx].rob_id;
+                dispatch1_o.prf_tag   <= buffer[grant1_idx].prf_tag;
+                dispatch1_o.rob_id    <= buffer[grant1_idx].rob_id;
                 dispatch1_o.operand_a <= buffer[grant1_idx].operand_a;
                 dispatch1_o.operand_b <= buffer[grant1_idx].operand_b;
                 dispatch1_o.operation <= buffer[grant1_idx].operation;
@@ -153,8 +152,8 @@ module scalar_rs_2issue #(
             end
             else if(bypass_to_dispatch1) begin
                 dispatch1_o.valid <= 1'b1;
-                dispatch1_o.prf_tag <= rs_input_i.rs_entry.prf_tag;
-                dispatch1_o.rob_id  <= rs_input_i.rs_entry.rob_id;
+                dispatch1_o.prf_tag   <= rs_input_i.rs_entry.prf_tag;
+                dispatch1_o.rob_id    <= rs_input_i.rs_entry.rob_id;
                 dispatch1_o.operand_a <= rs_input_i.rs_entry.operand_a;
                 dispatch1_o.operand_b <= rs_input_i.rs_entry.operand_b;
                 dispatch1_o.operation <= rs_input_i.rs_entry.operation;
@@ -169,8 +168,8 @@ module scalar_rs_2issue #(
 
             if(grant1_to_dispatch2) begin
                 dispatch2_o.valid <= 1'b1;
-                dispatch2_o.prf_tag <= buffer[grant1_idx].prf_tag;
-                dispatch2_o.rob_id  <= buffer[grant2_idx].rob_id;
+                dispatch2_o.prf_tag   <= buffer[grant1_idx].prf_tag;
+                dispatch2_o.rob_id    <= buffer[grant2_idx].rob_id;
                 dispatch2_o.operand_a <= buffer[grant1_idx].operand_a;
                 dispatch2_o.operand_b <= buffer[grant1_idx].operand_b;
                 dispatch2_o.operation <= buffer[grant1_idx].operation;
@@ -180,8 +179,8 @@ module scalar_rs_2issue #(
             end
             else if(grant2_to_dispatch2) begin
                 dispatch2_o.valid <= 1'b1;
-                dispatch2_o.prf_tag <= buffer[grant2_idx].prf_tag;
-                dispatch2_o.rob_id  <= buffer[grant2_idx].rob_id;
+                dispatch2_o.prf_tag   <= buffer[grant2_idx].prf_tag;
+                dispatch2_o.rob_id    <= buffer[grant2_idx].rob_id;
                 dispatch2_o.operand_a <= buffer[grant2_idx].operand_a;
                 dispatch2_o.operand_b <= buffer[grant2_idx].operand_b;
                 dispatch2_o.operation <= buffer[grant2_idx].operation;
@@ -191,8 +190,8 @@ module scalar_rs_2issue #(
             end
             else if(bypass_to_dispatch2) begin
                 dispatch2_o.valid <= 1'b1;
-                dispatch2_o.prf_tag <= rs_input_i.rs_entry.prf_tag;
-                dispatch2_o.rob_id  <= rs_input_i.rs_entry.rob_id;
+                dispatch2_o.prf_tag   <= rs_input_i.rs_entry.prf_tag;
+                dispatch2_o.rob_id    <= rs_input_i.rs_entry.rob_id;
                 dispatch2_o.operand_a <= rs_input_i.rs_entry.operand_a;
                 dispatch2_o.operand_b <= rs_input_i.rs_entry.operand_b;
                 dispatch2_o.operation <= rs_input_i.rs_entry.operation;

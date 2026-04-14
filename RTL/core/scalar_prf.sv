@@ -24,14 +24,16 @@ module scalar_prf(
     data_bus_if.prf writeback_instr_i,
 
     // sending operands and instruction data to RS
-    operand_bus_if.prf instr_o,
+    operand_bus_if.prf instr_o
 );
 
-    logic[SCALAR_PRF_SIZE-1:0] ready;
-    instr_pkg::data_t regfile[SCALAR_PRF_SIZE-1:0];
+    logic[PRF_DEPTH-1:0] ready;
+    instr_pkg::data_t regfile[PRF_DEPTH-1:0];
 
     logic operand_a_ready_d, operand_b_ready_d;
+    logic allocation_allowed, writeback_allowed;
     instr_pkg::data_t operand_a_d, operand_b_d;
+    int i;
 
     always_comb begin
 
@@ -40,15 +42,11 @@ module scalar_prf(
         operand_a_ready_d = '0;
         operand_b_ready_d = '0;
 
-        // write into regfile
-        if(writeback_instr_i.valid && !writeback_instr_i.prf_tag.vector) begin
-            regfile[writeback_instr_i.prf_tag.tag] = writeback_instr_i.data;
-            ready[writeback_instr_i.prf_tag.tag] = 1'b1;
-        end
+        writeback_allowed  = writeback_instr_i.valid && !writeback_instr_i.prf_tag.vector;
+        allocation_allowed = allocated_instr_i.instr.valid;
 
         // read reg_files and mark ready as 0 
-        if(allocated_instr_i.instr.valid) begin
-            ready[allocated_instr_i.prf_tag] = 1'b0;
+        if (allocation_allowed) begin
             
             operand_a_d = regfile[allocated_instr_i.operand_a_tag.tag];
             operand_b_d = regfile[allocated_instr_i.operand_b_tag.tag];
@@ -59,20 +57,27 @@ module scalar_prf(
         
     end
 
-    always_ff @(posedge clk) begin
-        if(!reset_ni) begin
-            for(i=0;i<SCALAR_PRF_SIZE; i++) begin
-                ready[i] <= 1'b0;
+    always_ff @(posedge clk_i) begin
+        if (!reset_ni) begin
+            for (i=0; i<PRF_DEPTH; i++) begin
+                ready[i] <= 1'b1;
                 regfile[i] <= '0;
             end
         end
         else begin
 
-            instr_o.prf_input_valid <= allocated_instr_i.valid;
+            if (writeback_allowed) begin
+                regfile[writeback_instr_i.prf_tag.tag] <= writeback_instr_i.data;
+                ready[writeback_instr_i.prf_tag.tag]   <= 1'b1;
+            end
+            if (allocation_allowed) begin
+                ready[allocated_instr_i.prf_tag] <= 1'b0;
+            end
+
+            instr_o.prf_valid <= allocated_instr_i.valid;
             instr_o.chip_select     <= allocated_instr_i.instr.chip_select;
             instr_o.rs_slot         <= allocated_instr_i.rs_slot;
             instr_o.prf_tag         <= allocated_instr_i.prf_tag;
-            instr_o.rob_id          <= rob_id;
             instr_o.operand_a       <= operand_a_d;
             instr_o.operand_b       <= operand_b_d;
             instr_o.operation       <= allocated_instr_i.instr.operation;

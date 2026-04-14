@@ -28,7 +28,7 @@ package config_pkg;
 
     localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_LEN);
     localparam int unsigned INSTRUCTION_QUEUE_PTR_LEN = $clog2(INSTRUCTION_QUEUE_LEN+1);
-    localparam int unsigned RS_IDX_W = $clog2(NUMBER_OF_RS);
+    localparam int unsigned RS_IDX_W = (NUMBER_OF_RS>1) ? $clog2(NUMBER_OF_RS) : 1;
     localparam int unsigned ROB_ADDR_W = $clog2(ROB_LEN);
     localparam int unsigned DUAL_SLOT_RS_IDX_W =$clog2(DUAL_SLOT_RS_LEN);
     localparam int unsigned SINGLE_SLOT_RS_IDX_W = $clog2(SINGLE_SLOT_RS_LEN);

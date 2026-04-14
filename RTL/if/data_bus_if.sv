@@ -7,9 +7,27 @@ interface data_bus_if #(
     instr_pkg::rob_address_t rob_id;
     T data;
 
-    modport writeback (output valid, rob_id, prf_tag, data);
-    modport snoop     (input  valid, rob_id, prf_tag, data);
-    modport rob       (input  valid, rob_id);
-    modport prf       (input  valid, prf_tag, data)
+    modport writeback (
+        output valid, 
+        output rob_id, prf_tag,
+        output data
+    );
+
+    modport snoop (
+        input valid,
+        input rob_id, prf_tag,
+        input data
+    );
+
+    modport rob (
+        input valid
+        input rob_id
+    );
+
+    modport prf (
+        input valid,
+        input prf_tag,
+        input data
+    );
 
 endinterface

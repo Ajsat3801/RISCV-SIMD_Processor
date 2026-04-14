@@ -2,9 +2,11 @@
  * Contains typedefs used to describe instructions
  */
 
-import config_pkg::*;
+
 
 package instr_pkg;
+
+    import config_pkg::*;
 
 /* CHIP SELECT
  * chip_select_e[2] indicates scalar or vector
@@ -49,7 +51,7 @@ package instr_pkg;
  * operations_e[3:0] is LSB 4 bits of funct7 (instr[29:26])
  */
     typedef enum logic [3:0] { 
-        VALU_ADD = 4'b0000, VALU_SUB = 4'b0010, VALU_RSUB = 4'b0011
+        VALU_ADD = 4'b0000, VALU_SUB = 4'b0010, VALU_RSUB = 4'b0011,
         VALU_AND = 4'b1001, VALU_OR  = 4'b1010, VALU_XOR  = 4'b1011
     } valu_operations_e;
 
@@ -76,7 +78,7 @@ package instr_pkg;
     typedef logic [REG_ADDR_W-1:0] arf_address_t;
     typedef logic [RS_ADDR_W-1:0]  rs_slot_id_t;
     
-    typedef logic [3:0] [DATA_SIZE-1:0] vec_data_t;
+    typedef logic [3:0] [DATA_SIZE-1:0] vector_data_t;
     
 /*
  * tag of an instruction used for snoop etc
@@ -84,7 +86,7 @@ package instr_pkg;
  * Other bits are the address of data at PRF
  * Note: address width of scalar and vector PRF is same
  */
-	typedef struct {
+	typedef struct packed {
      
         logic vector;
         logic [(PRF_ADDR_W-1):0] tag;
@@ -117,9 +119,9 @@ package instr_pkg;
         chip_select_e chip_select;
         operations_e operation;
         
-        logic arf_address_t dest_address;
-        logic arf_address_t src1_address;
-        logic arf_address_t src2_address;
+        arf_address_t dest_address;
+        arf_address_t src1_address;
+        arf_address_t src2_address;
         
         logic [11:0] imm;
         logic [9:0] extend;

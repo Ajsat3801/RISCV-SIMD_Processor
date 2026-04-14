@@ -7,7 +7,7 @@ module scalar_arr_unit (
     retirement_bus_if.arr retire_instr_i,
     allocation_bus_if.arr sc_allocated_instr_io,
 
-    output logic scalar_arr_full;
+    output logic scalar_arr_full_o
 );
 
 /* Allocate-Rename-Retire Unit for scalar operations
@@ -28,7 +28,7 @@ module scalar_arr_unit (
     prf_fifo_addr_t head_next, tail_next;
     prf_fifo_addr_t tail_flushed;
 
-    logic head_epoch, tail_epoch
+    logic head_epoch, tail_epoch;
     logic head_epoch_next, tail_epoch_next;
     logic tail_epoch_flushed;
 
@@ -84,7 +84,7 @@ module scalar_arr_unit (
          */
         allocation_valid =  pre_alloc_instr_i.valid &&
                             (pre_alloc_instr_i.instr.dest_address != '0) &&
-                            !pre_alloc_instr_i.instr.chip_select[3] &&
+                            !pre_alloc_instr_i.instr.chip_select[2] &&
                             pre_alloc_instr_i.instr.write_to_reg;
 
         /*  CONDITIONS FOR ALLOCATION OUTPUT TO BE VALID
@@ -94,13 +94,13 @@ module scalar_arr_unit (
          *  valid but the output is not is when both the sources are vector
          */
         allocation_op_valid =   pre_alloc_instr_i.valid &&
-                                (pre_alloc_instr_i.src1_vector == 1'b0);
+                                (pre_alloc_instr_i.instr.src1_vector == 1'b0);
 
-        scalar_arr_full = empty;
+        scalar_arr_full_o = empty;
 
     end
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
             /* RESET
              * Arch reg gets allocated to corresponding physical reg
@@ -109,7 +109,7 @@ module scalar_arr_unit (
              */
             for(int i=0; i<ARCH_REG_DEPTH; i++) begin
                 reg_alloc_table[i] <= i;
-                commit_table[i] <= i;
+                commit_table[i]    <= i;
                 prf_used[i] <= 1'b1;
             end
             for(int i=ARCH_REG_DEPTH; i<PRF_DEPTH; i++) begin
@@ -119,7 +119,7 @@ module scalar_arr_unit (
             head_epoch <= 1'b0;
             tail_epoch <= 1'b0;
             head <= '0;
-            tail <= PRF_DEPTH-ARCH_DEPTH;
+            tail <= PRF_DEPTH-ARCH_REG_DEPTH;
 
         end
         else if (flush_i) begin
@@ -128,7 +128,7 @@ module scalar_arr_unit (
             free_list <= free_list_flushed;
             head <= '0;
             head_epoch <= '0;
-            {tail_epoch, tail} <= {tail_flushed_epoch, tail_flushed};
+            {tail_epoch, tail} <= {tail_epoch_flushed, tail_flushed};
             
         end
         else begin
@@ -156,9 +156,9 @@ module scalar_arr_unit (
              * - Other instruction data sent directly without gating (to handle .vx
              *   instructions
              */
-            sc_allocated_instr_io_valid <= allocation_op_valid;
-            sc_allocated_instr_io.rs_slot <= allocated_instr_i.rs_slot;
-            sc_allocated_instr_io.instr <= pre_alloc_instr_i.instr;
+            sc_allocated_instr_io.valid   <= allocation_op_valid;
+            sc_allocated_instr_io.rs_slot <= pre_alloc_instr_i.rs_slot_id;
+            sc_allocated_instr_io.instr   <= pre_alloc_instr_i.instr;
             
             if (allocation_valid) begin
                 sc_allocated_instr_io.prf_tag <= free_list[head];
@@ -166,9 +166,8 @@ module scalar_arr_unit (
                 reg_alloc_table[pre_alloc_instr_i.instr.dest_address] <= free_list[head];
                 head <= head_next;
             end
-            else sc_allocated_instr_io.prf_tag <= '0;
-
-            sc_allocated_instr_io.rob_id <= sc_allocated_instr_io.rob_tail;
+            else sc_allocated_instr_io.prf_tag  <= '0;
+            
             sc_allocated_instr_io.operand_a_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src1_address];
             sc_allocated_instr_io.operand_b_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src2_address];
 

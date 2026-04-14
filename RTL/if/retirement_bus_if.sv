@@ -8,11 +8,29 @@ interface retirement_bus_if;
     logic is_branch;
     logic branch_taken;
     instr_pkg::prf_tag_t prf_tag;
+    instr_pkg::data_t data;
 
-    modport rob     (output valid, write_to_reg, 
-    dest_address, is_branch, branch_taken, prf_tag);
-    modport prf     (input  valid, write_to_reg, prf_tag);
-    modport rat     (input  valid, write_to_reg, dest_address, prf_tag);
-    modport branch  (input  valid, is_branch, branch_taken);
+    modport rob (
+        output valid, 
+        output write_to_reg, prf_tag,
+        output dest_address, data, 
+        output is_branch, branch_taken
+    );
+
+    modport prf (
+        input valid,
+        input write_to_reg, prf_tag
+    );
+
+    modport arr (
+        input valid, 
+        input write_to_reg, prf_tag,
+        input dest_address
+    );
+
+    modport branch (
+        input valid,
+        input is_branch, branch_taken
+    );
 
 endinterface

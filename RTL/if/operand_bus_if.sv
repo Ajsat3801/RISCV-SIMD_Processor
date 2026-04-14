@@ -9,7 +9,8 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
 
     instr_pkg::chip_select_e chip_select;
     instr_pkg::rs_slot_id_t rs_slot;
-    logic prf_input_valid;
+    logic prf_valid;
+    logic rob_valid;
 
     instr_pkg::prf_tag_t prf_tag;
     instr_pkg::rob_address_t rob_id;
@@ -25,23 +26,35 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
     // connections from RS
     storage_pkg::rs_entry_t rs_entry;
 
-    assign rs_entry.occupied = prf_input_valid;
-    assign rs_entry.prf_tag = prf_tag;
-    assign rs_entry.rob_id = rob_id;
+    assign rs_entry.occupied  = prf_valid && rob_valid;
+    assign rs_entry.prf_tag   = prf_tag;
+    assign rs_entry.rob_id    = rob_id;
     assign rs_entry.operand_a = operand_a;
     assign rs_entry.operand_b = operand_b;
     assign rs_entry.operation = operation;
     assign rs_entry.sign = sign;
-    assign rs_entry.operand_a_tag = operand_a_tag;
-    assign rs_entry.operand_b_tag = operand_b_tag;
+    assign rs_entry.operand_a_tag   = operand_a_tag;
+    assign rs_entry.operand_b_tag   = operand_b_tag;
     assign rs_entry.operand_a_ready = operand_a_ready;
     assign rs_entry.operand_b_ready = operand_b_ready;
 
-    modport prf (output prf_input_valid, chip_select, rs_slot,  
-                        tag, operand_a, operand_b, operation, sign, 
-                        operand_a_tag, operand_b_tag, operand_a_ready, operand_b_ready;
+    modport prf (
+        output prf_valid,
+        output chip_select, rs_slot, operation, sign, 
+        output rob_id, prf_tag, 
+        output operand_a, operand_b, 
+        output operand_a_tag, operand_b_tag,
+        output operand_a_ready, operand_b_ready
+    );
+    modport rob (
+        output rob_valid,
+        output rob_id
     );
 
-    modport rs  (input  chip_select, rs_slot, rs_entry);
+    modport rs (
+        input chip_select,
+        input rs_slot,
+        input rs_entry
+    );
 
 endinterface

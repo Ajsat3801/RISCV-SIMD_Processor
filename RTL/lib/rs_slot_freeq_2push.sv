@@ -7,7 +7,7 @@
  * Sequential block only updates the data to and from the buffer
 */
 
-import config_pkg::*;
+// import config_pkg::*;
 
 module rs_slot_freeq_2push #(
     parameter BUFFER_SIZE = 8,
@@ -64,7 +64,7 @@ module rs_slot_freeq_2push #(
         one_enqueue = !two_enqueue && (push1_i || push2_i) && (!full_o || (full_o && pop_queue));
 
         if(bypass1) data_out_o = push_data1_i;
-        else if(bypass2) data_out_o = push_data2_i;
+        else if(bypass2) data_out_o  = push_data2_i;
         else if(!empty_o) data_out_o = main_fifo[head];
         else data_out_o = '0;
 
@@ -72,8 +72,8 @@ module rs_slot_freeq_2push #(
 
     always_ff @(posedge clk_i) begin
 
-        if(!reset_ni) begin
-            for(int j=0;j<BUFFER_SIZE;j++) begin
+        if (!reset_ni) begin
+            for (int j=0; j<BUFFER_SIZE; j++) begin
                 main_fifo[j] <= DATA_SIZE'(j);
             end
             main_fifo[BUFFER_SIZE] = '0;
@@ -105,7 +105,6 @@ module rs_slot_freeq_2push #(
                 main_fifo[tail] <= push_data2_i;
                 tail <= tail_next;
             end
-
         end
     end
 

@@ -7,17 +7,17 @@ module circular_fifo_fwft #(
     parameter BUFFER_SIZE = 8, 
     parameter type T = logic[31:0]
 ) (    
-    input logic clk,
-    input logic reset_n,
+    input logic clk_i,
+    input logic reset_ni,
     
-    input logic push,
-    input T push_data,
+    input logic push_i,
+    input T push_data_i,
 
-    input logic pop,
+    input logic pop_i,
     
-    output T data_out,
-    output logic empty,
-    output logic full
+    output T data_o,
+    output logic empty_o,
+    output logic full_o
 );
 
     localparam ADDR_SIZE = $clog2(BUFFER_SIZE+1);
@@ -28,36 +28,36 @@ module circular_fifo_fwft #(
 
     always_comb begin
 
-        tail_next = (tail == BUFFER_SIZE) ? '0 :(tail + 1);
-        head_next = (head == BUFFER_SIZE) ? '0 :(head + 1);
+        tail_next = (tail == BUFFER_SIZE) ? '0 : (tail + 1);
+        head_next = (head == BUFFER_SIZE) ? '0 : (head + 1);
 
-        full = (tail_next == head);
-        empty = head==tail;
+        full_o  = (tail_next == head);
+        empty_o = (head == tail);
 
-        bypass = empty && push && pop;
-        push_allowed = push && (!full || (pop && !empty)) && !bypass;
-        pop_allowed = pop && !empty && !bypass;
+        bypass = empty_o && push_i && pop_i;
+        push_allowed = push_i && (!full_o || (pop_i && !empty_o)) && !bypass;
+        pop_allowed  = pop_i && !empty_o && !bypass;
 
-        if(bypass) data_out = push_data;
-        else if(empty) data_out = '0;
-        else data_out = main_fifo[head];
+        if (bypass) data_o = push_data_i;
+        else if (empty_o) data_o = '0;
+        else data_o = main_fifo[head];
 
     end
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk_i) begin
 
-        if(!reset_n) begin
+        if (!reset_ni) begin
             head <= '0;
             tail <= '0;
         end
 
         else begin
             
-            if(push_allowed) begin
-                main_fifo[tail] <= push_data;
+            if (push_allowed) begin
+                main_fifo[tail] <= push_data_i;
                 tail <= tail_next;
             end
-            if(pop_allowed) begin
+            if (pop_allowed) begin
                 head <= head_next;
             end
         end

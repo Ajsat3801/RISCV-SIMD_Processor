@@ -1,36 +1,48 @@
+// import statements for OpenROAD, already included in EDA playground
 /*
------------------------------------
-Core module phase 1
------------------------------------
-Consists of full ARR pipeline with one reservation station and 2 ALUs.
-Decode is pending
-
-*/
-
 import config_pkg::*;
 import signal_pkg::*;
+*/
 
 module core #()(
     input clk_i,
     input reset_ni,
 
-    // input of phase 1 is the decoded instructions
     input instr_pkg::data_t raw_instr_i,
     input instr_pkg::data_t pc_i,
     input logic fetch_valid_i,
+
+    input pre_load_i,
+    input instr_pkg::prf_tag_t pre_load_addr_i,
+    input instr_pkg::data_t pre_load_data_i,
+
     output logic ready_o
 );
+
+/*  CORE FOR PHASE 1
+ *  Functions/Behavior
+ *   -> Fully scalar OOO unit with 2 scalar ALUs
+ *   -> Pre-loading of scalar PRF supported
+ *  Inputs
+ *   -> outputs of fetch module (raw 32bit instruction, current PC and valid)
+ *   -> pre_load variables (flag, address, pre load data)
+ *  Outputs
+ *   -> ready for next instruction (input of fetch module)
+ *  Notes
+ *   -> Fetch is remaining, current inputs and outputs of core are those of fetch
+ *   -> Vector inputs of OOO modules currently have placeholder values
+ */
 
     logic flush;
     instr_pkg::decoded_instr_t decoded_instr;
     instr_pkg::rs_slot_id_t released_rs_slot_id_arr [NUMBER_OF_EX-1:0];
     logic rs_slot_released_arr[NUMBER_OF_EX-1:0];
     logic rob_full, scalar_arr_full, vector_arr_full;
-    signal_pkg::wb_to_rob_branch_signal_t branch_wb;
+    signal_pkg::wb_to_rob_branch_t branch_wb;
     instr_pkg::rob_address_t rob_id;
-    instr_pkg::rs_to_alu_signal_t alu0_input, alu1_input;
+    signal_pkg::rs_to_alu_signal_t alu0_input, alu1_input;
     logic alu0_ready, alu1_ready;
-    signal_pkg::alu_to_wb_branch_signal branch_result[NUMBER_OF_BRANCH_EX-1:0];
+    signal_pkg::alu_to_wb_branch_signal_t branch_result[NUMBER_OF_BRANCH_EX-1:0];
     signal_pkg::ex_to_wb_signal_t ex_result[NUMBER_OF_EX-1:0];
     logic wb_ready[NUMBER_OF_EX-1:0];
     logic wb_ready_branch[NUMBER_OF_BRANCH_EX-1:0];
@@ -43,18 +55,32 @@ module core #()(
     operand_bus_if #(.T(instr_pkg::data_t)) u_scalar_operand_bus();
     operand_bus_if #(.T(instr_pkg::vector_data_t)) u_vector_operand_bus();
     retirement_bus_if u_retirement_bus();
+    data_bus_if #(.T(instr_pkg::data_t)) u_scalar_prf_in();
 
     always_comb begin
         /*
-         * Placeholder for vector inputs
+         * Placeholder values for vector inputs
          * Currently behaves as a fully scalar unit
          */
 
         vector_arr_full = 1'b0;
         u_vector_alloc_bus.valid = 1'b0;
-        u_vector_data_bus.valid = 1'b0;
-        u_vector_operand_bus.valid = 1'b0;
+        u_vector_data_bus.valid  = 1'b0;
+        u_vector_operand_bus.prf_valid = 1'b0;
 
+        /*
+         * Handling pre-loading of PRF
+         */
+        if (pre_load_i) begin
+            u_scalar_prf_in.valid   = pre_load_i;
+            u_scalar_prf_in.prf_tag = pre_load_addr_i;
+            u_scalar_prf_in.data    = pre_load_data_i;
+        end
+        else begin
+            u_scalar_prf_in.valid   = u_scalar_data_bus.valid;
+            u_scalar_prf_in.prf_tag = u_scalar_data_bus.prf_tag;
+            u_scalar_prf_in.data    = u_scalar_data_bus.data;
+        end
     end
 
     decoder u_decoder (
@@ -80,7 +106,7 @@ module core #()(
         .queue_ready_o(ready_o)
     );
 
-    scalar_arr_unit u_scalar_arr(
+    scalar_arr_unit u_scalar_arr (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -90,36 +116,37 @@ module core #()(
         .scalar_arr_full_o(scalar_arr_full)
     );
 
-    reorder_buffer u_reorder_buffer(
+    reorder_buffer u_reorder_buffer (
         .clk_i(clk_i),
-        .reset_n_i(reset_ni),
+        .reset_ni(reset_ni),
         .sc_allocated_instr_io(u_scalar_alloc_bus),
         .vc_allocated_instr_io(u_vector_alloc_bus),
         .scalar_wb_i(u_scalar_data_bus),
         .vector_wb_i(u_vector_data_bus),
         .branch_i(branch_wb),
+        .alloc_instr_o(u_scalar_operand_bus),
         .retire_instr_o(u_retirement_bus),
         .rob_exp_full_o(rob_full),
         .flush_o(flush)
     );
 
-    scalar_prf u_scalar_prf(
+    scalar_prf u_scalar_prf (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .allocated_instr_i(scalar_alloc_bus),
-        .writeback_instr_i(u_scalar_data_bus),
-        .instr_o(u_scalar_operand_bus),
-    );
+        .allocated_instr_i(u_scalar_alloc_bus),
+        .writeback_instr_i(u_scalar_prf_in),
+        .instr_o(u_scalar_operand_bus)
+    ); 
 
     scalar_rs_2issue #(
-        .CHIP_SELECT(CS_ALU)
+        .CHIP_SELECT(CS_SALU)
     ) u_scalar_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
         .rs_input_i(u_scalar_operand_bus),
         .s_data_bus_i(u_scalar_data_bus),
-        .released_rs_slot_id_o(released_slot_id_arr[1:0]),
+        .released_rs_slot_id_o(released_rs_slot_id_arr[1:0]),
         .rs_slot_released_o(rs_slot_released_arr[1:0]),
         .ex1_ready_i(alu0_ready),
         .ex2_ready_i(alu1_ready),
@@ -154,7 +181,7 @@ module core #()(
     scalar_wb_arbiter u_scalar_writeback (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .flush_i(flush_i),
+        .flush_i(flush),
         .ex_result_i(ex_result),
         .wb_ready_o(wb_ready),
         .branch_result_i(branch_result),
