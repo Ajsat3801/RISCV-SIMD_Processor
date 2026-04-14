@@ -130,7 +130,9 @@ module core #()(
         .flush_o(flush)
     );
 
-    scalar_prf u_scalar_prf (
+    physical_regfile #(
+        .T(instr_pkg::data_t)
+    ) u_scalar_prf (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .allocated_instr_i(u_scalar_alloc_bus),

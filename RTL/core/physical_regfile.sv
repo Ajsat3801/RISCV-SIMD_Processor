@@ -13,7 +13,9 @@
         ready bit set
  */
 
-module scalar_prf(
+module physical_regfile #(
+    parameter type T = instr_pkg::data_t
+)(
     input logic clk_i,
     input logic reset_ni,
 
@@ -28,11 +30,11 @@ module scalar_prf(
 );
 
     logic[PRF_DEPTH-1:0] ready;
-    instr_pkg::data_t regfile[PRF_DEPTH-1:0];
+    T regfile[PRF_DEPTH-1:0];
 
     logic operand_a_ready_d, operand_b_ready_d;
     logic allocation_allowed, writeback_allowed;
-    instr_pkg::data_t operand_a_d, operand_b_d;
+    T operand_a_d, operand_b_d;
     int i;
 
     always_comb begin
