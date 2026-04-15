@@ -111,7 +111,7 @@ module scalar_rs_2issue #(
             for (i_ff=0; i_ff<DUAL_SLOT_RS_LEN; i_ff++) buffer[i_ff] <= '0;
 
             rs_slot_released_o[0] <= 1'b0;
-            rs_slot_released_o[1] <= 1'b1;
+            rs_slot_released_o[1] <= 1'b0;
 
             released_rs_slot_id_o[0] <= '0;
             released_rs_slot_id_o[1] <= '0;
@@ -169,7 +169,7 @@ module scalar_rs_2issue #(
             if(grant1_to_dispatch2) begin
                 dispatch2_o.valid <= 1'b1;
                 dispatch2_o.prf_tag   <= buffer[grant1_idx].prf_tag;
-                dispatch2_o.rob_id    <= buffer[grant2_idx].rob_id;
+                dispatch2_o.rob_id    <= buffer[grant1_idx].rob_id;
                 dispatch2_o.operand_a <= buffer[grant1_idx].operand_a;
                 dispatch2_o.operand_b <= buffer[grant1_idx].operand_b;
                 dispatch2_o.operation <= buffer[grant1_idx].operation;

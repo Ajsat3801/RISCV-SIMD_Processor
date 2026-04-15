@@ -19,7 +19,7 @@ module physical_regfile #(
     input logic clk_i,
     input logic reset_ni,
 
-    // inputs from scalar RAT
+    // inputs from ARR
     allocation_bus_if.prf allocated_instr_i,
 
     // snooping from CDB

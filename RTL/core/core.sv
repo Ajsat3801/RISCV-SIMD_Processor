@@ -106,14 +106,16 @@ module core #()(
         .queue_ready_o(ready_o)
     );
 
-    scalar_arr_unit u_scalar_arr (
+    alloc_rename_retire #(
+        .IS_VECTOR(1'b0)
+    ) u_scalar_arr (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
         .pre_alloc_instr_i(u_instruction_bus),
         .retire_instr_i(u_retirement_bus),
-        .sc_allocated_instr_io(u_scalar_alloc_bus),
-        .scalar_arr_full_o(scalar_arr_full)
+        .allocated_instr_io(u_scalar_alloc_bus),
+        .arr_full_o(scalar_arr_full)
     );
 
     reorder_buffer u_reorder_buffer (

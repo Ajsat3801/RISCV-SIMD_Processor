@@ -122,7 +122,7 @@ module decoder(
             end
             7'b1101111: begin 
                 // Jump instructions (only jal supported for now)
-                intermediate = {{12{raw_instr_i[31]}}, raw_instr_i[19:12], raw_instr_i[20], raw_instr_i[30], raw_instr_i[30:21], 1'b0};
+                intermediate = {{12{raw_instr_i[31]}}, raw_instr_i[19:12], raw_instr_i[20], raw_instr_i[30], raw_instr_i[29:21], 1'b0};
                 intermediate = intermediate + pc_i;
 
                 decoded_instr_d.extend = intermediate[9:0];
@@ -144,7 +144,7 @@ module decoder(
             end
             7'b0000111: begin 
                 // vector load instructions (only vle32.v supported for now)
-                decoded_instr_d.chip_select = CS_VALU;
+                decoded_instr_d.chip_select = CS_VLSU;
                 decoded_instr_d.operation   = {raw_instr_i[5],raw_instr_i[14:12]};
                 
             end

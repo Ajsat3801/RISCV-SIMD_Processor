@@ -1,18 +1,31 @@
-module scalar_arr_unit (
+module alloc_rename_retire #(
+    parameter logic IS_VECTOR = 1'b0
+)(
     input clk_i,
     input reset_ni,
     input flush_i,
 
     instruction_bus_if.arr pre_alloc_instr_i,
     retirement_bus_if.arr retire_instr_i,
-    allocation_bus_if.arr sc_allocated_instr_io,
+    allocation_bus_if.arr allocated_instr_io,
 
-    output logic scalar_arr_full_o
+    output logic arr_full_o
 );
 
-/* Allocate-Rename-Retire Unit for scalar operations
- *
- *
+/*  ALLOCATION RENAME RETIRE UNIT
+ *  Function/Behavior:
+ *  ->  Maintains a list of free PRF addresses that can be assigned
+ *  ->  On alloc: assign PRF space for destination arch register for each operation
+ *  ->  On Retire: the PRF address is set as the destination for the arch register in commit table
+ *  Parameters
+ *  ->  IS_VECTOR: single bit that says whether the ARR is for scalar or vector operations
+ *  Inputs
+ *  ->  clk, reset_n, flush
+ *  ->  instruction that needs to be allocated
+ *  ->  instruction that needs to be retired
+ *  Outputs
+ *  ->  allocated instruction with PRF address
+ *  ->  flag to indicate if arr has allocation possible
  */
 
     localparam FIFO_ADDR_SIZE = $clog2(PRF_DEPTH);
@@ -68,13 +81,13 @@ module scalar_arr_unit (
         /*  CONDITIONS FOR RETIREMENT TO BE VALID
          *  1)  retirment signal is valid
          *  2)  instruction to be retired writes to a register
-         *  3)  destination is a scalar register
-         *  4)  destination register of the instruction is not 0
+         *  3)  destination is same type as parameter
+         *  4)  destination address of the instruction is not 0
          */
         retirement_valid =  retire_instr_i.valid &&
                             retire_instr_i.write_to_reg &&
                             (retire_instr_i.dest_address != '0) && 
-                            !retire_instr_i.prf_tag.vector;
+                            !(retire_instr_i.prf_tag.vector == IS_VECTOR);
 
         /*  CONDITIONS FOR ALLOCATION TO BE VALID
          *  1)  allocation signal valid
@@ -84,7 +97,7 @@ module scalar_arr_unit (
          */
         allocation_valid =  pre_alloc_instr_i.valid &&
                             (pre_alloc_instr_i.instr.dest_address != '0) &&
-                            !pre_alloc_instr_i.instr.chip_select[2] &&
+                            (pre_alloc_instr_i.instr.chip_select[2] == IS_VECTOR) &&
                             pre_alloc_instr_i.instr.write_to_reg;
 
         /*  CONDITIONS FOR ALLOCATION OUTPUT TO BE VALID
@@ -94,9 +107,9 @@ module scalar_arr_unit (
          *  valid but the output is not is when both the sources are vector
          */
         allocation_op_valid =   pre_alloc_instr_i.valid &&
-                                (pre_alloc_instr_i.instr.src1_vector == 1'b0);
+                                (pre_alloc_instr_i.instr.src1_vector == IS_VECTOR);
 
-        scalar_arr_full_o = empty;
+        arr_full_o = empty;
 
     end
 
@@ -156,20 +169,20 @@ module scalar_arr_unit (
              * - Other instruction data sent directly without gating (to handle .vx
              *   instructions
              */
-            sc_allocated_instr_io.valid   <= allocation_op_valid;
-            sc_allocated_instr_io.rs_slot <= pre_alloc_instr_i.rs_slot_id;
-            sc_allocated_instr_io.instr   <= pre_alloc_instr_i.instr;
+            allocated_instr_io.valid   <= allocation_op_valid;
+            allocated_instr_io.rs_slot <= pre_alloc_instr_i.rs_slot_id;
+            allocated_instr_io.instr   <= pre_alloc_instr_i.instr;
             
             if (allocation_valid) begin
-                sc_allocated_instr_io.prf_tag <= free_list[head];
+                allocated_instr_io.prf_tag <= free_list[head];
 
                 reg_alloc_table[pre_alloc_instr_i.instr.dest_address] <= free_list[head];
                 head <= head_next;
             end
-            else sc_allocated_instr_io.prf_tag  <= '0;
+            else allocated_instr_io.prf_tag  <= '0;
             
-            sc_allocated_instr_io.operand_a_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src1_address];
-            sc_allocated_instr_io.operand_b_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src2_address];
+            allocated_instr_io.operand_a_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src1_address];
+            allocated_instr_io.operand_b_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src2_address];
 
         end
     end
