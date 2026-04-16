@@ -43,15 +43,15 @@ module scalar_alu(
         current_alu_res.data    = '0;
 
         unique case (alu_input_i.operation.alu)
-            ALU_ADD  : current_alu_res.data = alu_input_i.operand_a + alu_input_i.operand_b;
-            ALU_SUB  : current_alu_res.data = alu_input_i.operand_a - alu_input_i.operand_b;
-            ALU_SLL  : current_alu_res.data = alu_input_i.operand_a << alu_input_i.operand_b;
-            ALU_SLT  : current_alu_res.data[0] = ($signed(alu_input_i.operand_a) < $signed(alu_input_i.operand_b)) ? 1'b1 : 1'b0;
-            ALU_SLTU : current_alu_res.data[0] = (alu_input_i.operand_a < alu_input_i.operand_b) ? 1'b1 : 1'b0;;
-            ALU_XOR  : current_alu_res.data = alu_input_i.operand_a ^ alu_input_i.operand_b;
-            ALU_SRL  : current_alu_res.data = alu_input_i.operand_a >> alu_input_i.operand_b;
-            ALU_OR   : current_alu_res.data = alu_input_i.operand_a | alu_input_i.operand_b;
-            ALU_AND  : current_alu_res.data = alu_input_i.operand_a & alu_input_i.operand_b;
+            instr_pkg::ALU_ADD  : current_alu_res.data = alu_input_i.operand_a + alu_input_i.operand_b;
+            instr_pkg::ALU_SUB  : current_alu_res.data = alu_input_i.operand_a - alu_input_i.operand_b;
+            instr_pkg::ALU_SLL  : current_alu_res.data = alu_input_i.operand_a << alu_input_i.operand_b;
+            instr_pkg::ALU_SLT  : current_alu_res.data[0] = ($signed(alu_input_i.operand_a) < $signed(alu_input_i.operand_b)) ? 1'b1 : 1'b0;
+            instr_pkg::ALU_SLTU : current_alu_res.data[0] = (alu_input_i.operand_a < alu_input_i.operand_b) ? 1'b1 : 1'b0;
+            instr_pkg::ALU_XOR  : current_alu_res.data = alu_input_i.operand_a ^ alu_input_i.operand_b;
+            instr_pkg::ALU_SRL  : current_alu_res.data = alu_input_i.operand_a >> alu_input_i.operand_b;
+            instr_pkg::ALU_OR   : current_alu_res.data = alu_input_i.operand_a | alu_input_i.operand_b;
+            instr_pkg::ALU_AND  : current_alu_res.data = alu_input_i.operand_a & alu_input_i.operand_b;
             default begin
                 current_alu_res.data = '0;
             end

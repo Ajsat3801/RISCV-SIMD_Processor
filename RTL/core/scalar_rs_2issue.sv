@@ -1,7 +1,7 @@
 //import config_pkg::*;
 
 module scalar_rs_2issue #(
-    parameter chip_select_e CHIP_SELECT = CS_SALU
+    parameter instr_pkg::chip_select_e CHIP_SELECT = instr_pkg::CS_SALU
 )(
     input logic clk_i,
     input logic reset_ni,

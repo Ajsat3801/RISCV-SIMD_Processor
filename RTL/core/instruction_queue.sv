@@ -7,8 +7,8 @@ module instruction_queue (
     input logic flush_i,
 
     input instr_pkg::decoded_instr_t decoded_instr_i,
-    input instr_pkg::rs_slot_id_t released_rs_slot_id_i [NUMBER_OF_EX-1:0],
-    input logic rs_slot_released_i [NUMBER_OF_EX-1:0],
+    input instr_pkg::rs_slot_id_t released_rs_slot_id_i [RS_SLOT_COUNT-1:0],
+    input logic rs_slot_released_i [RS_SLOT_COUNT-1:0],
     
     input logic rob_full_i,
     input logic scalar_arr_full_i,
@@ -45,8 +45,8 @@ module instruction_queue (
  */
 
     // RS Slot tracking buffer
-    instr_pkg::rs_slot_id_t next_rs_slot[NUMBER_OF_RS-1:0];
-    logic[NUMBER_OF_RS-1:0] rs_full, rs_empty, dequeue_rs_fifo;
+    instr_pkg::rs_slot_id_t next_rs_slot[RS_SLOT_COUNT-1:0];
+    logic[RS_SLOT_COUNT-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
     // Instruction FIFO
     instr_pkg::decoded_instr_t instr_fifo[INSTRUCTION_QUEUE_LEN:0]; // N+1 entry buffer
@@ -74,7 +74,7 @@ module instruction_queue (
         .push2_i(rs_slot_released_i[1]),
         .push_data2_i(released_rs_slot_id_i[1]),
         .pop_i(dequeue_rs_fifo[0]),
-        .data_out_o(next_rs_slot[0]),
+        .data_o(next_rs_slot[0]),
         .empty_o(rs_empty[0]),
         .full_o(rs_full[0])
     );
@@ -88,9 +88,9 @@ module instruction_queue (
         .push_i(rs_slot_released_i[2]),
         .push_data_i(released_rs_slot_id_i[2]),
         .pop_i(dequeue_rs_fifo[1]),
-        .data_out_o(next_rs_slot[1]),
+        .data_o(next_rs_slot[1]),
         .empty_o(rs_empty[1]),
-        .full_o(rs_full[1]),
+        .full_o(rs_full[1])
     );
     
     rs_slot_freeq_1push #(
@@ -102,9 +102,9 @@ module instruction_queue (
         .push_i(rs_slot_released_i[3]),
         .push_data_i(released_rs_slot_id_i[3]),
         .pop_i(dequeue_rs_fifo[2]),
-        .data_out_o(next_rs_slot[2]),
+        .data_o(next_rs_slot[2]),
         .empty_o(rs_empty[2]),
-        .full_o(rs_full[2]),
+        .full_o(rs_full[2])
     );*/
 
     rs_slot_freeq_1push #(
@@ -116,9 +116,9 @@ module instruction_queue (
         .push_i(rs_slot_released_i[4]),
         .push_data_i(released_rs_slot_id_i[4]),
         .pop_i(dequeue_rs_fifo[3]),
-        .data_out_o(next_rs_slot[3]),
+        .data_o(next_rs_slot[3]),
         .empty_o(rs_empty[3]),
-        .full_o(rs_full[3]),
+        .full_o(rs_full[3])
     );
     /*
     rs_slot_freeq_1push #(
@@ -130,9 +130,9 @@ module instruction_queue (
         .push_i(rs_slot_released_i[5]),
         .push_data_i(released_rs_slot_id_i[5]),
         .pop_i(dequeue_rs_fifo[4]),
-        .data_out_o(next_rs_slot[4]),
+        .data_o(next_rs_slot[4]),
         .empty_o(rs_empty[4]),
-        .full_o(rs_full[4]),
+        .full_o(rs_full[4])
     );*/
 
     always_comb begin

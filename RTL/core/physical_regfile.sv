@@ -83,7 +83,6 @@ module physical_regfile #(
             instr_o.operand_a       <= operand_a_d;
             instr_o.operand_b       <= operand_b_d;
             instr_o.operation       <= allocated_instr_i.instr.operation;
-            instr_o.sign            <= allocated_instr_i.instr.sign;
             instr_o.operand_a_tag   <= allocated_instr_i.operand_a_tag;
             instr_o.operand_b_tag   <= allocated_instr_i.operand_b_tag;
             instr_o.operand_a_ready <= operand_a_ready_d;

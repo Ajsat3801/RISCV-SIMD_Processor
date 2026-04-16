@@ -19,11 +19,13 @@
 
 `include "decoder.sv"
 `include "instruction_queue.sv"
-`include "scalar_arr_unit.sv"
+`include "alloc_rename_retire.sv"
 `include "reorder_buffer.sv"
-`include "scalar_prf.sv"
+`include "physical_regfile.sv"
+`include "scalar_rs_1issue.sv"
 `include "scalar_rs_2issue.sv"
 `include "scalar_alu.sv"
+`include "branch_unit.sv"
 `include "scalar_wb_arbiter.sv"
 
 `include "core.sv"

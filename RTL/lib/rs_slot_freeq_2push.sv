@@ -24,7 +24,7 @@ module rs_slot_freeq_2push #(
 
     input logic pop_i,
     
-    output T data_out_o,
+    output T data_o,
     output logic empty_o,
     output logic full_o
 );
@@ -63,10 +63,10 @@ module rs_slot_freeq_2push #(
         */
         one_enqueue = !two_enqueue && (push1_i || push2_i) && (!full_o || (full_o && pop_queue));
 
-        if(bypass1) data_out_o = push_data1_i;
-        else if(bypass2) data_out_o  = push_data2_i;
-        else if(!empty_o) data_out_o = main_fifo[head];
-        else data_out_o = '0;
+        if(bypass1) data_o = push_data1_i;
+        else if(bypass2) data_o  = push_data2_i;
+        else if(!empty_o) data_o = main_fifo[head];
+        else data_o = '0;
 
     end
 

@@ -6,14 +6,16 @@ package config_pkg;
 
     // General architecture config
     parameter int unsigned INSTRUCTION_QUEUE_LEN = 16;
-    parameter int unsigned NUMBER_OF_EX = 6; // 6 eventually
+    parameter int unsigned EX_COUNT = 6;
+    parameter int unsigned SCALAR_EX_COUNT = 4;
     parameter int unsigned ROB_LEN = 32;
 
     // Reservation station config
-    parameter int unsigned RS_MAX_LEN = 16;
-    parameter int unsigned NUMBER_OF_RS = 5; // 5 eventually
-    parameter int unsigned DUAL_SLOT_RS_LEN = 16;
+    parameter int unsigned RS_COUNT = 5;
+    parameter int unsigned SINGLE_SLOT_RS_COUNT = 4;
+    parameter int unsigned DUAL_SLOT_RS_COUNT = 1;
     parameter int unsigned SINGLE_SLOT_RS_LEN = 8;
+    parameter int unsigned DUAL_SLOT_RS_LEN = 16;
 
     // Data/Storage config
     parameter int unsigned DATA_SIZE = 32;
@@ -25,15 +27,17 @@ package config_pkg;
     // DERIVED PARAMETERS
     //-------------------------------------------
 
+    localparam int unsigned RS_MAX_LEN = (DUAL_SLOT_RS_LEN>SINGLE_SLOT_RS_LEN) ? DUAL_SLOT_RS_LEN : SINGLE_SLOT_RS_LEN;
     localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_LEN);
     localparam int unsigned INSTRUCTION_QUEUE_PTR_LEN = $clog2(INSTRUCTION_QUEUE_LEN+1);
-    localparam int unsigned RS_IDX_W = (NUMBER_OF_RS>1) ? $clog2(NUMBER_OF_RS) : 1;
+    localparam int unsigned RS_IDX_W = (RS_COUNT>1) ? $clog2(RS_COUNT) : 1;
     localparam int unsigned ROB_ADDR_W = $clog2(ROB_LEN);
     localparam int unsigned DUAL_SLOT_RS_IDX_W =$clog2(DUAL_SLOT_RS_LEN);
     localparam int unsigned SINGLE_SLOT_RS_IDX_W = $clog2(SINGLE_SLOT_RS_LEN);
-    localparam int unsigned EX_IDX_W = $clog2(NUMBER_OF_EX);
+    localparam int unsigned EX_IDX_W = $clog2(EX_COUNT);
     localparam int unsigned REG_ADDR_W = $clog2(ARCH_REG_DEPTH);
     localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
+    localparam int unsigned RS_SLOT_COUNT = 2*DUAL_SLOT_RS_COUNT + SINGLE_SLOT_RS_COUNT;
 
 endpackage
 

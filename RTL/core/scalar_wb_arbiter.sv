@@ -12,17 +12,17 @@ module scalar_wb_arbiter #() (
     input logic flush_i,
 
     // EX units
-    input signal_pkg::ex_to_wb_signal_t ex_result_i[NUMBER_OF_EX-1:0],
-    output logic wb_ready_o[NUMBER_OF_EX-1:0],
+    input signal_pkg::ex_to_wb_signal_t ex_result_i[SCALAR_EX_COUNT-1:0],
+    output logic wb_ready_o[SCALAR_EX_COUNT-1:0],
 
-    data_bus_if.writeback scalar_data_bus_o,
+    data_bus_if.writeback scalar_data_bus_o
 );
 
-    storage_pkg::alu_result_entry_t fifo_heads[NUMBER_OF_EX-1:0]; 
+    storage_pkg::alu_result_entry_t fifo_heads[SCALAR_EX_COUNT-1:0]; 
 
     logic[EX_IDX_W-1:0] choice, choice_idx, choice_next;
-    logic[NUMBER_OF_EX-1:0] empty, full;
-    logic[NUMBER_OF_EX-1:0] dequeue, dequeue_next, request;
+    logic[SCALAR_EX_COUNT-1:0] empty, full;
+    logic[SCALAR_EX_COUNT-1:0] dequeue, dequeue_next, request;
     logic wb_chosen, any_full;
 
     logic reset_wb_n;
@@ -59,8 +59,6 @@ module scalar_wb_arbiter #() (
         .full_o(full[1])
     );
 
-    /* FIFOS which will cater to future EX units
-
     circular_fifo_fwft #(
         .BUFFER_SIZE(2),
         .T(storage_pkg::alu_result_entry_t)
@@ -88,7 +86,6 @@ module scalar_wb_arbiter #() (
         .empty_o(empty[3]),
         .full_o(full[3])
     );
-    */
 
     always_comb begin
 
@@ -100,7 +97,7 @@ module scalar_wb_arbiter #() (
         any_full = |(full & ~empty);
         request  = (any_full) ? (full & ~empty) : ~empty;
 
-        for(i = choice;i<NUMBER_OF_EX;i++) begin
+        for(i = choice;i<SCALAR_EX_COUNT;i++) begin
             if(request[i] && !wb_chosen) begin
                 choice_idx = i;
                 wb_chosen  = 1'b1;
@@ -122,7 +119,7 @@ module scalar_wb_arbiter #() (
 
         reset_wb_n = reset_ni && !flush_i;
 
-        for(i=0; i<NUMBER_OF_EX; i++) wb_ready_o[i] = !full[i];
+        for(i=0; i<SCALAR_EX_COUNT; i++) wb_ready_o[i] = !full[i];
         
     end
 

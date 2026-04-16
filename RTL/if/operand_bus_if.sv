@@ -17,7 +17,6 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
     T operand_a;
     T operand_b;
     instr_pkg::operations_e operation;
-    logic sign;
     instr_pkg::prf_tag_t operand_a_tag;
     instr_pkg::prf_tag_t operand_b_tag;
     logic operand_a_ready;
@@ -32,7 +31,6 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
     assign rs_entry.operand_a = operand_a;
     assign rs_entry.operand_b = operand_b;
     assign rs_entry.operation = operation;
-    assign rs_entry.sign = sign;
     assign rs_entry.operand_a_tag   = operand_a_tag;
     assign rs_entry.operand_b_tag   = operand_b_tag;
     assign rs_entry.operand_a_ready = operand_a_ready;
@@ -40,7 +38,7 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
 
     modport prf (
         output prf_valid,
-        output chip_select, rs_slot, operation, sign, 
+        output chip_select, rs_slot, operation,
         output rob_id, prf_tag, 
         output operand_a, operand_b, 
         output operand_a_tag, operand_b_tag,

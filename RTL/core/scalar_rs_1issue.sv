@@ -1,7 +1,7 @@
-import config_pkg::*;
+//import config_pkg::*;
 
 module scalar_rs_1issue #(
-    parameter chip_select_e CHIP_SELECT = CS_SALU
+    parameter instr_pkg::chip_select_e CHIP_SELECT = instr_pkg::CS_SALU
 )(
     input logic clk_i,
     input logic reset_ni,
@@ -14,7 +14,7 @@ module scalar_rs_1issue #(
     data_bus_if.snoop s_data_bus_i,
 
     // connection with instruction queue
-    output instr_pkg::rs_slot_id_t rs_slot_released_id_o,
+    output instr_pkg::rs_slot_id_t released_rs_slot_id_o,
     output logic rs_slot_released_o,
 
     // output to execution unit
@@ -27,14 +27,13 @@ module scalar_rs_1issue #(
     logic dispatch, instr_valid, any_eligible, bypass;
     instr_pkg::rs_slot_id_t choice, choice_idx, choice_next;
     logic [SINGLE_SLOT_RS_LEN-1:0]  eligible, snoop, operands_ready, occupied;
-    int i;
 
     always_comb begin
         dispatch    = 1'b0;
         choice_idx  = choice;
         instr_valid = dispatched_instr_i.rs_entry.occupied && dispatched_instr_i.chip_select == CHIP_SELECT;
         
-        for (i=0;i<SINGLE_SLOT_RS_LEN;i++) begin
+        for (int i=0;i<SINGLE_SLOT_RS_LEN;i++) begin
 
             occupied[i] = buffer[i].occupied;
             operands_ready[i] = buffer[i].operand_a_ready && buffer[i].operand_b_ready;
@@ -46,7 +45,7 @@ module scalar_rs_1issue #(
         any_eligible = | eligible;
 
         if (any_eligible) begin
-            for (i=choice; i<SINGLE_SLOT_RS_LEN; i++) begin
+            for (int i=choice; i<SINGLE_SLOT_RS_LEN; i++) begin
                 if (eligible[i]) begin
                     choice_idx = i;
                     dispatch   = 1'b1;
@@ -54,7 +53,7 @@ module scalar_rs_1issue #(
             end
 
             if (!dispatch) begin
-                for (i=0; i<choice; i++) begin
+                for (int i=0; i<choice; i++) begin
                     if (eligible[i]) begin
                         choice_idx = i;
                         dispatch   = 1'b1;
@@ -67,7 +66,7 @@ module scalar_rs_1issue #(
             dispatch = 1'b0;
             bypass = instr_valid && dispatched_instr_i.rs_entry.operand_a_ready && dispatched_instr_i.rs_entry.operand_b_ready && ex_ready_i;
 
-            if (bypass) choice_idx = dispatched_instr_i.rs_entry.rs_slot;
+            if (bypass) choice_idx = dispatched_instr_i.rs_slot;
         end
 
         choice_next = choice_idx + (any_eligible || bypass);
@@ -76,9 +75,9 @@ module scalar_rs_1issue #(
     always_ff @(posedge clk_i) begin
         
         if (!reset_ni || flush_i) begin
-            for (i=0; i<SINGLE_SLOT_RS_LEN; i++) buffer[i] <= '0;
+            for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) buffer[i] <= '0;
 
-            rs_slot_released_id_o <= '0;
+            released_rs_slot_id_o <= '0;
             dispatch_o <= '0;
         end
         
@@ -86,7 +85,7 @@ module scalar_rs_1issue #(
 
             // snoop data from CDB and update if needed
             if (s_data_bus_i.valid) begin
-                for (i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
+                for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
                     if (occupied[i] && (s_data_bus_i.prf_tag == buffer[i].operand_a_tag) && !buffer[i].operand_a_ready) begin 
                         buffer[i].operand_a <= s_data_bus_i.data;
                         buffer[i].operand_a_ready <= 1'b1;
@@ -102,7 +101,7 @@ module scalar_rs_1issue #(
             // dequeue instructions
             if(bypass) begin
                 // send slice of RS input to output, removing the tags and ready
-                dispatch_o.valid     <= dispatched_instr_i.rs_entry.valid;
+                dispatch_o.valid     <= dispatched_instr_i.rs_entry.occupied;
                 dispatch_o.prf_tag   <= dispatched_instr_i.rs_entry.prf_tag;
                 dispatch_o.rob_id    <= dispatched_instr_i.rs_entry.rob_id;
                 dispatch_o.operand_a <= dispatched_instr_i.rs_entry.operand_a;
@@ -112,7 +111,7 @@ module scalar_rs_1issue #(
             
             else if(dispatch) begin // queue not empty
                 // send slice of ROB entry to output, removing the tags and ready
-                dispatch_o.valid     <= buffer[choice_idx].valid;
+                dispatch_o.valid     <= buffer[choice_idx].occupied;
                 dispatch_o.prf_tag   <= buffer[choice_idx].prf_tag;
                 dispatch_o.rob_id    <= buffer[choice_idx].rob_id;
                 dispatch_o.operand_a <= buffer[choice_idx].operand_a;
@@ -124,7 +123,7 @@ module scalar_rs_1issue #(
             end
             else dispatch_o <= '0;
             
-            rs_slot_released_id_o <= choice_idx;
+            released_rs_slot_id_o <= choice_idx;
             choice <= choice_next;
 
             // instruction issued

@@ -35,17 +35,16 @@ module core #()(
 
     logic flush;
     instr_pkg::decoded_instr_t decoded_instr;
-    instr_pkg::rs_slot_id_t released_rs_slot_id_arr [NUMBER_OF_EX-1:0];
-    logic rs_slot_released_arr[NUMBER_OF_EX-1:0];
+    instr_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_SLOT_COUNT-1:0];
+    logic rs_slot_released_arr[RS_SLOT_COUNT-1:0];
     logic rob_full, scalar_arr_full, vector_arr_full;
     signal_pkg::br_to_rob_signal_t branch_wb;
     instr_pkg::rob_address_t rob_id;
     signal_pkg::rs_to_scalar_ex_signal_t alu0_input, alu1_input, br_input;
     logic alu0_ready, alu1_ready;
-    signal_pkg::br_to_rob_signal_t branch_result[NUMBER_OF_BRANCH_EX-1:0];
-    signal_pkg::ex_to_wb_signal_t ex_result[NUMBER_OF_EX-1:0];
-    logic wb_ready[NUMBER_OF_EX-1:0];
-    logic wb_ready_branch[NUMBER_OF_BRANCH_EX-1:0];
+    signal_pkg::br_to_rob_signal_t branch_result;
+    signal_pkg::ex_to_wb_signal_t ex_result[SCALAR_EX_COUNT];
+    logic wb_ready[SCALAR_EX_COUNT];
 
     instruction_bus_if u_instruction_bus();
     allocation_bus_if u_scalar_alloc_bus();
@@ -143,7 +142,7 @@ module core #()(
     ); 
 
     scalar_rs_2issue #(
-        .CHIP_SELECT(CS_SALU)
+        .CHIP_SELECT(instr_pkg::CS_SALU)
     ) u_scalar_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
@@ -165,7 +164,7 @@ module core #()(
         .alu_input_i(alu0_input),
         .ex_ready_o(alu0_ready),
         .wb_ready_i(wb_ready[0]),
-        .alu_result_o(ex_result[0]),
+        .alu_result_o(ex_result[0])
     );
 
     scalar_alu u_scalar_alu1 (
@@ -175,11 +174,11 @@ module core #()(
         .alu_input_i(alu1_input),
         .ex_ready_o(alu1_ready),
         .wb_ready_i(wb_ready[1]),
-        .alu_result_o(ex_result[1]),
+        .alu_result_o(ex_result[1])
     );
 
     scalar_rs_1issue #(
-        .CHIP_SELECT(CS_BRANCH)
+        .CHIP_SELECT(instr_pkg::CS_BRANCH)
     ) u_branch_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
@@ -195,7 +194,7 @@ module core #()(
     branch_unit u_branch_unit (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .br_input_o(br_input),
+        .br_input_i(br_input),
         .br_res_o(branch_wb)
     );
 
@@ -205,7 +204,7 @@ module core #()(
         .flush_i(flush),
         .ex_result_i(ex_result),
         .wb_ready_o(wb_ready),
-        .scalar_data_bus_o(u_scalar_data_bus),
+        .scalar_data_bus_o(u_scalar_data_bus)
     );
 
 endmodule

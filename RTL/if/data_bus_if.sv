@@ -20,7 +20,7 @@ interface data_bus_if #(
     );
 
     modport rob (
-        input valid
+        input valid,
         input rob_id
     );
 
