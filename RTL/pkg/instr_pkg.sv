@@ -2,37 +2,36 @@
  * Contains typedefs used to describe instructions
  */
 
-
-
 package instr_pkg;
 
     import config_pkg::*;
 
 /* CHIP SELECT
- * chip_select_e[2] indicates scalar or vector
- * chip_select_e[1:0] if its 01 its ALU, if its 11 its LSU
+ * chip_select_e[1:0] is 01 for ALU, 10 for MULDIV and 11 for LSU
+ * 110 left blank in case vector muldiv unit is added in the future
  */ 
     typedef enum logic[2:0] { 
-        NONE    = 3'b000,
+        NONE    = 3'b000, CS_BRANCH  = 3'b100,
         CS_SALU = 3'b001, CS_SMULDIV = 3'b010, CS_SLSU = 3'b011,
         CS_VALU = 3'b101,                      CS_VLSU = 3'b111
     } chip_select_e;
 
-/* ALU OPERATIONS
- * operations_e[3] indicates compute or branch
+/* R-TYPE OPERATIONS (Scalar ALU, Scalar MULDIV and Branch)
+ * operations_e[3] indicates compute or branch (except for SUB)
  * operations_e[2:0] is funct3 of instr( instr[14:12])
+ * Note if you incorporate SRA in the future use 4'1101
  */
     typedef enum logic [3:0] { 
         ALU_ADD  = 4'b0000, ALU_SLL  = 4'b0001, ALU_SLT  = 4'b0010, ALU_SLTU = 4'b0011, 
         ALU_XOR  = 4'b0100, ALU_SRL  = 4'b0101, ALU_OR   = 4'b0110, ALU_AND  = 4'b0111,
-        ALU_BEQ  = 4'b1000,                     ALU_BNE  = 4'b1010, 
-        ALU_BLT  = 4'b1100, ALU_BGE  = 4'b1101, ALU_BLTU = 4'b1110, ALU_BGEU = 4'b1111
+        ALU_SUB  = 4'b1000 
     } alu_operations_e;
 
-/* MULDIV Operations
- * operations_e[3] indicates compute or branch
- * operations_e[2:0] is funct3 of instr( instr[14:12])
- */ 
+    typedef enum logic [3:0] {
+        BR_BEQ  = 4'b1000,                    BR_BNE  = 4'b1010, 
+        BR_BLT  = 4'b1100, BR_BGE  = 4'b1101, BR_BLTU = 4'b1110, BR_BGEU = 4'b1111
+    } branch_operations_e;
+
     typedef enum logic [3:0] { 
         MULDIV_MUL = 4'b0000,
         MULDIV_DIV = 4'b0100
@@ -66,6 +65,7 @@ package instr_pkg;
 
     typedef union packed {
         alu_operations_e alu;
+        branch_operations_e br;
         muldiv_operations_e muldiv;
         lsu_operations_e lsu;
         valu_operations_e valu;
@@ -87,7 +87,6 @@ package instr_pkg;
  * Note: address width of scalar and vector PRF is same
  */
 	typedef struct packed {
-     
         logic vector;
         logic [(PRF_ADDR_W-1):0] tag;
     } prf_tag_t;
@@ -111,8 +110,8 @@ package instr_pkg;
  *     is_branch: whether there is branch
  *     read_src2: src2 is not read in itype,xui,branches and loads
  *     src1_vector, src2_vector: whether input is scalar or vector
- *     sign: used only for sub instruction, ALU_ADD && sign ==1 => SUB
  */
+
     typedef struct packed {
      
         logic valid;
@@ -132,8 +131,6 @@ package instr_pkg;
         logic read_src2;
         logic src1_vector;
         logic src2_vector;
-
-        logic sign;
         
     } decoded_instr_t;
 

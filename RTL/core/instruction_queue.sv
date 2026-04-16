@@ -78,9 +78,7 @@ module instruction_queue (
         .empty_o(rs_empty[0]),
         .full_o(rs_full[0])
     );
-
-    /* FIFOs to cater for future EX units
-
+    /*
     rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
         .T(logic[RS_ADDR_W-1:0])
@@ -94,7 +92,7 @@ module instruction_queue (
         .empty_o(rs_empty[1]),
         .full_o(rs_full[1]),
     );
-
+    
     rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
         .T(logic[RS_ADDR_W-1:0])
@@ -107,8 +105,35 @@ module instruction_queue (
         .data_out_o(next_rs_slot[2]),
         .empty_o(rs_empty[2]),
         .full_o(rs_full[2]),
+    );*/
+
+    rs_slot_freeq_1push #(
+        .BUFFER_SIZE(8),
+        .T(logic[RS_ADDR_W-1:0])
+    ) branch_fifo (
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(rs_slot_released_i[4]),
+        .push_data_i(released_rs_slot_id_i[4]),
+        .pop_i(dequeue_rs_fifo[3]),
+        .data_out_o(next_rs_slot[3]),
+        .empty_o(rs_empty[3]),
+        .full_o(rs_full[3]),
     );
-    */
+    /*
+    rs_slot_freeq_1push #(
+        .BUFFER_SIZE(8),
+        .T(logic[RS_ADDR_W-1:0])
+    ) valu_fifo (
+        .clk_i(clk_i),
+        .reset_ni(reset_wb_n),
+        .push_i(rs_slot_released_i[5]),
+        .push_data_i(released_rs_slot_id_i[5]),
+        .pop_i(dequeue_rs_fifo[4]),
+        .data_out_o(next_rs_slot[4]),
+        .empty_o(rs_empty[4]),
+        .full_o(rs_full[4]),
+    );*/
 
     always_comb begin
 
@@ -126,12 +151,13 @@ module instruction_queue (
         cs = instr_fifo[head].chip_select;
 
         ready = !rob_full_i &&
-                !(scalar_arr_full_i && !cs[2]) &&
-                !(vector_arr_full_i &&  cs[2]);
+                !(scalar_arr_full_i && (!cs[2] || cs==3'b100)) &&
+                !(vector_arr_full_i && (cs[2] && !(cs==3'b100)));
 
         if (!empty && instr_fifo[head].valid ) begin
-            if (cs != 0 && cs <= NUMBER_OF_RS) begin
+            if (cs != 0 && cs != 3'b110) begin
                 rs_index = instr_fifo[head].chip_select - 1'b1;
+                if (cs==3'b111) rs_index = 3'b010;
                 dequeue  = !rs_empty[rs_index] && ready;
                 dequeue_rs_fifo[rs_index] = dequeue;
             end

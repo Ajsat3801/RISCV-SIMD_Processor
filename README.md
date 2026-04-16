@@ -11,23 +11,23 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 * Instruction queue keeps track of RS slots and assigns to decoded instructions on dispatch
 * RS uses tag matching and bus snooping for operand wakeup
 * Round Robin writeback arbitration for returning 1 executed instruction to CDB
-* Branching bypasses writeback arbitation, has a separate arbiter. Unconditional branches are processed in decoder and written directly in ROB
+* Branching bypasses writeback arbitation directly into ROB. Unconditional branches are processed in decoder and written directly in ROB
 
 
 ### Supported Instructions
 
 | Instruction                                          | Processing Unit     |
 |------------------------------------------------------|---------------------|
-|ADD, SLL, SRL, SRA, SUB, AND, OR, XOR, SLT, SLTU      | Scalar ALU          |
-|ADDI, SLLI, SRLI, ANDI, ORI, XORI, SLTI, SLTIU        | Scalar ALU          |
-|BEQ, BNE, BLT, BGE, BLTU, BGEU                        | Scalar ALU          |
+| ADD, SLL, SRL, SRA, SUB, AND, OR, XOR, SLT, SLTU     | Scalar ALU          |
+| ADDI, SLLI, SRLI, ANDI, ORI, XORI, SLTI, SLTIU       | Scalar ALU          |
+| BEQ, BNE, BLT, BGE, BLTU, BGEU                       | Branch Unit         |
 | JAL, LUI, AUIPC                                      | Procesed in decoder |
 | **FUTURE EXPANSION**                                 |                     |
 | MUL, DIV                                             | Scalar MULDIV       |
 | LW, SW                                               | LSU                 |
 | vadd.vv, vsub.vv, vand.vv, vor.vv, vxor.vv           | Vector ALU          | 
 | vadd.vx, vsub.vx, vand.vx, vor.vx, vxor.vx, vrsub.vx | Vector ALU          | 
-| vle32.v, vse32.v                                     | Vector LSU          |
+| vle32.v, vse32.v                                     | LSU                 |
 
 ### Decoded instruction format
 

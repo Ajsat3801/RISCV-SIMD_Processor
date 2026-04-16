@@ -11,9 +11,8 @@ package signal_pkg;
         instr_pkg::data_t operand_b;
 
         instr_pkg::operations_e operation;
-        logic sign;
 
-    } rs_to_alu_signal_t;
+    } rs_to_scalar_ex_signal_t;
 
     typedef struct packed {
         logic valid;
@@ -27,18 +26,10 @@ package signal_pkg;
 
     typedef struct packed {
         logic valid;
-
-        instr_pkg::rob_address_t rob_id;
-        logic branch_taken;
-
-    } alu_to_wb_branch_signal_t;
-
-    typedef struct packed {
-        logic valid;
         
         instr_pkg::rob_address_t rob_id;
         logic branch_taken;
 
-    } wb_to_rob_branch_t;
+    } br_to_rob_signal_t;
 
 endpackage

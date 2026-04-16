@@ -20,8 +20,8 @@ module scalar_rs_2issue #(
     // output to execution unit
     input ex1_ready_i,
     input ex2_ready_i,
-    output signal_pkg::rs_to_alu_signal_t dispatch1_o,
-    output signal_pkg::rs_to_alu_signal_t dispatch2_o
+    output signal_pkg::rs_to_scalar_ex_signal_t dispatch1_o,
+    output signal_pkg::rs_to_scalar_ex_signal_t dispatch2_o
 );
 
     storage_pkg::rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
@@ -146,7 +146,6 @@ module scalar_rs_2issue #(
                 dispatch1_o.operand_a <= buffer[grant1_idx].operand_a;
                 dispatch1_o.operand_b <= buffer[grant1_idx].operand_b;
                 dispatch1_o.operation <= buffer[grant1_idx].operation;
-                dispatch1_o.sign <= buffer[grant1_idx].sign;
 
                 released_rs_slot_id_o[0] <= grant1_idx;
             end
@@ -157,7 +156,6 @@ module scalar_rs_2issue #(
                 dispatch1_o.operand_a <= rs_input_i.rs_entry.operand_a;
                 dispatch1_o.operand_b <= rs_input_i.rs_entry.operand_b;
                 dispatch1_o.operation <= rs_input_i.rs_entry.operation;
-                dispatch1_o.sign <= rs_input_i.rs_entry.sign;
 
                 released_rs_slot_id_o[0] <= rs_input_i.rs_slot;
             end
@@ -173,7 +171,6 @@ module scalar_rs_2issue #(
                 dispatch2_o.operand_a <= buffer[grant1_idx].operand_a;
                 dispatch2_o.operand_b <= buffer[grant1_idx].operand_b;
                 dispatch2_o.operation <= buffer[grant1_idx].operation;
-                dispatch2_o.sign <= buffer[grant1_idx].sign;
 
                 released_rs_slot_id_o[1] <= grant1_idx;
             end
@@ -184,7 +181,6 @@ module scalar_rs_2issue #(
                 dispatch2_o.operand_a <= buffer[grant2_idx].operand_a;
                 dispatch2_o.operand_b <= buffer[grant2_idx].operand_b;
                 dispatch2_o.operation <= buffer[grant2_idx].operation;
-                dispatch2_o.sign <= buffer[grant2_idx].sign;
 
                 released_rs_slot_id_o[1] <= grant2_idx;
             end
@@ -195,7 +191,6 @@ module scalar_rs_2issue #(
                 dispatch2_o.operand_a <= rs_input_i.rs_entry.operand_a;
                 dispatch2_o.operand_b <= rs_input_i.rs_entry.operand_b;
                 dispatch2_o.operation <= rs_input_i.rs_entry.operation;
-                dispatch2_o.sign <= rs_input_i.rs_entry.sign;
 
                 released_rs_slot_id_o[1] <= rs_input_i.rs_slot;
             end

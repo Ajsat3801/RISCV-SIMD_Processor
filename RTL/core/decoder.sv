@@ -57,7 +57,6 @@ module decoder(
         decoded_instr_d.read_src2    = 1'b0;
         decoded_instr_d.src1_vector  = 1'b0;
         decoded_instr_d.src2_vector  = 1'b0;
-        decoded_instr_d.sign         = 1'b0;
 
         case(opcode) 
             7'b0110111: begin 
@@ -91,13 +90,12 @@ module decoder(
             7'b0110011: begin 
                 // r-type scalar ALU instructions
                 decoded_instr_d.chip_select = (raw_instr_i[25]) ? CS_SMULDIV : CS_SALU;
-                decoded_instr_d.operation   = {1'b0, raw_instr_i[14:12]};  
+                decoded_instr_d.operation = {raw_instr_i[30], raw_instr_i[14:12]}; 
                 decoded_instr_d.read_src2   = 1'b1;
-                decoded_instr_d.sign = (raw_instr_i[31:25] == 7'b0110000);
             end 
             7'b1100011: begin
                 // branch instructions
-                decoded_instr_d.chip_select = CS_SALU;
+                decoded_instr_d.chip_select = CS_BRANCH;
                 decoded_instr_d.operation   = {1'b1, raw_instr_i[14:12]};
 
                 intermediate = {{9{raw_instr_i[31]}}, raw_instr_i[31], raw_instr_i[7], raw_instr_i[30], raw_instr_i[29:25], raw_instr_i[11:8], 1'b0};
