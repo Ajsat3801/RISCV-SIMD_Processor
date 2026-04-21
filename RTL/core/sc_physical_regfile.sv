@@ -13,14 +13,14 @@
         ready bit set
  */
 
-module physical_regfile #(
+module sc_physical_regfile #(
     parameter type T = instr_pkg::data_t
 )(
     input logic clk_i,
     input logic reset_ni,
 
     // inputs from ARR
-    allocation_bus_if.prf allocated_instr_i,
+    alloc_bus_if.prf allocated_instr_i,
 
     // snooping from CDB
     data_bus_if.prf writeback_instr_i,
@@ -47,14 +47,14 @@ module physical_regfile #(
         writeback_allowed  = writeback_instr_i.valid && !writeback_instr_i.prf_tag.vector;
         allocation_allowed = allocated_instr_i.instr.valid;
 
-        // read reg_files and mark ready as 0 
+        // check ready for operands and return if they are scalar 
         if (allocation_allowed) begin
             
-            operand_a_d = regfile[allocated_instr_i.operand_a_tag.tag];
-            operand_b_d = regfile[allocated_instr_i.operand_b_tag.tag];
-
             operand_a_ready_d = ready[allocated_instr_i.operand_a_tag.tag];
             operand_b_ready_d = ready[allocated_instr_i.operand_b_tag.tag];
+
+            operand_a_d = regfile[allocated_instr_i.operand_a_tag.tag];
+            operand_b_d = regfile[allocated_instr_i.operand_b_tag.tag];
         end
         
     end
@@ -87,6 +87,8 @@ module physical_regfile #(
             instr_o.operand_b_tag   <= allocated_instr_i.operand_b_tag;
             instr_o.operand_a_ready <= operand_a_ready_d;
             instr_o.operand_b_ready <= operand_b_ready_d;
+            instr_o.a_is_vector     <= allocated_instr_i.a_is_vector;
+            instr_o.b_is_vector     <= allocated_instr_i.b_is_vector;
 
         end
     end

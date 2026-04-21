@@ -23,6 +23,15 @@ package config_pkg;
     parameter int unsigned ARCH_REG_DEPTH = 32;
     parameter int unsigned PRF_DEPTH = 48;
 
+    // Memory config
+    parameter int unsigned IMEM_WORD_SIZE = 32;
+    parameter int unsigned IMEM_NUM_WORDS = 256;
+    parameter int unsigned DMEM_WORD_SIZE = 32;
+    parameter int unsigned DMEM_NUM_WORDS = 256;
+    parameter int unsigned DMEM_NUM_BANKS = 4;
+
+    // We are using 5 identical SRAMs, each with 1 R/W port. one for IMEM and 4 for banked DMEM
+
     //-------------------------------------------
     // DERIVED PARAMETERS
     //-------------------------------------------
@@ -37,7 +46,7 @@ package config_pkg;
     localparam int unsigned EX_IDX_W = $clog2(EX_COUNT);
     localparam int unsigned REG_ADDR_W = $clog2(ARCH_REG_DEPTH);
     localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
-    localparam int unsigned RS_SLOT_COUNT = 2*DUAL_SLOT_RS_COUNT + SINGLE_SLOT_RS_COUNT;
+    localparam int unsigned RS_DISPATCH_COUNT = 2*DUAL_SLOT_RS_COUNT + SINGLE_SLOT_RS_COUNT;
 
 endpackage
 

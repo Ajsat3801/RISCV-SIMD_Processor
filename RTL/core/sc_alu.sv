@@ -5,7 +5,7 @@
     Outputs: if result is valid, destination register, ALU result
 */
 
-module scalar_alu(
+module sc_alu(
     input logic clk_i,
     input logic reset_ni,
     input logic flush_i,

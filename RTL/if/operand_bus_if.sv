@@ -21,6 +21,7 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
     instr_pkg::prf_tag_t operand_b_tag;
     logic operand_a_ready;
     logic operand_b_ready;
+    logic a_is_vector, b_is_vector;
     
     // connections from RS
     storage_pkg::rs_entry_t rs_entry;
@@ -42,7 +43,8 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
         output rob_id, prf_tag, 
         output operand_a, operand_b, 
         output operand_a_tag, operand_b_tag,
-        output operand_a_ready, operand_b_ready
+        output operand_a_ready, operand_b_ready,
+        output a_is_vector, b_is_vector
     );
     modport rob (
         output rob_valid,
@@ -52,7 +54,9 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
     modport rs (
         input chip_select,
         input rs_slot,
-        input rs_entry
+        input rs_entry,
+        input a_is_vector,
+        input b_is_vector
     );
 
 endinterface

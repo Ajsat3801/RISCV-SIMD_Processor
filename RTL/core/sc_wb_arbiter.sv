@@ -6,7 +6,7 @@ Round robin policy
 
 //import config_pkg::*;
 
-module scalar_wb_arbiter #() (
+module sc_wb_arbiter #() (
     input logic clk_i,
     input logic reset_ni,
     input logic flush_i,

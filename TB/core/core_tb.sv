@@ -89,7 +89,7 @@ module core_tb;
                 dut.u_instruction_bus.valid,
                 dut.u_scalar_alloc_bus.valid,
                 dut.u_scalar_operand_bus.prf_valid,
-                dut.u_scalar_alu0.alu_input_i.valid, dut.u_scalar_alu1.alu_input_i.valid,
+                dut.u_sc_alu0.alu_input_i.valid, dut.u_sc_alu1.alu_input_i.valid,
                 dut.u_scalar_writeback.ex_result_i[0].valid, dut.u_scalar_writeback.ex_result_i[1].valid,
                 dut.u_scalar_writeback.scalar_data_bus_o.valid,
                 dut.u_retirement_bus.valid
@@ -120,14 +120,14 @@ module core_tb;
 
     task automatic display_rs_states();
         $display("[RS] in_valid:%h, slot:%h ready:%h %h, out: %d %d %b %b",
-                dut.u_scalar_alu_rs.rs_input_i.rs_entry.occupied,
-                dut.u_scalar_alu_rs.rs_input_i.rs_slot,
-                dut.u_scalar_alu_rs.rs_input_i.rs_entry.operand_a_ready,
-                dut.u_scalar_alu_rs.rs_input_i.rs_entry.operand_b_ready,
-                dut.u_scalar_alu_rs.dispatch1_o.prf_tag,
-                dut.u_scalar_alu_rs.dispatch2_o.prf_tag,
-                dut.u_scalar_alu_rs.dispatch1_o.valid,
-                dut.u_scalar_alu_rs.dispatch2_o.valid
+                dut.u_sc_alu_rs.rs_input_i.rs_entry.occupied,
+                dut.u_sc_alu_rs.rs_input_i.rs_slot,
+                dut.u_sc_alu_rs.rs_input_i.rs_entry.operand_a_ready,
+                dut.u_sc_alu_rs.rs_input_i.rs_entry.operand_b_ready,
+                dut.u_sc_alu_rs.dispatch1_o.prf_tag,
+                dut.u_sc_alu_rs.dispatch2_o.prf_tag,
+                dut.u_sc_alu_rs.dispatch1_o.valid,
+                dut.u_sc_alu_rs.dispatch2_o.valid
         );
     endtask
 
@@ -178,14 +178,14 @@ module core_tb;
 
     task automatic display_alu_states();
         $display("[ALU0] out: %b %d %h",
-            dut.u_scalar_alu0.alu_result_o.valid,
-            dut.u_scalar_alu0.alu_result_o.prf_tag,
-            dut.u_scalar_alu0.alu_result_o.data
+            dut.u_sc_alu0.alu_result_o.valid,
+            dut.u_sc_alu0.alu_result_o.prf_tag,
+            dut.u_sc_alu0.alu_result_o.data
         );
         $display("[ALU1] out: %b %d %h",
-            dut.u_scalar_alu1.alu_result_o.valid,
-            dut.u_scalar_alu1.alu_result_o.prf_tag,
-            dut.u_scalar_alu1.alu_result_o.data
+            dut.u_sc_alu1.alu_result_o.valid,
+            dut.u_sc_alu1.alu_result_o.prf_tag,
+            dut.u_sc_alu1.alu_result_o.data
         );
     endtask
 

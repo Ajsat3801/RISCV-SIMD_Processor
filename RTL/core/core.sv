@@ -35,8 +35,8 @@ module core #()(
 
     logic flush;
     instr_pkg::decoded_instr_t decoded_instr;
-    instr_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_SLOT_COUNT-1:0];
-    logic rs_slot_released_arr[RS_SLOT_COUNT-1:0];
+    instr_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
+    logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
     logic rob_full, scalar_arr_full, vector_arr_full;
     signal_pkg::br_to_rob_signal_t branch_wb;
     instr_pkg::rob_address_t rob_id;
@@ -47,8 +47,8 @@ module core #()(
     logic wb_ready[SCALAR_EX_COUNT];
 
     instruction_bus_if u_instruction_bus();
-    allocation_bus_if u_scalar_alloc_bus();
-    allocation_bus_if u_vector_alloc_bus();
+    alloc_bus_if u_scalar_alloc_bus();
+    alloc_bus_if u_vector_alloc_bus();
     data_bus_if #(.T(instr_pkg::data_t)) u_scalar_data_bus();
     data_bus_if #(.T(instr_pkg::vector_data_t)) u_vector_data_bus();
     operand_bus_if #(.T(instr_pkg::data_t)) u_scalar_operand_bus();
@@ -131,7 +131,7 @@ module core #()(
         .flush_o(flush)
     );
 
-    physical_regfile #(
+    sc_physical_regfile #(
         .T(instr_pkg::data_t)
     ) u_scalar_prf (
         .clk_i(clk_i),
@@ -141,9 +141,9 @@ module core #()(
         .instr_o(u_scalar_operand_bus)
     ); 
 
-    scalar_rs_2issue #(
+    sc_rs_2issue #(
         .CHIP_SELECT(instr_pkg::CS_SALU)
-    ) u_scalar_alu_rs (
+    ) u_sc_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -157,7 +157,7 @@ module core #()(
         .dispatch2_o(alu1_input)
     );
 
-    scalar_alu u_scalar_alu0 (
+    sc_alu u_sc_alu0 (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -167,7 +167,7 @@ module core #()(
         .alu_result_o(ex_result[0])
     );
 
-    scalar_alu u_scalar_alu1 (
+    sc_alu u_sc_alu1 (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -177,7 +177,7 @@ module core #()(
         .alu_result_o(ex_result[1])
     );
 
-    scalar_rs_1issue #(
+    sc_rs_1issue #(
         .CHIP_SELECT(instr_pkg::CS_BRANCH)
     ) u_branch_rs (
         .clk_i(clk_i),
@@ -185,8 +185,8 @@ module core #()(
         .flush_i(flush),
         .dispatched_instr_i(u_scalar_operand_bus),
         .s_data_bus_i(u_scalar_data_bus),
-        .released_rs_slot_id_o(released_rs_slot_id_arr[2]),
-        .rs_slot_released_o(rs_slot_released_arr[2]),
+        .released_rs_slot_id_o(released_rs_slot_id_arr[4]),
+        .rs_slot_released_o(rs_slot_released_arr[4]),
         .ex_ready_i(1'b1),
         .dispatch_o(br_input)
     );
@@ -198,7 +198,7 @@ module core #()(
         .br_res_o(branch_wb)
     );
 
-    scalar_wb_arbiter u_scalar_writeback (
+    sc_wb_arbiter u_scalar_writeback (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),

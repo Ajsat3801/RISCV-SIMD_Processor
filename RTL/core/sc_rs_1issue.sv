@@ -1,6 +1,6 @@
 //import config_pkg::*;
 
-module scalar_rs_1issue #(
+module sc_rs_1issue #(
     parameter instr_pkg::chip_select_e CHIP_SELECT = instr_pkg::CS_SALU
 )(
     input logic clk_i,

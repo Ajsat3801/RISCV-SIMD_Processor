@@ -1,4 +1,4 @@
-interface allocation_bus_if;
+interface vector_alloc_bus_if;
     
     logic valid;
     instr_pkg::rs_slot_id_t rs_slot;
@@ -6,13 +6,16 @@ interface allocation_bus_if;
     instr_pkg::prf_tag_t prf_tag;
     instr_pkg::prf_tag_t operand_a_tag;
     instr_pkg::prf_tag_t operand_b_tag;
+    logic a_is_vector, b_is_vector;
 
     modport arr (
         output valid,
         output instr,
         output rs_slot, prf_tag,
-        output operand_a_tag, operand_b_tag  
+        output operand_a_tag, operand_b_tag,
+        output a_is_vector, b_is_vector
     );
+
     modport rob (
         input valid,
         input instr,
@@ -23,7 +26,8 @@ interface allocation_bus_if;
         input valid,
         input instr,
         input rs_slot, prf_tag,
-        input operand_a_tag, operand_b_tag
+        input operand_a_tag, operand_b_tag,
+        input a_is_vector, b_is_vector
     );
 
 endinterface

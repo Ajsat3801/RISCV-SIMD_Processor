@@ -3,8 +3,8 @@ module reorder_buffer (
     input logic clk_i,
     input logic reset_ni,
 
-    allocation_bus_if.rob sc_allocated_instr_io,
-    allocation_bus_if.rob vc_allocated_instr_io,
+    alloc_bus_if.rob sc_allocated_instr_io,
+    alloc_bus_if.rob vc_allocated_instr_io,
 
     data_bus_if.snoop scalar_wb_i,
     data_bus_if.snoop vector_wb_i,
