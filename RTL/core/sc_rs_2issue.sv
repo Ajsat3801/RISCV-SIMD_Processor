@@ -20,11 +20,11 @@ module sc_rs_2issue #(
     // output to execution unit
     input ex1_ready_i,
     input ex2_ready_i,
-    output signal_pkg::rs_to_scalar_ex_signal_t dispatch1_o,
-    output signal_pkg::rs_to_scalar_ex_signal_t dispatch2_o
+    output signal_pkg::sc_ex_input_signal_t dispatch1_o,
+    output signal_pkg::sc_ex_input_signal_t dispatch2_o
 );
 
-    storage_pkg::rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
+    storage_pkg::sc_rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
     instr_pkg::rs_slot_id_t choice, choice_next;
 
     logic grant1, grant2;

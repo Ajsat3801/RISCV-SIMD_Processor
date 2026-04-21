@@ -12,7 +12,7 @@ module sc_wb_arbiter #() (
     input logic flush_i,
 
     // EX units
-    input signal_pkg::ex_to_wb_signal_t ex_result_i[SCALAR_EX_COUNT-1:0],
+    input signal_pkg::sc_ex_output_signal_t ex_result_i[SCALAR_EX_COUNT-1:0],
     output logic wb_ready_o[SCALAR_EX_COUNT-1:0],
 
     data_bus_if.writeback scalar_data_bus_o

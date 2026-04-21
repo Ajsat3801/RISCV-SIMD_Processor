@@ -19,10 +19,10 @@ module sc_rs_1issue #(
 
     // output to execution unit
     input ex_ready_i,
-    output signal_pkg::rs_to_scalar_ex_signal_t dispatch_o
+    output signal_pkg::sc_ex_input_signal_t dispatch_o
 );
 
-    storage_pkg::rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
+    storage_pkg::sc_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
 
     logic dispatch, instr_valid, any_eligible, bypass;
     instr_pkg::rs_slot_id_t choice, choice_idx, choice_next;

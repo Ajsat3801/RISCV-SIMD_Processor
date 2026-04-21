@@ -11,12 +11,12 @@ module sc_alu(
     input logic flush_i,
 
     // connection to reservation station
-    input signal_pkg::rs_to_scalar_ex_signal_t alu_input_i,
+    input signal_pkg::sc_ex_input_signal_t alu_input_i,
     output logic ex_ready_o,
 
     //connection to writeback arbitrer
     input logic wb_ready_i,
-    output signal_pkg::ex_to_wb_signal_t alu_result_o
+    output signal_pkg::sc_ex_output_signal_t alu_result_o
 );
 
     storage_pkg::alu_result_entry_t  current_alu_res, hold_reg;
@@ -31,9 +31,6 @@ module sc_alu(
      * options of b : hold: holding register, wb: writeback arbiter
      */
     logic res_to_hold, res_to_wb, hold_to_wb;
-
-    // valid signals for outputs
-    logic wb_valid;
 
     always_comb begin // combinationally building the output
         
@@ -59,15 +56,11 @@ module sc_alu(
 
         // control signals for the result of the current ALU calculation
         res_to_wb   = current_alu_res.valid && !holding_reg_used && wb_ready_i;
-        res_to_hold = current_alu_res.valid && holding_reg_used;
+        res_to_hold = current_alu_res.valid && !holding_reg_used && !wb_ready_i;
 
         // control signals for holding reg values & next state of holding reg
         hold_to_wb  = holding_reg_used && wb_ready_i;
         holding_reg_used_next = (holding_reg_used && !hold_to_wb) || res_to_hold;
-
-        // valid signals for outputs
-        wb_valid   = hold_to_wb || res_to_wb;
-        ex_ready_d = !alu_input_i.valid || res_to_wb || res_to_hold;
 
     end
 
@@ -102,7 +95,7 @@ module sc_alu(
             if(res_to_hold) hold_reg <= current_alu_res;
             holding_reg_used <= holding_reg_used_next;
 
-            ex_ready_o <= ex_ready_d;
+            ex_ready_o <= !holding_reg_used_next;
         end
     end
 

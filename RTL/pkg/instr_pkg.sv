@@ -79,6 +79,9 @@ package instr_pkg;
     typedef logic [RS_ADDR_W-1:0]  rs_slot_id_t;
     
     typedef logic [3:0] [DATA_SIZE-1:0] vector_data_t;
+
+    typedef logic [IMEM_WORD_SIZE-1:0] raw_instr_t;
+    typedef logic [(IMEM_ADDR_SIZE+2)-1:0] pc_t;
     
 /*
  * tag of an instruction used for snoop etc

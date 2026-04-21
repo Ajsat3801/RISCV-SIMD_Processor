@@ -47,6 +47,7 @@ package config_pkg;
     localparam int unsigned REG_ADDR_W = $clog2(ARCH_REG_DEPTH);
     localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
     localparam int unsigned RS_DISPATCH_COUNT = 2*DUAL_SLOT_RS_COUNT + SINGLE_SLOT_RS_COUNT;
+    localparam int unsigned IMEM_ADDR_SIZE = $clog2(IMEM_NUM_WORDS);
 
 endpackage
 

@@ -38,12 +38,12 @@ module core #()(
     instr_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
     logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
     logic rob_full, scalar_arr_full, vector_arr_full;
-    signal_pkg::br_to_rob_signal_t branch_wb;
+    signal_pkg::br_output_signal_t branch_wb;
     instr_pkg::rob_address_t rob_id;
-    signal_pkg::rs_to_scalar_ex_signal_t alu0_input, alu1_input, br_input;
+    signal_pkg::sc_ex_input_signal_t alu0_input, alu1_input, br_input;
     logic alu0_ready, alu1_ready;
-    signal_pkg::br_to_rob_signal_t branch_result;
-    signal_pkg::ex_to_wb_signal_t ex_result[SCALAR_EX_COUNT];
+    signal_pkg::br_output_signal_t branch_result;
+    signal_pkg::sc_ex_output_signal_t ex_result[SCALAR_EX_COUNT];
     logic wb_ready[SCALAR_EX_COUNT];
 
     instruction_bus_if u_instruction_bus();

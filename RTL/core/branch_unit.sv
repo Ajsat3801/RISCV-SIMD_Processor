@@ -3,8 +3,8 @@ module branch_unit(
     input logic clk_i,
     input logic reset_ni,
 
-    input signal_pkg::rs_to_scalar_ex_signal_t br_input_i,
-    output signal_pkg::br_to_rob_signal_t br_res_o
+    input signal_pkg::sc_ex_input_signal_t br_input_i,
+    output signal_pkg::br_output_signal_t br_res_o
 );
     logic a_lt_b, a_lt_b_u, a_eq_b;
     
@@ -26,14 +26,14 @@ module branch_unit(
             br_res_o.rob_id <= br_input_i.rob_id;
 
             unique case (br_input_i.operation.br)
-                instr_pkg::BR_BEQ  : br_res_o.branch_taken = a_eq_b;
-                instr_pkg::BR_BNE  : br_res_o.branch_taken = !a_eq_b;
-                instr_pkg::BR_BLT  : br_res_o.branch_taken = a_lt_b;
-                instr_pkg::BR_BLTU : br_res_o.branch_taken = a_lt_b_u;
-                instr_pkg::BR_BGE  : br_res_o.branch_taken = !a_lt_b;
-                instr_pkg::BR_BGEU : br_res_o.branch_taken = !a_lt_b_u;
+                instr_pkg::BR_BEQ  : br_res_o.branch_taken <= a_eq_b;
+                instr_pkg::BR_BNE  : br_res_o.branch_taken <= !a_eq_b;
+                instr_pkg::BR_BLT  : br_res_o.branch_taken <= a_lt_b;
+                instr_pkg::BR_BLTU : br_res_o.branch_taken <= a_lt_b_u;
+                instr_pkg::BR_BGE  : br_res_o.branch_taken <= !a_lt_b;
+                instr_pkg::BR_BGEU : br_res_o.branch_taken <= !a_lt_b_u;
                 default begin
-                    br_res_o.branch_taken = 1'b0;
+                    br_res_o.branch_taken <= 1'b0;
                 end
             endcase
         end

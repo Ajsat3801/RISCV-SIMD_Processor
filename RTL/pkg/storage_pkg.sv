@@ -18,7 +18,50 @@ package storage_pkg;
         logic operand_a_ready;
         logic operand_b_ready;
 
-    } rs_entry_t;
+    } sc_rs_entry_t;
+
+    typedef struct packed {
+        logic occupied;
+        
+        instr_pkg::prf_tag_t prf_tag;
+        instr_pkg::rob_address_t rob_id;
+
+        instr_pkg::data_t operand_a;
+        
+        instr_pkg::operations_e operation;
+
+        logic a_is_vector;
+        logic b_is_vector;
+
+        instr_pkg::prf_tag_t operand_a_tag;
+        instr_pkg::prf_tag_t operand_b_tag;
+
+        logic operand_a_ready;
+        logic operand_b_ready;
+
+    } vc_rs_entry_t;
+
+    typedef struct packed {
+        logic occupied;
+        
+        instr_pkg::prf_tag_t prf_tag;
+        instr_pkg::rob_address_t rob_id;
+
+        instr_pkg::data_t operand_a;
+        instr_pkg::data_t operand_b;
+        
+        instr_pkg::operations_e operation;
+
+        logic a_is_vector;
+        logic b_is_vector;
+
+        instr_pkg::prf_tag_t operand_a_tag;
+        instr_pkg::prf_tag_t operand_b_tag;
+
+        logic operand_a_ready;
+        logic operand_b_ready;
+
+    } lsu_rs_entry_t;
 
     typedef struct packed {
         logic ready;

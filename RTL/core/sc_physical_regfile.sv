@@ -13,9 +13,7 @@
         ready bit set
  */
 
-module sc_physical_regfile #(
-    parameter type T = instr_pkg::data_t
-)(
+module sc_physical_regfile (
     input logic clk_i,
     input logic reset_ni,
 
@@ -30,65 +28,49 @@ module sc_physical_regfile #(
 );
 
     logic[PRF_DEPTH-1:0] ready;
-    T regfile[PRF_DEPTH-1:0];
-
-    logic operand_a_ready_d, operand_b_ready_d;
-    logic allocation_allowed, writeback_allowed;
-    T operand_a_d, operand_b_d;
-    int i;
-
-    always_comb begin
-
-        operand_a_d = '0;
-        operand_b_d = '0;
-        operand_a_ready_d = '0;
-        operand_b_ready_d = '0;
-
-        writeback_allowed  = writeback_instr_i.valid && !writeback_instr_i.prf_tag.vector;
-        allocation_allowed = allocated_instr_i.instr.valid;
-
-        // check ready for operands and return if they are scalar 
-        if (allocation_allowed) begin
-            
-            operand_a_ready_d = ready[allocated_instr_i.operand_a_tag.tag];
-            operand_b_ready_d = ready[allocated_instr_i.operand_b_tag.tag];
-
-            operand_a_d = regfile[allocated_instr_i.operand_a_tag.tag];
-            operand_b_d = regfile[allocated_instr_i.operand_b_tag.tag];
-        end
-        
-    end
+    instr_pkg::data_t regfile[PRF_DEPTH-1:0];
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
-            for (i=0; i<PRF_DEPTH; i++) begin
+            for (int i=0; i<PRF_DEPTH; i++) begin
                 ready[i] <= 1'b1;
                 regfile[i] <= '0;
             end
         end
+
         else begin
 
-            if (writeback_allowed) begin
+            if (writeback_instr_i.valid && !writeback_instr_i.prf_tag.vector) begin
                 regfile[writeback_instr_i.prf_tag.tag] <= writeback_instr_i.data;
                 ready[writeback_instr_i.prf_tag.tag]   <= 1'b1;
             end
-            if (allocation_allowed) begin
+
+            if (allocated_instr_i.instr.valid) begin
                 ready[allocated_instr_i.prf_tag] <= 1'b0;
+                
+                instr_o.operand_a_ready <= ready[allocated_instr_i.operand_a_tag.tag];
+                instr_o.operand_b_ready <= ready[allocated_instr_i.operand_b_tag.tag];
+
+                instr_o.operand_a <= regfile[allocated_instr_i.operand_a_tag.tag];
+                instr_o.operand_b <= regfile[allocated_instr_i.operand_b_tag.tag];
+            end
+            else begin
+                instr_o.operand_a_ready <= 1'b0;
+                instr_o.operand_b_ready <= 1'b0;
+
+                instr_o.operand_a <= '0;
+                instr_o.operand_b <= '0;
             end
 
             instr_o.prf_valid <= allocated_instr_i.valid;
-            instr_o.chip_select     <= allocated_instr_i.instr.chip_select;
-            instr_o.rs_slot         <= allocated_instr_i.rs_slot;
-            instr_o.prf_tag         <= allocated_instr_i.prf_tag;
-            instr_o.operand_a       <= operand_a_d;
-            instr_o.operand_b       <= operand_b_d;
-            instr_o.operation       <= allocated_instr_i.instr.operation;
-            instr_o.operand_a_tag   <= allocated_instr_i.operand_a_tag;
-            instr_o.operand_b_tag   <= allocated_instr_i.operand_b_tag;
-            instr_o.operand_a_ready <= operand_a_ready_d;
-            instr_o.operand_b_ready <= operand_b_ready_d;
-            instr_o.a_is_vector     <= allocated_instr_i.a_is_vector;
-            instr_o.b_is_vector     <= allocated_instr_i.b_is_vector;
+            instr_o.chip_select   <= allocated_instr_i.instr.chip_select;
+            instr_o.rs_slot       <= allocated_instr_i.rs_slot;
+            instr_o.prf_tag       <= allocated_instr_i.prf_tag;
+            instr_o.operation     <= allocated_instr_i.instr.operation;
+            instr_o.operand_a_tag <= allocated_instr_i.operand_a_tag;
+            instr_o.operand_b_tag <= allocated_instr_i.operand_b_tag;
+            instr_o.a_is_vector   <= allocated_instr_i.a_is_vector;
+            instr_o.b_is_vector   <= allocated_instr_i.b_is_vector;
 
         end
     end

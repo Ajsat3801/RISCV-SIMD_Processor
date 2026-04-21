@@ -8,7 +8,7 @@ module reorder_buffer (
 
     data_bus_if.snoop scalar_wb_i,
     data_bus_if.snoop vector_wb_i,
-    input signal_pkg::br_to_rob_signal_t branch_i,
+    input signal_pkg::br_output_signal_t branch_i,
 
     operand_bus_if.rob alloc_instr_o,
 

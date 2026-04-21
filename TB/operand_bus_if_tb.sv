@@ -25,7 +25,7 @@ module operand_bus_if_tb;
     logic src2_ready;
     logic RAT_op_valid;
 
-    rs_entry_t rs_entry;
+    sc_rs_entry_t rs_entry;
     logic[1:0] rs_full_vec;
     chip_select_e cs;
 

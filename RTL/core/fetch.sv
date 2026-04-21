@@ -3,11 +3,11 @@ module fetch(
     input logic clk_i,
     input logic reset_ni,
 
-    retirement_bus_if.branch branching_i;
+    retirement_bus_if.branch branching_i,
 
-    output raw_instr_o;
-    output pc_to_imem_o;
-    output pc_to_decoder_o;
+    output instr_pkg::raw_instr_t raw_instr_o,
+    output instr_pkg::pc_t pc_to_imem_o,
+    output instr_pkg::pc_t pc_to_decoder_o
 );
 
 /*
