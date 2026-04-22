@@ -25,90 +25,94 @@ module sc_rs_2issue #(
 );
 
     storage_pkg::sc_rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
-    instr_pkg::rs_slot_id_t choice, choice_next;
+    instr_pkg::rs_slot_id_t choice1, choice2;
 
-    logic grant1, grant2;
-    instr_pkg::rs_slot_id_t grant1_idx, grant2_idx;
-    instr_pkg::rs_slot_id_t dispatch_idx1, dispatch_idx2;
-    logic grant1_to_dispatch1, grant1_to_dispatch2, grant2_to_dispatch2;
-    logic bypass_to_dispatch1, bypass_to_dispatch2;
-
-    logic[DUAL_SLOT_RS_LEN-1:0] occupied, operands_ready, snoop, eligible;
-    logic instr_valid, any_eligible, bypass_eligible;
-
-    int i, i_ff;
+    logic bypass_to_slot1, bypass_to_slot2;
+    logic winner1_to_slot1, winner1_to_slot2, winner2_to_slot2;
+    logic instr_valid, bypass_valid;
+    logic winner1_valid, winner2_valid;
+    logic [DUAL_SLOT_RS_LEN-1:0] mask, mask_next, mask_upper;
+    logic [DUAL_SLOT_RS_LEN-1:0] upper_canditates, lower_canditates, canditates2;
+    logic [DUAL_SLOT_RS_LEN-1:0] winner_lower, winner_upper, winner1, winner2;
+    logic [DUAL_SLOT_RS_LEN-1:0] eligible;
+    
 
     always_comb begin
-
-        instr_valid = rs_input_i.rs_entry.occupied && rs_input_i.chip_select == CHIP_SELECT;
         
-        for(i=0;i<DUAL_SLOT_RS_LEN;i++) begin
-            occupied[i] = buffer[i].occupied;
-            operands_ready[i] = buffer[i].operand_a_ready && buffer[i].operand_b_ready;
-        end
+        choice1 = '0;
+        choice2 = '0;
 
-        snoop    = occupied & ~operands_ready;
-        eligible = occupied & operands_ready;
-        any_eligible = ~|eligible;
+        instr_valid =   rs_input_i.rs_entry.occupied && 
+                        (rs_input_i.chip_select == CHIP_SELECT);
+
+        bypass_valid =  instr_valid &&
+                        rs_input_i.rs_entry.operand_a_ready &&
+                        rs_input_i.rs_entry.operand_b_ready;
         
-        grant1 = 1'b0;
-        grant2 = 1'b0;
-        grant1_idx = choice;
-        grant2_idx = choice;
-
-        for(i=choice; i<DUAL_SLOT_RS_LEN; i++) begin
-            if(eligible[i]) begin
-                if(!grant1) begin
-                    grant1_idx = i;
-                    grant1 = 1'b1;
-                end
-                else if(!grant2) begin
-                    grant2_idx = i;
-                    grant2 = 1'b1;
-                end
-            end
-        end
-        if(grant1 || grant2) begin
-            for(i=0; i<choice; i++) begin
-                if(!grant1) begin
-                    grant1_idx = i;
-                    grant1 = 1'b1;
-                end
-                else if(!grant2) begin
-                    grant2_idx = i;
-                    grant2 = 1'b1;
-                end
-            end
+        for (int i=0; i<DUAL_SLOT_RS_LEN; i++) begin
+            eligible[i] =   buffer[i].occupied &&
+                            buffer[i].operand_a_ready &&
+                            buffer[i].operand_b_ready;
         end
 
-        bypass_eligible = instr_valid && rs_input_i.rs_entry.operand_a_ready && rs_input_i.rs_entry.operand_b_ready;
+        mask_upper[0] = mask[0];
 
-        /*
-            at this stage
-            grant1 <- first instruction thats ready to be dispatched (address choice_idx_1)
-            grant2 <- second instruction ready to be dispatched (choice_idx_2)
-            eligible bypass <- the input instruction can be dispatched if we dont have 2 instructions
-        */
+        for (int i=1; i<DUAL_SLOT_RS_LEN; i++) begin
+            mask_upper[i] = mask_upper[i-1] | mask[i];
+        end
 
-        grant1_to_dispatch1 = ex1_ready_i && grant1;
-        bypass_to_dispatch1 = ex1_ready_i && !grant1 && bypass_eligible;
+        upper_canditates = eligible & mask_upper;
+        lower_canditates = eligible & ~mask_upper;
 
-        grant1_to_dispatch2 = ex2_ready_i && !ex1_ready_i && grant1;
-        grant2_to_dispatch2 = ex2_ready_i && grant1_to_dispatch1 && grant2;
-        bypass_to_dispatch2 = ex2_ready_i && !bypass_to_dispatch1 && !grant1_to_dispatch2 && !grant2_to_dispatch2 && bypass_eligible;
+        winner_upper = upper_canditates & (~upper_canditates + 1'b1);
+        winner_lower = lower_canditates & (~lower_canditates + 1'b1);
 
-        if(bypass_to_dispatch2 || bypass_to_dispatch1) choice_next = rs_input_i.rs_slot + 1'b1;
-        else if(grant2_to_dispatch2) choice_next = grant2_idx + 1'b1;
-        else if(grant1_to_dispatch1 || grant1_to_dispatch2) choice_next = grant1_idx + 1'b1;
-        else choice_next = choice;
+        winner1 = (|upper_canditates) ? winner_upper : winner_lower;
 
+        canditates2 = eligible & ~winner1;
+        winner2 = canditates2 & (~canditates2 + 1'b1);
+
+        winner1_valid = (|upper_canditates) || (|lower_canditates);
+        winner2_valid = (|canditates2);
+
+        winner1_to_slot1 =  ex1_ready_i &&  winner1_valid;
+        winner1_to_slot2 =  ex2_ready_i &&  winner1_valid && !ex1_ready_i;
+        winner2_to_slot2 =  ex2_ready_i &&  winner2_valid &&  ex1_ready_i;
+        bypass_to_slot1  =  ex1_ready_i && !winner1_valid && bypass_valid;
+        bypass_to_slot2  =  ex2_ready_i && 
+                            !winner2_valid &&
+                            ((ex1_ready_i &&  winner1_valid) ||
+                            (!ex1_ready_i && !winner1_valid)) &&
+                            bypass_valid;
+
+        mask_next = mask;
+
+        if (winner1_to_slot1) begin
+            for(int i=0;i<DUAL_SLOT_RS_LEN; i++) begin
+                if(winner1[i]) choice1 = i[RS_ADDR_W-1:0];
+            end
+            mask_next = {winner1[DUAL_SLOT_RS_LEN-2:0], winner1[DUAL_SLOT_RS_LEN-1]};
+        end
+        if (winner1_to_slot2) begin
+            for (int i=0;i<DUAL_SLOT_RS_LEN; i++) begin
+                if (winner1[i]) choice2 = i[RS_ADDR_W-1:0];
+            end
+            mask_next = {winner1[DUAL_SLOT_RS_LEN-2:0], winner1[DUAL_SLOT_RS_LEN-1]};
+        end
+        if (winner2_to_slot2) begin
+            for(int i=0;i<DUAL_SLOT_RS_LEN; i++) begin
+                if(winner2[i]) choice2 = i[RS_ADDR_W-1:0];
+            end
+            mask_next = {winner2[DUAL_SLOT_RS_LEN-2:0], winner2[DUAL_SLOT_RS_LEN-1]};
+        end
+        
     end
 
     always_ff @(posedge clk_i) begin
         
         if (!reset_ni || flush_i) begin
             
-            for (i_ff=0; i_ff<DUAL_SLOT_RS_LEN; i_ff++) buffer[i_ff] <= '0;
+            for (int i=0; i<DUAL_SLOT_RS_LEN; i++) buffer[i] <= '0;
 
             rs_slot_released_o[0] <= 1'b0;
             rs_slot_released_o[1] <= 1'b0;
@@ -119,37 +123,40 @@ module sc_rs_2issue #(
             dispatch1_o <= '0;
             dispatch2_o <= '0;
 
-            choice <= '0;
+            mask <= {{DUAL_SLOT_RS_LEN-1{1'b0}}, 1'b1};
 
         end
         else begin
 
             // snoop data from CDB and update if needed
             if (s_data_bus_i.valid) begin
-                for (i_ff=0; i_ff<DUAL_SLOT_RS_LEN; i_ff++) begin
-                    if (occupied[i_ff] && s_data_bus_i.prf_tag == buffer[i_ff].operand_a_tag && !buffer[i_ff].operand_a_ready) begin 
-                        buffer[i_ff].operand_a <= s_data_bus_i.data;
-                        buffer[i_ff].operand_a_ready <= 1'b1;
+                for (int i=0; i<DUAL_SLOT_RS_LEN; i++) begin
+                    if (buffer[i].occupied && s_data_bus_i.prf_tag == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
+                        buffer[i].operand_a <= s_data_bus_i.data;
+                        buffer[i].operand_a_ready <= 1'b1;
                     end
-                    if(occupied[i_ff] && s_data_bus_i.prf_tag == buffer[i_ff].operand_b_tag && !buffer[i_ff].operand_b_ready) begin
-                        buffer[i_ff].operand_b <= s_data_bus_i.data;
-                        buffer[i_ff].operand_b_ready <= 1'b1;
+                    if(buffer[i].occupied && s_data_bus_i.prf_tag == buffer[i].operand_b_tag && !buffer[i].operand_b_ready) begin
+                        buffer[i].operand_b <= s_data_bus_i.data;
+                        buffer[i].operand_b_ready <= 1'b1;
                     end
                 end
             end
 
             // dispatch instructions
-            if(grant1_to_dispatch1) begin
+            if(winner1_to_slot1) begin
                 dispatch1_o.valid <= 1'b1;
-                dispatch1_o.prf_tag   <= buffer[grant1_idx].prf_tag;
-                dispatch1_o.rob_id    <= buffer[grant1_idx].rob_id;
-                dispatch1_o.operand_a <= buffer[grant1_idx].operand_a;
-                dispatch1_o.operand_b <= buffer[grant1_idx].operand_b;
-                dispatch1_o.operation <= buffer[grant1_idx].operation;
+                dispatch1_o.prf_tag   <= buffer[choice1].prf_tag;
+                dispatch1_o.rob_id    <= buffer[choice1].rob_id;
+                dispatch1_o.operand_a <= buffer[choice1].operand_a;
+                dispatch1_o.operand_b <= buffer[choice1].operand_b;
+                dispatch1_o.operation <= buffer[choice1].operation;
 
-                released_rs_slot_id_o[0] <= grant1_idx;
+                released_rs_slot_id_o[0] <= choice1;
+                rs_slot_released_o[0] <= 1'b1;
+
+                buffer[choice1] <= '0;
             end
-            else if(bypass_to_dispatch1) begin
+            else if(bypass_to_slot1) begin
                 dispatch1_o.valid <= 1'b1;
                 dispatch1_o.prf_tag   <= rs_input_i.rs_entry.prf_tag;
                 dispatch1_o.rob_id    <= rs_input_i.rs_entry.rob_id;
@@ -158,33 +165,41 @@ module sc_rs_2issue #(
                 dispatch1_o.operation <= rs_input_i.rs_entry.operation;
 
                 released_rs_slot_id_o[0] <= rs_input_i.rs_slot;
+                rs_slot_released_o[0] <= 1'b1;
             end
             else begin// default
                 dispatch1_o <= '0;
+                rs_slot_released_o[0] <= 1'b0;
                 released_rs_slot_id_o[0] <= '0;
             end
 
-            if(grant1_to_dispatch2) begin
+            if(winner1_to_slot2) begin
                 dispatch2_o.valid <= 1'b1;
-                dispatch2_o.prf_tag   <= buffer[grant1_idx].prf_tag;
-                dispatch2_o.rob_id    <= buffer[grant1_idx].rob_id;
-                dispatch2_o.operand_a <= buffer[grant1_idx].operand_a;
-                dispatch2_o.operand_b <= buffer[grant1_idx].operand_b;
-                dispatch2_o.operation <= buffer[grant1_idx].operation;
+                dispatch2_o.prf_tag   <= buffer[choice2].prf_tag;
+                dispatch2_o.rob_id    <= buffer[choice2].rob_id;
+                dispatch2_o.operand_a <= buffer[choice2].operand_a;
+                dispatch2_o.operand_b <= buffer[choice2].operand_b;
+                dispatch2_o.operation <= buffer[choice2].operation;
 
-                released_rs_slot_id_o[1] <= grant1_idx;
+                released_rs_slot_id_o[1] <= choice2;
+                rs_slot_released_o[1] <= 1'b1;
+
+                buffer[choice2] <= '0;
             end
-            else if(grant2_to_dispatch2) begin
+            else if(winner2_to_slot2) begin
                 dispatch2_o.valid <= 1'b1;
-                dispatch2_o.prf_tag   <= buffer[grant2_idx].prf_tag;
-                dispatch2_o.rob_id    <= buffer[grant2_idx].rob_id;
-                dispatch2_o.operand_a <= buffer[grant2_idx].operand_a;
-                dispatch2_o.operand_b <= buffer[grant2_idx].operand_b;
-                dispatch2_o.operation <= buffer[grant2_idx].operation;
+                dispatch2_o.prf_tag   <= buffer[choice2].prf_tag;
+                dispatch2_o.rob_id    <= buffer[choice2].rob_id;
+                dispatch2_o.operand_a <= buffer[choice2].operand_a;
+                dispatch2_o.operand_b <= buffer[choice2].operand_b;
+                dispatch2_o.operation <= buffer[choice2].operation;
 
-                released_rs_slot_id_o[1] <= grant2_idx;
+                released_rs_slot_id_o[1] <= choice2;
+                rs_slot_released_o[1] <= 1'b1;
+
+                buffer[choice2] <= '0;
             end
-            else if(bypass_to_dispatch2) begin
+            else if(bypass_to_slot2) begin
                 dispatch2_o.valid <= 1'b1;
                 dispatch2_o.prf_tag   <= rs_input_i.rs_entry.prf_tag;
                 dispatch2_o.rob_id    <= rs_input_i.rs_entry.rob_id;
@@ -193,16 +208,20 @@ module sc_rs_2issue #(
                 dispatch2_o.operation <= rs_input_i.rs_entry.operation;
 
                 released_rs_slot_id_o[1] <= rs_input_i.rs_slot;
+                rs_slot_released_o[1] <= 1'b1;
             end
             else begin// default
                 dispatch2_o <= '0;
+                rs_slot_released_o[1] <= 1'b0;
                 released_rs_slot_id_o[1] <= '0;
             end
             
-            choice <= choice_next;
+            mask <= mask_next;
 
             // instruction issued
-            if(instr_valid && !bypass_to_dispatch1 && !bypass_to_dispatch2) buffer[rs_input_i.rs_slot] <= rs_input_i.rs_entry;
+            if(instr_valid && !bypass_to_slot1 && !bypass_to_slot2) begin
+                 buffer[rs_input_i.rs_slot] <= rs_input_i.rs_entry;
+            end
 
         end
     end
