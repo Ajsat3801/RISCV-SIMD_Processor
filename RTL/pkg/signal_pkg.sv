@@ -39,7 +39,7 @@ package signal_pkg;
         instr_pkg::rob_address_t rob_id;
 
         instr_pkg::vector_data_t operand_a;
-        instr_pkg::data_t operand_b;
+        instr_pkg::vector_data_t operand_b;
 
         instr_pkg::operations_e operation;
 

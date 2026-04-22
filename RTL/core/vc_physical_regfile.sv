@@ -25,17 +25,17 @@ module vc_physical_regfile (
     data_bus_if.prf writeback_instr_i,
 
     // inputs from RS for instruction ready to be executed
-    signal_pkg::vc_dispatched_instr_t valu_dispatched_i,
-    signal_pkg::vc_dispatched_instr_t lsu_dispatched_i
+    input signal_pkg::vc_dispatched_instr_t valu_dispatched_i,
+    input signal_pkg::vc_dispatched_instr_t lsu_dispatched_i,
 
     // sending operands and instruction data to ex
-    signal_pkg::vc_ex_input_signal_t valu_input_o,
-    signal_pkg::vc_ex_input_signal_t lsu_input_o 
+    output signal_pkg::vc_ex_input_signal_t valu_input_o,
+    output signal_pkg::vc_ex_input_signal_t lsu_input_o 
     
 );
 
     logic[PRF_DEPTH-1:0] ready;
-    instr_pkg::data_t regfile[PRF_DEPTH-1:0];
+    instr_pkg::vector_data_t regfile[PRF_DEPTH-1:0];
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
@@ -48,34 +48,31 @@ module vc_physical_regfile (
         else begin
 
             // writeback
-            if (writeback_instr_i.valid && !writeback_instr_i.prf_tag.vector) begin
+            if (writeback_instr_i.valid && writeback_instr_i.prf_tag.vector) begin
                 regfile[writeback_instr_i.prf_tag.tag] <= writeback_instr_i.data;
                 ready[writeback_instr_i.prf_tag.tag]   <= 1'b1;
             end
 
             // allocation
             if (allocated_instr_i.instr.valid) begin
-                ready[allocated_instr_i.prf_tag] <= 1'b0;
-                instr_o.operand_a_ready <= ready[allocated_instr_i.operand_a_tag.tag];
-                instr_o.operand_b_ready <= ready[allocated_instr_i.operand_b_tag.tag];
+                ready[allocated_instr_i.prf_tag.tag] <= 1'b0;
+                allocated_instr_o.operand_a_ready <= ready[allocated_instr_i.operand_a_tag.tag];
+                allocated_instr_o.operand_b_ready <= ready[allocated_instr_i.operand_b_tag.tag];
             end
             else begin
-                instr_o.operand_a_ready <= ready[allocated_instr_i.operand_a_tag.tag];
-                instr_o.operand_b_ready <= ready[allocated_instr_i.operand_b_tag.tag];
+                allocated_instr_o.operand_a_ready <= ready[allocated_instr_i.operand_a_tag.tag];
+                allocated_instr_o.operand_b_ready <= ready[allocated_instr_i.operand_b_tag.tag];
             end
-
-            instr_o.operand_a <= '0;
-            instr_o.operand_b <= '0;
-
-            instr_o.prf_valid <= allocated_instr_i.valid;
-            instr_o.chip_select   <= allocated_instr_i.instr.chip_select;
-            instr_o.rs_slot       <= allocated_instr_i.rs_slot;
-            instr_o.prf_tag       <= allocated_instr_i.prf_tag;
-            instr_o.operation     <= allocated_instr_i.instr.operation;
-            instr_o.operand_a_tag <= allocated_instr_i.operand_a_tag;
-            instr_o.operand_b_tag <= allocated_instr_i.operand_b_tag;
-            instr_o.a_is_vector   <= allocated_instr_i.a_is_vector;
-            instr_o.b_is_vector   <= allocated_instr_i.b_is_vector;
+            
+            allocated_instr_o.prf_valid <= allocated_instr_i.valid;
+            allocated_instr_o.chip_select   <= allocated_instr_i.instr.chip_select;
+            allocated_instr_o.rs_slot       <= allocated_instr_i.rs_slot;
+            allocated_instr_o.prf_tag       <= allocated_instr_i.prf_tag;
+            allocated_instr_o.operation     <= allocated_instr_i.instr.operation;
+            allocated_instr_o.operand_a_tag <= allocated_instr_i.operand_a_tag;
+            allocated_instr_o.operand_b_tag <= allocated_instr_i.operand_b_tag;
+            allocated_instr_o.a_is_vector   <= allocated_instr_i.a_is_vector;
+            allocated_instr_o.b_is_vector   <= allocated_instr_i.b_is_vector;
 
             // read VALU operands
             if (valu_dispatched_i.valid) begin
