@@ -33,8 +33,8 @@ package instr_pkg;
     } branch_operations_e;
 
     typedef enum logic [3:0] { 
-        MULDIV_MUL = 4'b0000,
-        MULDIV_DIV = 4'b0100
+        MULDIV_MUL = 4'b0000, MULDIV_MULH = 4'b0001, MULDIV_MULHSU = 4'b0010, MULDIV_MULHU = 4'b0011
+        MULDIV_DIV = 4'b0100, MULDIV_DIVU = 4'b0101, MULDIV_REM = 4'b0110, MULDIV_REMU = 4'b111
     } muldiv_operations_e;
 
 /* LSU Operations

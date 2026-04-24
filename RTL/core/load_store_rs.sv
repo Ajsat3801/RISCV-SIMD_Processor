@@ -31,7 +31,7 @@ module load_store_rs #(
 
     storage_pkg::lsu_rs_entry_t built_entry, dispatch_q;
 
-    typedef enum {VECTOR_DISPATCHED, NO_DISPATCH} dispatch_state_e;
+    typedef enum logic {VECTOR_DISPATCHED, NO_DISPATCH} dispatch_state_e;
     dispatch_state_e dispatch_state;
 
 
@@ -121,7 +121,7 @@ module load_store_rs #(
     end 
 
     always_comb begin
-        if(dispatch_q.prf_tag.is_vector) begin
+        if(dispatch_q.prf_tag.vector) begin
             vc_dispatch_o.valid     = dispatch_q.occupied;
             vc_dispatch_o.prf_tag   = dispatch_q.prf_tag;
             vc_dispatch_o.rob_id    = dispatch_q.rob_id;
@@ -132,6 +132,8 @@ module load_store_rs #(
             vc_dispatch_o.b_is_vector = dispatch_q.b_is_vector;
             vc_dispatch_o.operand_a_tag = dispatch_q.operand_a_tag;
             vc_dispatch_o.operand_b_tag = dispatch_q.operand_b_tag;
+
+            vc_dispatch_o = '0;
         end
         else begin
             /* Scalar dispatch
@@ -142,6 +144,8 @@ module load_store_rs #(
             sc_dispatch_o.operand_a = dispatch_q.operand_a;
             sc_dispatch_o.operand_b = dispatch_q.operand_b;
             sc_dispatch_o.operation = dispatch_q.operation;
+
+            sc_dispatch_o = '0;
         end
     end
 
@@ -158,7 +162,7 @@ module load_store_rs #(
         end
         
         else begin
-            if (dispatch_state == VECTOR_DISPATCH) dispatch_state = NO_DISPATCH;
+            if (dispatch_state == VECTOR_DISPATCHED) dispatch_state = NO_DISPATCH;
 
             // snoop data from scalar CDB and update if needed
             if (sc_data_bus_i.valid) begin
@@ -225,7 +229,7 @@ module load_store_rs #(
                 dispatch_q.operand_a_ready <= built_entry.operand_a_ready;
                 dispatch_q.operand_b_ready <= built_entry.operand_b_ready;
 
-                if(built_entry.prf_tag.is_vector) dispatch_state <= VECTOR_DISPATCHED;
+                if(built_entry.prf_tag.vector) dispatch_state <= VECTOR_DISPATCHED;
             end
             
             else if(dispatch) begin
@@ -248,7 +252,7 @@ module load_store_rs #(
                 // clearing buffer entry and sending released value
                 buffer[choice] <= '0;
 
-                if(buffer[choice].prf_tag.is_vector) dispatch_state <= VECTOR_DISPATCHED;
+                if(buffer[choice].prf_tag.vector) dispatch_state <= VECTOR_DISPATCHED;
             end
             else dispatch_q <= '0;
             

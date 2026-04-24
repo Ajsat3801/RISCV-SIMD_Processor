@@ -43,6 +43,20 @@ module vc_physical_regfile (
                 ready[i] <= 1'b1;
                 regfile[i] <= '0;
             end
+
+            valu_input_o <= '0;
+            lsu_input_o  <= '0;
+            
+            allocated_instr_o.prf_valid   <= 1'b0;
+            allocated_instr_o.chip_select <= instr_pkg::CS_NONE;
+            allocated_instr_o.rs_slot <= '0;
+            allocated_instr_o.prf_tag <= '0;
+            allocated_instr_o.operation.valu <= instr_pkg::VALU_ADD;
+            allocated_instr_o.operand_a_tag  <= '0;
+            allocated_instr_o.operand_b_tag  <= '0;
+            allocated_instr_o.a_is_vector <= 1'b0;
+            allocated_instr_o.b_is_vector <= 1'b0;
+
         end
 
         else begin
@@ -64,11 +78,11 @@ module vc_physical_regfile (
                 allocated_instr_o.operand_b_ready <= ready[allocated_instr_i.operand_b_tag.tag];
             end
             
-            allocated_instr_o.prf_valid <= allocated_instr_i.valid;
-            allocated_instr_o.chip_select   <= allocated_instr_i.instr.chip_select;
-            allocated_instr_o.rs_slot       <= allocated_instr_i.rs_slot;
-            allocated_instr_o.prf_tag       <= allocated_instr_i.prf_tag;
-            allocated_instr_o.operation     <= allocated_instr_i.instr.operation;
+            allocated_instr_o.prf_valid   <= allocated_instr_i.valid;
+            allocated_instr_o.chip_select <= allocated_instr_i.instr.chip_select;
+            allocated_instr_o.rs_slot   <= allocated_instr_i.rs_slot;
+            allocated_instr_o.prf_tag   <= allocated_instr_i.prf_tag;
+            allocated_instr_o.operation <= allocated_instr_i.instr.operation;
             allocated_instr_o.operand_a_tag <= allocated_instr_i.operand_a_tag;
             allocated_instr_o.operand_b_tag <= allocated_instr_i.operand_b_tag;
             allocated_instr_o.a_is_vector   <= allocated_instr_i.a_is_vector;
@@ -76,10 +90,10 @@ module vc_physical_regfile (
 
             // read VALU operands
             if (valu_dispatched_i.valid) begin
-                valu_input_o.valid <= valu_dispatched_i.valid;
+                valu_input_o.valid   <= valu_dispatched_i.valid;
                 valu_input_o.prf_tag <= valu_dispatched_i.prf_tag;
-                valu_input_o.rob_id <= valu_dispatched_i.rob_id;
-                valu_input_o.operation <= valu_dispatched_i.operation;
+                valu_input_o.rob_id  <= valu_dispatched_i.rob_id;
+                valu_input_o.operation   <= valu_dispatched_i.operation;
                 valu_input_o.a_is_vector <= valu_dispatched_i.a_is_vector;
                 valu_input_o.b_is_vector <= valu_dispatched_i.b_is_vector;
 
@@ -92,15 +106,15 @@ module vc_physical_regfile (
                     valu_input_o.operand_a[0] <= valu_dispatched_i.operand_a;
                     valu_input_o.operand_a[3:1] <= '0;
                 end
-
             end
+            else valu_input_o <= '0;
 
             // read LSU operands
             if (lsu_dispatched_i.valid) begin
-                lsu_input_o.valid <= lsu_dispatched_i.valid;
+                lsu_input_o.valid   <= lsu_dispatched_i.valid;
                 lsu_input_o.prf_tag <= lsu_dispatched_i.prf_tag;
-                lsu_input_o.rob_id <= lsu_dispatched_i.rob_id;
-                lsu_input_o.operation <= lsu_dispatched_i.operation;
+                lsu_input_o.rob_id  <= lsu_dispatched_i.rob_id;
+                lsu_input_o.operation   <= lsu_dispatched_i.operation;
                 lsu_input_o.a_is_vector <= lsu_dispatched_i.a_is_vector;
                 lsu_input_o.b_is_vector <= lsu_dispatched_i.b_is_vector;
 
@@ -115,6 +129,7 @@ module vc_physical_regfile (
                 end
 
             end
+            else lsu_input_o <= '0;
 
         end
     end
