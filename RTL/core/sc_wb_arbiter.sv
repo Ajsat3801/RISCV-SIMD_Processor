@@ -21,7 +21,7 @@ module sc_wb_arbiter #() (
     storage_pkg::alu_result_entry_t fifo_heads[SCALAR_EX_COUNT-1:0]; 
 
     logic[EX_IDX_W-1:0] choice, choice_idx, choice_next;
-    logic[SCALAR_EX_COUNT-1:0] empty, full;
+    logic[SCALAR_EX_COUNT-1:0] empty, full, next_full;
     logic[SCALAR_EX_COUNT-1:0] dequeue, dequeue_next, request;
     logic wb_chosen, any_full;
 
@@ -42,7 +42,8 @@ module sc_wb_arbiter #() (
         .pop_i(dequeue_next[0]),
         .data_o(fifo_heads[0]),
         .empty_o(empty[0]),
-        .full_o(full[0])
+        .full_o(full[0]),
+        .next_full_o(next_full[0])
     );
 
     circular_fifo_fwft #(
@@ -56,7 +57,8 @@ module sc_wb_arbiter #() (
         .pop_i(dequeue_next[1]),
         .data_o(fifo_heads[1]),
         .empty_o(empty[1]),
-        .full_o(full[1])
+        .full_o(full[1]),
+        .next_full_o(next_full[1])
     );
 
     circular_fifo_fwft #(
@@ -70,7 +72,8 @@ module sc_wb_arbiter #() (
         .pop_i(dequeue_next[2]),
         .data_o(fifo_heads[2]),
         .empty_o(empty[2]),
-        .full_o(full[2])
+        .full_o(full[2]),
+        .next_full_o(next_full[2])
     );
 
     circular_fifo_fwft #(
@@ -84,7 +87,8 @@ module sc_wb_arbiter #() (
         .pop_i(dequeue_next[3]),
         .data_o(fifo_heads[3]),
         .empty_o(empty[3]),
-        .full_o(full[3])
+        .full_o(full[3]),
+        .next_full_o(next_full[3])
     );
 
     always_comb begin
@@ -119,7 +123,7 @@ module sc_wb_arbiter #() (
 
         reset_wb_n = reset_ni && !flush_i;
 
-        for(i=0; i<SCALAR_EX_COUNT; i++) wb_ready_o[i] = !full[i];
+        wb_ready_o = ~(full | full_next);
         
     end
 

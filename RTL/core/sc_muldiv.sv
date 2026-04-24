@@ -8,7 +8,6 @@ module sc_muldiv(
     output logic ex_ready_o,
 
     //connection to writeback arbitrer
-    input logic wb_ready_i, // TODO: will be removed in favor of direct comms between WB and RS
     output signal_pkg::sc_ex_output_signal_t muldiv_result_o
 );
 

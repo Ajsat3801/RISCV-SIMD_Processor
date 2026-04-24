@@ -151,8 +151,8 @@ module core #()(
         .s_data_bus_i(u_scalar_data_bus),
         .released_rs_slot_id_o(released_rs_slot_id_arr[1:0]),
         .rs_slot_released_o(rs_slot_released_arr[1:0]),
-        .ex1_ready_i(alu0_ready),
-        .ex2_ready_i(alu1_ready),
+        .wb1_ready_i(wb_ready[0] && alu0_ready),
+        .wb2_ready_i(wb_ready[1] && alu1_ready),
         .dispatch1_o(alu0_input),
         .dispatch2_o(alu1_input)
     );
@@ -163,7 +163,6 @@ module core #()(
         .flush_i(flush),
         .alu_input_i(alu0_input),
         .ex_ready_o(alu0_ready),
-        .wb_ready_i(wb_ready[0]),
         .alu_result_o(ex_result[0])
     );
 
@@ -173,7 +172,6 @@ module core #()(
         .flush_i(flush),
         .alu_input_i(alu1_input),
         .ex_ready_o(alu1_ready),
-        .wb_ready_i(wb_ready[1]),
         .alu_result_o(ex_result[1])
     );
 
@@ -187,7 +185,7 @@ module core #()(
         .s_data_bus_i(u_scalar_data_bus),
         .released_rs_slot_id_o(released_rs_slot_id_arr[4]),
         .rs_slot_released_o(rs_slot_released_arr[4]),
-        .ex_ready_i(1'b1),
+        .wb_ready_i(1'b1),
         .dispatch_o(br_input)
     );
 

@@ -18,7 +18,7 @@ module sc_rs_1issue #(
     output logic rs_slot_released_o,
 
     // output to execution unit
-    input ex_ready_i,
+    input wb_ready_i,
     output signal_pkg::sc_ex_input_signal_t dispatch_o
 );
 
@@ -50,9 +50,9 @@ module sc_rs_1issue #(
                     dispatched_instr_i.rs_entry.operand_a_ready &&
                     dispatched_instr_i.rs_entry.operand_b_ready && 
                     !(|eligible) &&
-                    ex_ready_i;
+                    wb_ready_i;
 
-        dispatch =  |eligible && ex_ready_i;
+        dispatch =  |eligible && wb_ready_i;
 
         if (dispatch) begin
             mask_upper[0] = mask[0];

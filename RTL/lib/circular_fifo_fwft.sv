@@ -17,13 +17,14 @@ module circular_fifo_fwft #(
     
     output T data_o,
     output logic empty_o,
-    output logic full_o
+    output logic full_o,
+    output logic next_full_o
 );
 
     localparam ADDR_SIZE = $clog2(BUFFER_SIZE+1);
 
     T main_fifo[BUFFER_SIZE:0]; // N+1 entry buffer
-    logic[ADDR_SIZE-1:0] head, tail, head_next, tail_next; // address needs one extra bit
+    logic[ADDR_SIZE-1:0] head, tail, head_next, tail_next, tail_next_next; // address needs one extra bit
     logic bypass, push_allowed, pop_allowed;
 
     always_comb begin
@@ -31,7 +32,10 @@ module circular_fifo_fwft #(
         tail_next = (tail == BUFFER_SIZE) ? '0 : (tail + 1);
         head_next = (head == BUFFER_SIZE) ? '0 : (head + 1);
 
+        tail_next_next = (tail_next == BUFFER_SIZE) ? '0 : (tail_next + 1);
+
         full_o  = (tail_next == head);
+        next_full_o = (tail_next_next == head);
         empty_o = (head == tail);
 
         bypass = empty_o && push_i && pop_i;

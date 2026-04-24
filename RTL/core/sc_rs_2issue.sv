@@ -18,8 +18,8 @@ module sc_rs_2issue #(
     output logic rs_slot_released_o[1:0],
 
     // output to execution unit
-    input ex1_ready_i,
-    input ex2_ready_i,
+    input wb1_ready_i,
+    input wb2_ready_i,
     output signal_pkg::sc_ex_input_signal_t dispatch1_o,
     output signal_pkg::sc_ex_input_signal_t dispatch2_o
 );
@@ -75,14 +75,14 @@ module sc_rs_2issue #(
         winner1_valid = (|upper_canditates) || (|lower_canditates);
         winner2_valid = (|canditates2);
 
-        winner1_to_slot1 =  ex1_ready_i &&  winner1_valid;
-        winner1_to_slot2 =  ex2_ready_i &&  winner1_valid && !ex1_ready_i;
-        winner2_to_slot2 =  ex2_ready_i &&  winner2_valid &&  ex1_ready_i;
-        bypass_to_slot1  =  ex1_ready_i && !winner1_valid && bypass_valid;
-        bypass_to_slot2  =  ex2_ready_i && 
+        winner1_to_slot1 =  wb1_ready_i &&  winner1_valid;
+        winner1_to_slot2 =  wb2_ready_i &&  winner1_valid && !wb1_ready_i;
+        winner2_to_slot2 =  wb2_ready_i &&  winner2_valid &&  wb1_ready_i;
+        bypass_to_slot1  =  wb1_ready_i && !winner1_valid && bypass_valid;
+        bypass_to_slot2  =  wb2_ready_i && 
                             !winner2_valid &&
-                            ((ex1_ready_i &&  winner1_valid) ||
-                            (!ex1_ready_i && !winner1_valid)) &&
+                            ((wb1_ready_i &&  winner1_valid) ||
+                            (!wb1_ready_i && !winner1_valid)) &&
                             bypass_valid;
 
         mask_next = mask;
