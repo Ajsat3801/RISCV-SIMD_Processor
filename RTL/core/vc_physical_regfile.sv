@@ -27,10 +27,14 @@ module vc_physical_regfile (
     // inputs from RS for instruction ready to be executed
     input signal_pkg::vc_dispatched_instr_t valu_dispatched_i,
     input signal_pkg::vc_dispatched_instr_t lsu_dispatched_i,
+    input logic valu_ready_i,
+    input logic lsu_ready_i,
 
     // sending operands and instruction data to ex
     output signal_pkg::vc_ex_input_signal_t valu_input_o,
-    output signal_pkg::vc_ex_input_signal_t lsu_input_o 
+    output signal_pkg::vc_ex_input_signal_t lsu_input_o,
+    output logic valu_ready_o,
+    output logic lsu_ready_i
     
 );
 
@@ -46,6 +50,8 @@ module vc_physical_regfile (
 
             valu_input_o <= '0;
             lsu_input_o  <= '0;
+            valu_ready_o <= 1'b1;
+            lsu_ready_o <= 1'b1;
             
             allocated_instr_o.prf_valid   <= 1'b0;
             allocated_instr_o.chip_select <= instr_pkg::CS_NONE;
@@ -89,7 +95,7 @@ module vc_physical_regfile (
             allocated_instr_o.b_is_vector   <= allocated_instr_i.b_is_vector;
 
             // read VALU operands
-            if (valu_dispatched_i.valid) begin
+            if (valu_dispatched_i.valid && valu_ready_i) begin
                 valu_input_o.valid   <= valu_dispatched_i.valid;
                 valu_input_o.prf_tag <= valu_dispatched_i.prf_tag;
                 valu_input_o.rob_id  <= valu_dispatched_i.rob_id;
@@ -108,6 +114,8 @@ module vc_physical_regfile (
                 end
             end
             else valu_input_o <= '0;
+
+            valu_ready_o <= valu_ready_i;
 
             // read LSU operands
             if (lsu_dispatched_i.valid) begin
@@ -130,6 +138,8 @@ module vc_physical_regfile (
 
             end
             else lsu_input_o <= '0;
+
+            lsu_ready_o <= lsu_ready_i;
 
         end
     end

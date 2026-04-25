@@ -87,4 +87,14 @@ package storage_pkg;
 
     } alu_result_entry_t;
 
+    typedef struct packed {
+        logic valid;
+
+        instr_pkg::prf_tag_t prf_tag;
+        instr_pkg::rob_address_t rob_id;
+
+        instr_pkg::vector_data_t data;
+
+    } vc_result_entry_t;
+
 endpackage

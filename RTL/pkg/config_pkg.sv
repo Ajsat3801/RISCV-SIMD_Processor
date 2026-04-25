@@ -8,6 +8,7 @@ package config_pkg;
     parameter int unsigned INSTRUCTION_QUEUE_LEN = 16;
     parameter int unsigned EX_COUNT = 6;
     parameter int unsigned SCALAR_EX_COUNT = 4;
+    parameter int unsigned VECTOR_EX_COUNT = 2;
     parameter int unsigned ROB_LEN = 32;
 
     // Reservation station config
@@ -19,7 +20,7 @@ package config_pkg;
 
     // Data/Storage config
     parameter int unsigned DATA_SIZE = 32;
-    parameter int unsigned VECTOR_DATA_SIZE = 128;
+    parameter int unsigned VECTOR_SIZE = 4;
     parameter int unsigned ARCH_REG_DEPTH = 32;
     parameter int unsigned PRF_DEPTH = 48;
 
