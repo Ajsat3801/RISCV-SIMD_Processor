@@ -123,7 +123,7 @@ module sc_wb_arbiter #() (
 
         reset_wb_n = reset_ni && !flush_i;
 
-        wb_ready_o = ~(full | full_next);
+        wb_ready_o = ~(full | next_full);
         
     end
 

@@ -130,7 +130,7 @@ always_comb begin
 
 end
 
-always_ff begin
+always_ff @(posedge clk_i) begin
     if(!reset_ni || flush_i) begin
         prf_tag <= '0;
         rob_id <= '0;

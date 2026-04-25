@@ -32,8 +32,8 @@ module sc_multiplier(
         valid_input = valid_i && multiplicand_i != 32'h80000000;
 
         multiplicand_2s_complement = ~multiplicand + 1'b1;
-        sign_ext = (unsigned_multiplicand) 1'b0 : multiplicand[31];
-        sign_ext_neg = (unsigned_multiplicand) 1'b0 : multiplicand_2s_complement[31];
+        sign_ext = (unsigned_multiplicand) ? 1'b0 : multiplicand[31];
+        sign_ext_neg = (unsigned_multiplicand) ? 1'b0 : multiplicand_2s_complement[31];
 
         // calculating partial_sum1
         unique case ({multiplier[2], multiplier[1], multiplier[0]}) 
@@ -49,15 +49,15 @@ module sc_multiplier(
         endcase
 
         unique case ({multiplier[18], multiplier[17], multiplier[16]}) 
-            3'b000:  partial_sum1 = '0;
-            3'b001:  partial_sum1 = {sign_ext, sign_ext, multiplicand};
-            3'b010:  partial_sum1 = {sign_ext, sign_ext, multiplicand};
-            3'b011:  partial_sum1 = {sign_ext, multiplicand, 1'b0};
-            3'b100:  partial_sum1 = {sign_ext_neg, multiplicand_2s_complement, 1'b0};
-            3'b101:  partial_sum1 = {sign_ext_neg, sign_ext_neg, multiplicand_2s_complement};
-            3'b110:  partial_sum1 = {sign_ext_neg, sign_ext_neg, multiplicand_2s_complement};
-            3'b111:  partial_sum1 = '0;
-            default: partial_sum1 = '0;
+            3'b000:  partial_sum2 = '0;
+            3'b001:  partial_sum2 = {sign_ext, sign_ext, multiplicand};
+            3'b010:  partial_sum2 = {sign_ext, sign_ext, multiplicand};
+            3'b011:  partial_sum2 = {sign_ext, multiplicand, 1'b0};
+            3'b100:  partial_sum2 = {sign_ext_neg, multiplicand_2s_complement, 1'b0};
+            3'b101:  partial_sum2 = {sign_ext_neg, sign_ext_neg, multiplicand_2s_complement};
+            3'b110:  partial_sum2 = {sign_ext_neg, sign_ext_neg, multiplicand_2s_complement};
+            3'b111:  partial_sum2 = '0;
+            default: partial_sum2 = '0;
         endcase
 
         multiplier_next = {multiplier[32], multiplier[32], multiplier[32:2]};
