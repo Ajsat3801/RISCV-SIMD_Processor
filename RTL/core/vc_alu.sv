@@ -10,16 +10,17 @@ module vc_alu (
 endmodule
 
 genvar i;
-instr_pkg::vector_data_t valu_output;
+instr_pkg::vector_data_t valu_operand_a, valu_operand_b, valu_output;
 logic[config_pkg::VECTOR_SIZE-1:0] valid;
+
 
 generate
 
     for(i=0; i<config_pkg::VECTOR_SIZE; i++) begin
         vc_mini_alu (
             .operation(valu_input_i.operation),
-            .operand_a(valu_input_i.operand_a[i]),
-            .operand_b(valu_input_i.operand_b[i]),
+            .operand_a(valu_operand_a[i]),
+            .operand_b(valu_operand_b[i]),
             .valid_i(valu_input_i.valid),
             .result_o(valu_output[i]),
             .valid_o(valid[i])
@@ -27,6 +28,11 @@ generate
     end
 
 endgenerate
+
+always_comb begin
+    valu_operand_a = (a_is_vector) ? valu_input_i.operand_a : {4{valu_input_i.operand_a[0]}};
+    valu_operand_b = (b_is_vector) ? valu_input_i.operand_b : {4{valu_input_i.operand_b[0]}};
+end
 
 always_ff @(posedge clk_i) begin
     if(!reset_n) begin

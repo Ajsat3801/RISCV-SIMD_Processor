@@ -55,6 +55,7 @@ package signal_pkg;
         instr_pkg::rob_address_t rob_id;
 
         instr_pkg::vector_data_t data;
+
     } vc_ex_output_signal_t;
 
     typedef struct packed {

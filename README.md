@@ -22,11 +22,11 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 | ADDI, SLLI, SRLI, ANDI, ORI, XORI, SLTI, SLTIU       | Scalar ALU          |
 | BEQ, BNE, BLT, BGE, BLTU, BGEU                       | Branch Unit         |
 | JAL, LUI, AUIPC                                      | Procesed in decoder |
-| **FUTURE EXPANSION**                                 |                     |
 | MUL, DIV                                             | Scalar MULDIV       |
-| LW, SW                                               | LSU                 |
 | vadd.vv, vsub.vv, vand.vv, vor.vv, vxor.vv           | Vector ALU          | 
-| vadd.vx, vsub.vx, vand.vx, vor.vx, vxor.vx, vrsub.vx | Vector ALU          | 
+| vadd.vx, vsub.vx, vand.vx, vor.vx, vxor.vx, vrsub.vx | Vector ALU          |
+| **PENDING**                                          |                     | 
+| LW, SW                                               | LSU                 |
 | vle32.v, vse32.v                                     | LSU                 |
 
 ### Decoded instruction format

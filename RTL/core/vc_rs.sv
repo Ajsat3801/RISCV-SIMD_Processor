@@ -6,8 +6,8 @@ module vc_rs #(
     input reset_ni,
     input flush_i,
 
-    operand_bus_if.rs sc_operand_bus,
-    dispatch_bus_if.rs vc_dispatch_bus,
+    operand_bus_if.rs sc_operand_bus_i,
+    dispatch_bus_if.rs vc_dispatch_bus_i,
 
     data_bus_if.snoop sc_data_bus_i,
     data_bus_if.snoop vc_data_bus_i,
@@ -17,7 +17,7 @@ module vc_rs #(
     output instr_pkg::rs_slot_id_t released_rs_slot_id_o,
     output logic rs_slot_released_o,
 
-    input logic ex_ready_i
+    input logic wb_ready_i
 );
 
     storage_pkg::vc_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
@@ -31,27 +31,27 @@ module vc_rs #(
 
     always_comb begin
 
-        built_entry.occupied = sc_operand_bus.rs_entry.occupied && vc_dispatch_bus.valid;
-        built_entry.prf_tag  = vc_dispatch_bus.prf_tag;
-        built_entry.rob_id   = vc_dispatch_bus.rob_id;
+        built_entry.occupied = sc_operand_bus_i.rs_entry.occupied && vc_dispatch_bus_i.valid;
+        built_entry.prf_tag  = vc_dispatch_bus_i.prf_tag;
+        built_entry.rob_id   = vc_dispatch_bus_i.rob_id;
         
-        built_entry.operation   = vc_dispatch_bus.operation;
-        built_entry.a_is_vector = vc_dispatch_bus.a_is_vector;
-        built_entry.b_is_vector = vc_dispatch_bus.b_is_vector;
+        built_entry.operation   = vc_dispatch_bus_i.operation;
+        built_entry.a_is_vector = vc_dispatch_bus_i.a_is_vector;
+        built_entry.b_is_vector = vc_dispatch_bus_i.b_is_vector;
 
         if (!built_entry.a_is_vector) begin
-            built_entry.operand_a       = sc_operand_bus.rs_entry.operand_a;
-            built_entry.operand_a_tag   = sc_operand_bus.rs_entry.operand_a_tag;
-            built_entry.operand_a_ready = sc_operand_bus.rs_entry.operand_a_ready;
+            built_entry.operand_a       = sc_operand_bus_i.rs_entry.operand_a;
+            built_entry.operand_a_tag   = sc_operand_bus_i.rs_entry.operand_a_tag;
+            built_entry.operand_a_ready = sc_operand_bus_i.rs_entry.operand_a_ready;
         end
         else begin
             built_entry.operand_a       = '0;
-            built_entry.operand_a_tag   = vc_dispatch_bus.operand_a_tag;
-            built_entry.operand_a_ready = vc_dispatch_bus.operand_a_ready;
+            built_entry.operand_a_tag   = vc_dispatch_bus_i.operand_a_tag;
+            built_entry.operand_a_ready = vc_dispatch_bus_i.operand_a_ready;
         end
         
-        built_entry.operand_b_tag = vc_dispatch_bus.operand_b_tag;
-        built_entry.operand_b_ready = vc_dispatch_bus.operand_b_ready;
+        built_entry.operand_b_tag = vc_dispatch_bus_i.operand_b_tag;
+        built_entry.operand_b_ready = vc_dispatch_bus_i.operand_b_ready;
 
         mask_upper       = '0;
         upper_canditates = '0;
@@ -60,7 +60,7 @@ module vc_rs #(
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid = built_entry.occupied && vc_dispatch_bus.chip_select == CHIP_SELECT;
+        instr_valid = built_entry.occupied && vc_dispatch_bus_i.chip_select == CHIP_SELECT;
 
         for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
             eligible[i] =   buffer[i].occupied && 
@@ -72,9 +72,9 @@ module vc_rs #(
                     built_entry.operand_a_ready &&
                     built_entry.operand_b_ready && 
                     !(|eligible) &&
-                    ex_ready_i;
+                    wb_ready_i;
 
-        dispatch =  |eligible && ex_ready_i;
+        dispatch =  |eligible && wb_ready_i;
 
         if (dispatch) begin
             mask_upper[0] = mask[0];
@@ -101,7 +101,7 @@ module vc_rs #(
         end
         else begin
             mask_next = mask;
-            choice = (bypass) ? vc_dispatch_bus.rs_slot : '0;
+            choice = (bypass) ? vc_dispatch_bus_i.rs_slot : '0;
         end
     end 
 
@@ -193,7 +193,7 @@ module vc_rs #(
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[vc_dispatch_bus.rs_slot] <= built_entry;
+            if (instr_valid && !bypass) buffer[vc_dispatch_bus_i.rs_slot] <= built_entry;
 
         end
     end

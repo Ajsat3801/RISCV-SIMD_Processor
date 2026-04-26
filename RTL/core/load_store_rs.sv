@@ -1,13 +1,11 @@
 
-module load_store_rs #(
-    parameter instr_pkg::chip_select_e CHIP_SELECT = instr_pkg::CS_VALU
-)(
+module load_store_rs (
     input clk_i,
     input reset_ni,
     input flush_i,
 
-    operand_bus_if.rs sc_operand_bus,
-    dispatch_bus_if.rs vc_dispatch_bus,
+    operand_bus_if.rs sc_operand_bus_i,
+    dispatch_bus_if.rs vc_operand_bus_i,
 
     data_bus_if.snoop sc_data_bus_i,
     data_bus_if.snoop vc_data_bus_i,
@@ -37,34 +35,34 @@ module load_store_rs #(
 
     always_comb begin
 
-        built_entry.occupied = sc_operand_bus.rs_entry.occupied && vc_dispatch_bus.valid;
-        built_entry.prf_tag  = vc_dispatch_bus.prf_tag;
-        built_entry.rob_id   = vc_dispatch_bus.rob_id;
+        built_entry.occupied = sc_operand_bus_i.rs_entry.occupied && vc_operand_bus_i.valid;
+        built_entry.prf_tag  = vc_operand_bus_i.prf_tag;
+        built_entry.rob_id   = vc_operand_bus_i.rob_id;
         
-        built_entry.operation   = vc_dispatch_bus.operation;
-        built_entry.a_is_vector = vc_dispatch_bus.a_is_vector;
-        built_entry.b_is_vector = vc_dispatch_bus.b_is_vector;
+        built_entry.operation   = vc_operand_bus_i.operation;
+        built_entry.a_is_vector = vc_operand_bus_i.a_is_vector;
+        built_entry.b_is_vector = vc_operand_bus_i.b_is_vector;
 
         if (!built_entry.a_is_vector) begin
-            built_entry.operand_a       = sc_operand_bus.rs_entry.operand_a;
-            built_entry.operand_a_tag   = sc_operand_bus.rs_entry.operand_a_tag;
-            built_entry.operand_a_ready = sc_operand_bus.rs_entry.operand_a_ready;
+            built_entry.operand_a       = sc_operand_bus_i.rs_entry.operand_a;
+            built_entry.operand_a_tag   = sc_operand_bus_i.rs_entry.operand_a_tag;
+            built_entry.operand_a_ready = sc_operand_bus_i.rs_entry.operand_a_ready;
         end
         else begin
             built_entry.operand_a       = '0;
-            built_entry.operand_a_tag   = vc_dispatch_bus.operand_a_tag;
-            built_entry.operand_a_ready = vc_dispatch_bus.operand_a_ready;
+            built_entry.operand_a_tag   = vc_operand_bus_i.operand_a_tag;
+            built_entry.operand_a_ready = vc_operand_bus_i.operand_a_ready;
         end
         
         if(!built_entry.b_is_vector) begin
-            built_entry.operand_b       = sc_operand_bus.rs_entry.operand_b;
-            built_entry.operand_b_tag   = sc_operand_bus.rs_entry.operand_b_tag;
-            built_entry.operand_b_ready = sc_operand_bus.rs_entry.operand_b_ready;
+            built_entry.operand_b       = sc_operand_bus_i.rs_entry.operand_b;
+            built_entry.operand_b_tag   = sc_operand_bus_i.rs_entry.operand_b_tag;
+            built_entry.operand_b_ready = sc_operand_bus_i.rs_entry.operand_b_ready;
         end
         else begin
             built_entry.operand_b       = '0;
-            built_entry.operand_b_tag   = vc_dispatch_bus.operand_b_tag;
-            built_entry.operand_b_ready = vc_dispatch_bus.operand_b_ready;
+            built_entry.operand_b_tag   = vc_operand_bus_i.operand_b_tag;
+            built_entry.operand_b_ready = vc_operand_bus_i.operand_b_ready;
         end
 
         mask_upper       = '0;
@@ -74,7 +72,7 @@ module load_store_rs #(
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid = built_entry.occupied && vc_dispatch_bus.chip_select == CHIP_SELECT;
+        instr_valid = built_entry.occupied && (vc_operand_bus_i.chip_select == CS_VLSU || sc_operand_bus_i.chip_select == CS_SLSU);
 
         for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
             eligible[i] =   buffer[i].occupied && 
@@ -116,7 +114,7 @@ module load_store_rs #(
         end
         else begin
             mask_next = mask;
-            choice = (bypass) ? vc_dispatch_bus.rs_slot : '0;
+            choice = (bypass) ? vc_operand_bus_i.rs_slot : '0;
         end
     end 
 
@@ -133,7 +131,7 @@ module load_store_rs #(
             vc_dispatch_o.operand_a_tag = dispatch_q.operand_a_tag;
             vc_dispatch_o.operand_b_tag = dispatch_q.operand_b_tag;
 
-            vc_dispatch_o = '0;
+            sc_dispatch_o = '0;
         end
         else begin
             /* Scalar dispatch
@@ -145,7 +143,7 @@ module load_store_rs #(
             sc_dispatch_o.operand_b = dispatch_q.operand_b;
             sc_dispatch_o.operation = dispatch_q.operation;
 
-            sc_dispatch_o = '0;
+            vc_dispatch_o = '0;
         end
     end
 
@@ -260,7 +258,7 @@ module load_store_rs #(
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[vc_dispatch_bus.rs_slot] <= built_entry;
+            if (instr_valid && !bypass) buffer[vc_operand_bus_i.rs_slot] <= built_entry;
 
         end
     end

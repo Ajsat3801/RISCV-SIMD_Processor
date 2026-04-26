@@ -34,7 +34,7 @@ module vc_physical_regfile (
     output signal_pkg::vc_ex_input_signal_t valu_input_o,
     output signal_pkg::vc_ex_input_signal_t lsu_input_o,
     output logic valu_ready_o,
-    output logic lsu_ready_i
+    output logic lsu_ready_o
     
 );
 

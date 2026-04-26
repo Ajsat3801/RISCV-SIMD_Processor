@@ -78,7 +78,7 @@ module instruction_queue (
         .empty_o(rs_empty[0]),
         .full_o(rs_full[0])
     );
-    /*
+
     rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
         .T(logic[RS_ADDR_W-1:0])
@@ -92,7 +92,7 @@ module instruction_queue (
         .empty_o(rs_empty[1]),
         .full_o(rs_full[1])
     );
-    
+    /*
     rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
         .T(logic[RS_ADDR_W-1:0])
@@ -120,7 +120,7 @@ module instruction_queue (
         .empty_o(rs_empty[3]),
         .full_o(rs_full[3])
     );
-    /*
+    
     rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
         .T(logic[RS_ADDR_W-1:0])
@@ -133,7 +133,7 @@ module instruction_queue (
         .data_o(next_rs_slot[4]),
         .empty_o(rs_empty[4]),
         .full_o(rs_full[4])
-    );*/
+    );
 
     always_comb begin
 
