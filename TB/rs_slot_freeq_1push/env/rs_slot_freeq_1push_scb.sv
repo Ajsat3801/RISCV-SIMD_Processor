@@ -1,10 +1,10 @@
 
-class rs_slot_freeq_1push_scb extends uvm_scoreboard;
+class lib_rs_slot_freeq_1push_scb extends uvm_scoreboard;
 
-    `uvm_component_utils(rs_slot_freeq_1push_scb)
+    `uvm_component_utils(lib_rs_slot_freeq_1push_scb)
 
-    uvm_analysis_imp #(rs_slot_freeq_1push_tr, rs_slot_freeq_1push_scb) mon_imp;
-    rs_slot_freeq_1push_ref_model_adapter ref_model;
+    uvm_analysis_imp #(lib_rs_slot_freeq_1push_tr, lib_rs_slot_freeq_1push_scb) mon_imp;
+    lib_rs_slot_freeq_1push_ref_model_adapter ref_model;
 
     bit stimulus_done_flag = 1'b0;
     bit check_done_flag = 1'b0;
@@ -38,7 +38,7 @@ class rs_slot_freeq_1push_scb extends uvm_scoreboard;
     
     endfunction
 
-    virtual task write(rs_slot_freeq_1push_tr tr);
+    virtual task write(lib_rs_slot_freeq_1push_tr tr);
 
         T data_out;
         bit full, empty;

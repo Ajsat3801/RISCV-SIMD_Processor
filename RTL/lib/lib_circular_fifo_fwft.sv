@@ -3,7 +3,7 @@ circular FIFO with first word fall through - general implementation
 the head value will be the output even before pop asks for it
 */
 
-module circular_fifo_fwft #(
+module lib_circular_fifo_fwft #(
     parameter BUFFER_SIZE = 8, 
     parameter type T = logic[31:0]
 ) (    

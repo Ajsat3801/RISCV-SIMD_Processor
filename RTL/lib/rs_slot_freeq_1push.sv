@@ -1,10 +1,10 @@
 /* 
-exact same logic as circular_fifo_fwft. only difference is reset
+exact same logic as lib_circular_fifo_fwft. only difference is reset
 fills the buffer from 0 to buffer_size
 */
 import config_pkg::*;
 
-module rs_slot_freeq_1push #(
+module lib_rs_slot_freeq_1push #(
     parameter BUFFER_SIZE = 8,
     parameter type T = logic[31:0]
 ) (

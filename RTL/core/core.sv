@@ -8,13 +8,17 @@ module core #()(
     input clk_i,
     input reset_ni,
 
-    input instr_pkg::data_t raw_instr_i,
+    input instr_pkg::data_t fetched_instr_i,
     input instr_pkg::data_t pc_i,
     input logic fetch_valid_i,
 
-    input pre_load_i,
-    input instr_pkg::prf_tag_t pre_load_addr_i,
-    input instr_pkg::data_t pre_load_data_i,
+    input sc_pre_load_i,
+    input instr_pkg::prf_tag_t sc_pre_load_addr_i,
+    input instr_pkg::data_t sc_pre_load_data_i,
+
+    input vc_pre_load_i,
+    input instr_pkg::prf_tag_t vc_pre_load_addr_i,
+    input instr_pkg::data_t vc_pre_load_data_i,
 
     output logic ready_o
 );
@@ -30,78 +34,129 @@ module core #()(
  *   -> ready for next instruction (input of fetch module)
  *  Notes
  *   -> Fetch is remaining, current inputs and outputs of core are those of fetch
- *   -> Vector inputs of OOO modules currently have placeholder values
  */
 
     logic flush;
 
     instr_pkg::decoded_instr_t decoded_instr;
+    
     instr_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
     logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
 
-    logic rob_full, scalar_arr_full, vector_arr_full;
+    logic rob_full, sc_arr_full, vc_arr_full;
     
-    signal_pkg::sc_ex_input_signal_t sc_alu0_input, sc_alu1_input, br_input, sc_muldiv_input;
-    logic sc_alu0_ready, sc_alu1_ready, sc_muldiv_ready;
+    // functional units input signals
+    // for scalar 0-> alu0, 1->alu1, 2->muldiv, 3->lsu
+    // for vector 0-> valu, 1->lsu
 
-    signal_pkg::br_output_signal_t branch_result;
+    // FOR SCALAR : RS -> EX
+    // FOR VECTOR : PRF -> EX
+    signal_pkg::sc_ex_input_signal_t sc_ex_request[SCALAR_EX_COUNT-1:0];
+    signal_pkg::sc_ex_input_signal_t br_ex_request;
+    signal_pkg::vc_ex_input_signal_t vc_ex_request[VECTOR_EX_COUNT-1:0];
+
+    // signal from reservation station to prf for vector
+    // VECTOR RS -> PRF
+    signal_pkg::vc_issued_instr_t vc_issued_instr[VECTOR_EX_COUNT-1:0];
+
+    // functional units output signals
+    // EX -> WB
     signal_pkg::sc_ex_output_signal_t sc_ex_result[SCALAR_EX_COUNT-1:0];
-
-    logic wb_ready[SCALAR_EX_COUNT-1:0];
-
-    signal_pkg::vc_dispatched_instr_t valu_dispatched_instr, lsu_dispatched_instr;
-    logic vc_wb_ready[VECTOR_EX_COUNT-1:0]
-    logic valu_ready, lsu_ready;
-
-    signal_pkg::vc_ex_input_signal_t vc_alu_input, vc_lsu_input;
+    signal_pkg::br_output_signal_t br_ex_result;
     signal_pkg::vc_ex_output_signal_t vc_ex_result[VECTOR_EX_COUNT-1:0];
 
+    // ready signals from FUs
+    // SCALAR: EX -> RS
+    // VECTOR: EX -> PRF
 
+    logic sc_ex_ready[SCALAR_EX_COUNT-1:0];
+    logic br_ex_ready;
+    logic vc_ex_ready[VECTOR_EX_COUNT-1:0];
+
+    // ready signals from vector PRF to RS
+    logic vc_ex_ready_prf[VECTOR_EX_COUNT-1:0];
+
+    // ready signals from WB
+    // WB -> RS
+    logic sc_wb_ready[SCALAR_EX_COUNT-1:0];
+    logic vc_wb_ready[VECTOR_EX_COUNT-1:0];
+
+    /*
+        Fetched OP -> fetched_instr
+        Decoded OP -> decoded_instr
+        Queue OP   -> dispatched_instr
+        ARR op     -> alloc_instr
+        PRF op to RS -> rs_request
+        RS to EX   -> ex_request
+        RS to PRF  -> vc_read_request
+        PRF to EX  -> ex_request
+        ex to wb   -> ex_result
+        ROB retire -> retire_instr
+    */
+    
 // ----------------------------------------------------------------------------
 //                              ALL INTERFACES
 // ----------------------------------------------------------------------------
 
-    instruction_bus_if                             u_instruction_bus();
-    alloc_bus_if                                   u_scalar_alloc_bus();
-    alloc_bus_if                                   u_vector_alloc_bus();
-    data_bus_if #(.T(instr_pkg::data_t))           u_scalar_data_bus();
-    data_bus_if #(.T(instr_pkg::vector_data_t))    u_vector_data_bus();
-    operand_bus_if #(.T(instr_pkg::data_t))        u_scalar_operand_bus();
-    operand_bus_if #(.T(instr_pkg::vector_data_t)) u_vector_operand_bus();
-    retirement_bus_if                              u_retirement_bus();
-    data_bus_if #(.T(instr_pkg::data_t))           u_scalar_prf_in();
-    dispatch_bus_if u_vector_dispatch_bus();
+    if_dispatch_bus u_dispatch_bus();
+    
+    if_alloc_bus u_sc_alloc_bus();
+    if_alloc_bus u_vc_alloc_bus();
+
+    if_scalar_request_bus u_sc_request_bus();
+    if_vector_request_bus u_vc_request_bus();
+
+    if_data_bus #(.T(instr_pkg::data_t)) u_sc_data_bus();
+    if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_data_bus();
+    
+    if_retirement_bus u_retirement_bus();
+    
+    // used for pre-loading data into the prf 
+    if_data_bus #(.T(instr_pkg::data_t)) u_sc_prf_input();
+    if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_prf_input();
 
     always_comb begin
         /*
          * Handling pre-loading of PRF
          */
-        if (pre_load_i) begin
-            u_scalar_prf_in.valid   = pre_load_i;
-            u_scalar_prf_in.prf_tag = pre_load_addr_i;
-            u_scalar_prf_in.data    = pre_load_data_i;
+        if (sc_pre_load_i) begin
+            u_sc_prf_input.valid   = sc_pre_load_i;
+            u_sc_prf_input.prf_tag = sc_pre_load_addr_i;
+            u_sc_prf_input.data    = sc_pre_load_data_i;
         end
         else begin
-            u_scalar_prf_in.valid   = u_scalar_data_bus.valid;
-            u_scalar_prf_in.prf_tag = u_scalar_data_bus.prf_tag;
-            u_scalar_prf_in.data    = u_scalar_data_bus.data;
+            u_sc_prf_input.valid   = u_sc_data_bus.valid;
+            u_sc_prf_input.prf_tag = u_sc_data_bus.prf_tag;
+            u_sc_prf_input.data    = u_sc_data_bus.data;
         end
+
+        if (vc_pre_load_i) begin
+            u_vc_prf_input.valid   = vc_pre_load_i;
+            u_vc_prf_input.prf_tag = vc_pre_load_addr_i;
+            u_vc_prf_input.data    = vc_pre_load_data_i;
+        end
+        else begin
+            u_vc_prf_input.valid   = u_vc_data_bus.valid;
+            u_vc_prf_input.prf_tag = u_vc_data_bus.prf_tag;
+            u_vc_prf_input.data    = u_vc_data_bus.data;
+        end
+
     end
 
 // ----------------------------------------------------------------------------
 //                            IN ORDER FRONT END
 // ----------------------------------------------------------------------------
 
-    decoder u_decoder (
+    fe_decode u_decode (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .raw_instr_i(raw_instr_i),
+        .fetched_instr_i(fetched_instr_i),
         .pc_i(pc_i),
         .fetch_valid_i(fetch_valid_i),
         .decoded_instr_o(decoded_instr)
     );
 
-    instruction_queue u_instr_q (
+    fe_instruction_queue u_instr_q (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -109,9 +164,9 @@ module core #()(
         .released_rs_slot_id_i(released_rs_slot_id_arr),
         .rs_slot_released_i(rs_slot_released_arr),
         .rob_full_i(rob_full),
-        .scalar_arr_full_i(scalar_arr_full),
-        .vector_arr_full_i(vector_arr_full),
-        .alloc_instr_o(u_instruction_bus),
+        .sc_arr_full_i(sc_arr_full),
+        .vc_arr_full_i(vc_arr_full),
+        .dispatched_instr_o(u_dispatch_bus),
         .queue_ready_o(ready_o)
     );
 
@@ -119,37 +174,38 @@ module core #()(
 //                           OUT OF ORDER COMPONENTS
 // ----------------------------------------------------------------------------
 
-    alloc_rename_retire #(.IS_VECTOR(1'b0)) u_scalar_arr (
+    ooo_arr_unit #(.IS_VECTOR(1'b0)) u_scalar_arr (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .pre_alloc_instr_i(u_instruction_bus),
+        .dispatched_instr_i(u_dispatch_bus),
         .retire_instr_i(u_retirement_bus),
-        .allocated_instr_io(u_scalar_alloc_bus),
+        .alloc_instr_o(u_sc_alloc_bus),
         .arr_full_o(scalar_arr_full)
     );
 
-    alloc_rename_retire #(.IS_VECTOR(1'b1)) u_vector_arr (
+    ooo_arr_unit #(.IS_VECTOR(1'b1)) u_vector_arr (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .pre_alloc_instr_i(u_instruction_bus),
+        .dispatched_instr_i(u_dispatch_bus),
         .retire_instr_i(u_retirement_bus),
-        .allocated_instr_io(u_vector_alloc_bus),
+        .alloc_instr_o(u_vc_alloc_bus),
         .arr_full_o(vector_arr_full)
     );
 
-    reorder_buffer u_reorder_buffer (
+    ooo_reorder_buffer u_reorder_buffer (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .sc_allocated_instr_io(u_scalar_alloc_bus),
-        .vc_allocated_instr_io(u_vector_alloc_bus),
-        .scalar_wb_i(u_scalar_data_bus),
-        .vector_wb_i(u_vector_data_bus),
-        .branch_i(branch_result),
-        .alloc_instr_o(u_scalar_operand_bus),
+        .sc_allocated_instr_i(u_sc_alloc_bus),
+        .vc_allocated_instr_i(u_vc_alloc_bus),
+        .sc_data_bus_i(u_sc_data_bus),
+        .vc_data_bus_i(u_vc_data_bus),
+        .branch_result_i(branch_result),
+        .sc_request_o(u_sc_request_bus),
+        .vc_request_o(u_vc_request_bus),
         .retire_instr_o(u_retirement_bus),
-        .rob_exp_full_o(rob_full),
+        .rob_full_o(rob_full),
         .flush_o(flush)
     );
 
@@ -157,176 +213,178 @@ module core #()(
 //                            PHYSICAL REGISTERS
 // ----------------------------------------------------------------------------
 
-    sc_physical_regfile u_scalar_prf (
+    phy_regfile_scalar u_scalar_prf (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .allocated_instr_i(u_scalar_alloc_bus),
-        .writeback_instr_i(u_scalar_prf_in),
-        .instr_o(u_scalar_operand_bus)
+        .sc_alloc_instr_i(u_sc_alloc_bus),
+        .sc_wb_instr_i(u_sc_prf_input),
+        .sc_request_instr_o(u_sc_request_bus)
     );     
 
-    vc_physical_regfile u_vector_prf (
+    phy_regfile_vector u_vector_prf (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .allocated_instr_i(u_vector_alloc_bus),
-        .allocated_instr_o(u_vector_dispatch_bus),
-        .writeback_instr_i(u_vector_data_bus),
-        .valu_dispatched_i(valu_dispatched_instr),
-        .lsu_dispatched_i(lsu_dispatched_instr),
-        .valu_ready_i(vc_wb_ready[0]),
-        .lsu_ready_i(vc_wb_ready[1]),
-        .valu_input_o(valu_input),
-        .lsu_input_o(lsu_input),
-        .valu_ready_o(valu_ready_to_rs),
-        .lsu_ready_o(vlsu_ready_to_rs)
+        .vc_alloc_instr_i(u_vc_alloc_bus),
+        .vc_request_instr_o(u_vc_request_bus),
+        .vc_wb_instr_i(u_vc_prf_input),
+        .vc_issued_instr_i(vc_issued_instr),
+        .vc_ex_ready_i(vc_ex_ready & vc_wb_ready),
+        .vc_ex_request_o(vc_ex_request),
+        .vc_ex_ready_o(vc_ex_ready_prf)
     ); 
 
 // ----------------------------------------------------------------------------
 //                                SCHEDULING
 // ----------------------------------------------------------------------------
 
-    sc_rs_2issue #(.CHIP_SELECT(instr_pkg::CS_SALU)) u_sc_alu_rs (
+    rs_scalar_2issue #(.CHIP_SELECT(instr_pkg::CS_SALU)) u_scalar_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .rs_input_i(u_scalar_operand_bus),
-        .s_data_bus_i(u_scalar_data_bus),
+        .sc_rs_request_i(u_sc_request_bus),
+        .sc_data_bus_i(u_sc_data_bus),
+        .sc_ex0_ready_i(sc_ex_ready[0] && sc_wb_ready[0]),
+        .sc_ex1_ready_i(sc_ex_ready[1] && sc_wb_ready[1]),
+        .sc_ex0_request_o(sc_ex_request[0]),
+        .sc_ex1_request_o(sc_ex_request[1]),
         .released_rs_slot_id_o(released_rs_slot_id_arr[1:0]),
-        .rs_slot_released_o(rs_slot_released_arr[1:0]),
-        .wb1_ready_i(wb_ready[0] && sc_alu0_ready),
-        .wb2_ready_i(wb_ready[1] && sc_alu1_ready),
-        .dispatch1_o(sc_alu0_input),
-        .dispatch2_o(sc_alu1_input)
+        .rs_slot_released_o(rs_slot_released_arr[1:0])
     );
 
-    sc_rs_1issue #(.CHIP_SELECT(instr_pkg::CS_MULDIV)) u_muldiv_rs (
+    rs_scalar_1issue #(.CHIP_SELECT(instr_pkg::CS_MULDIV)) u_scalar_muldiv_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .dispatched_instr_i(u_scalar_operand_bus),
-        .s_data_bus_i(u_scalar_data_bus),
+        .sc_rs_request_i(u_sc_request_bus),
+        .sc_data_bus_i(u_sc_data_bus),
+        .sc_ex_ready_i(sc_ex_ready[2] && sc_wb_ready[2]),
+        .sc_ex_request_o(sc_ex_request[2]),
         .released_rs_slot_id_o(released_rs_slot_id_arr[2]),
         .rs_slot_released_o(rs_slot_released_arr[2]),
-        .wb_ready_i(wb_ready[2] && sc_muldiv_ready),
-        .dispatch_o(sc_muldiv_input)
     );
 
-    load_store_rs u_lsu_rs (
+    rs_common_lsu u_lsu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_operand_bus_i(u_scalar_operand_bus),
-        .vc_operand_bus_i(u_vector_operand_bus),
-        .sc_data_bus_i(u_scalar_data_bus),
-        .vc_data_bus_i(u_vector_data_bus),
-        .vc_dispatch_o(lsu_dispatched_instr),
-        .sc_dispatch_o(sc_lsu_dispatched_instr),
+        .sc_rs_request_i(u_sc_request_bus),
+        .vc_rs_request_i(u_vc_request_bus),
+        .sc_data_bus_i(u_sc_data_bus),
+        .vc_data_bus_i(u_vc_data_bus),
+        .sc_ex_request_o(sc_ex_request[3]),
+        .vc_read_request_o(vc_issued_instr[1]),
+        .vc_ex_ready_i(vc_ex_ready_prf[1]),
         .released_rs_slot_id_o(released_rs_slot_id_arr[3]),
-        .rs_slot_released_o(rs_slot_released_arr[3]),
-        .ex_ready_i(lsu_ready_to_rs)
+        .rs_slot_released_o(rs_slot_released_arr[3])
     );
 
-    sc_rs_1issue #(.CHIP_SELECT(instr_pkg::CS_BRANCH)) u_branch_rs (
+    rs_scalar_1issue #(.CHIP_SELECT(instr_pkg::CS_BRANCH)) u_branch_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .dispatched_instr_i(u_scalar_operand_bus),
-        .s_data_bus_i(u_scalar_data_bus),
+        .sc_rs_input_i(u_sc_request_bus),
+        .sc_data_bus_i(u_sc_data_bus),
+        .sc_ex_ready_i(br_ex_ready),
+        .sc_ex_request_o(br_ex_req)
         .released_rs_slot_id_o(released_rs_slot_id_arr[4]),
         .rs_slot_released_o(rs_slot_released_arr[4]),
-        .wb_ready_i(1'b1),
-        .dispatch_o(br_input)
     );
 
-    vc_rs #(.CHIP_SELECT(instr_pkg::CS_VALU)) u_valu_rs (
+    rs_vector_1issue #(.CHIP_SELECT(instr_pkg::CS_VALU)) u_vector_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_operand_bus_i(u_scalar_operand_bus),
-        .vc_dispatch_bus_i(u_vector_dispatch_bus),
-        .sc_data_bus_i(u_scalar_data_bus),
-        .vc_data_bus_i(u_vector_data_bus),
-        .dispatch_o(valu_dispatched_instr),
+        .sc_rs_input_i(u_sc_request_bus),
+        .vc_rs_input_i(u_vc_request_bus),
+        .sc_data_bus_i(u_sc_data_bus),
+        .vc_data_bus_i(u_vc_data_bus),
+        .vc_wb_ready_i(vc_ex_ready_prf[0]),
+        .vc_read_request_o(vc_issued_instr[0]),
         .released_rs_slot_id_o(released_rs_slot_id_arr[5]),
-        .rs_slot_released_o(rs_slot_released_arr[5]),
-        .wb_ready_i(valu_ready_to_rs)
+        .rs_slot_released_o(rs_slot_released_arr[5])
+        
     );
 
 // ----------------------------------------------------------------------------
 //                             FUNCTIONAL UNITS
 // ----------------------------------------------------------------------------
 
-    sc_alu u_sc_alu0 (
+    ex_scalar_alu u_scalar_alu0 (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .alu_input_i(sc_alu0_input),
-        .ex_ready_o(sc_alu0_ready),
-        .alu_result_o(sc_ex_result[0])
+        .sc_ex_request_i(sc_ex_request[0]),
+        .sc_ex_result_o(sc_ex_result[0]),
+        .sc_ex_ready_o(sc_ex_ready[0])
     );
 
-    sc_alu u_sc_alu1 (
+    ex_scalar_alu u_scalar_alu1 (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .alu_input_i(sc_alu1_input),
-        .ex_ready_o(sc_alu1_ready),
-        .alu_result_o(sc_ex_result[1])
+        .sc_ex_request_i(sc_ex_request[1]),
+        .sc_ex_result_o(sc_ex_result[1]),
+        .sc_ex_ready_o(sc_ex_ready[1])
     );
 
-    sc_muldiv u_sc_muldiv(
+    ex_scalar_muldiv u_scalar_muldiv(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .flush_i(flush_i),
-        .muldiv_input_i(sc_muldiv_input),
-        .ex_ready_o(sc_muldiv_ready),
-        .muldiv_result_o(sc_ex_result[2])
+        .flush_i(flush),
+        .sc_ex_request_i(sc_ex_request[2]),
+        .sc_ex_result_o(sc_ex_result[2]),
+        .sc_ex_ready_o(sc_ex_ready[2])
     ); 
 
-    branch_unit u_branch_unit (
+    ex_branch u_branch (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .br_input_i(br_input),
-        .br_res_o(branch_result)
+        .flush_i(flush),
+        .br_ex_request_i(br_ex_request),
+        .br_ex_result_o(br_ex_result),
+        .br_ex_ready_o(br_ex_ready)
     );
 
-    load_store_unit u_lsu (
-        .clk_i(),
-        .reset_ni(),
-        .flush_i(),
-        .sc_lsu_dispatched_instr_i(),
-        .vc_lsu_dispatched_instr_i(),
-        .sc_lsu_result_o(),
-        .vc_lsu_result_o(vc_ex_result)
-    );
-
-    vc_alu u_vector_alu (
+    ex_common_lsu u_lsu (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .valu_input_i(vc_alu_input),
-        .valu_output_o(vc_ex_result[0])
+        .flush_i(flush),
+        .sc_ex_request_i(sc_ex_request[3]),
+        .vc_ex_request_i(vc_ex_request[1]),
+        .sc_ex_result_o(sc_ex_result[3]),
+        .vc_ex_result_o(vc_ex_result[1]),
+        .sc_ex_ready_o(vc_ex_ready[3]),
+        .vc_ex_ready_o(vc_ex_ready[1])
+    );
+
+    ex_vector_alu u_vector_alu (
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .vc_ex_request_i(vc_ex_request[0]),
+        .vc_ex_result_o(vc_ex_result[0]),
+        .vc_ex_ready_o(vc_ex_ready[0])
     );
 
 // ----------------------------------------------------------------------------
 //                                 WRITEBACK
 // ----------------------------------------------------------------------------
 
-    sc_wb_arbiter u_scalar_writeback (
+    wb_scalar u_scalar_writeback (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_ex_result_i(sc_ex_result),
-        .wb_ready_o(wb_ready),
-        .scalar_data_bus_o(u_scalar_data_bus)
+        .ex_result_i(sc_ex_result),
+        .wb_ready_o(sc_wb_ready),
+        .data_bus_o(u_sc_data_bus)
     );
 
-    vc_wb_arbiter u_vector_writeback (
+    wb_vector u_vector_writeback (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
         .ex_result_i(vc_ex_result),
         .wb_ready_o(vc_wb_ready),
-        .vector_data_bus_o(u_vector_data_bus)
+        .data_bus_o(u_vc_data_bus)
     );
 
 endmodule

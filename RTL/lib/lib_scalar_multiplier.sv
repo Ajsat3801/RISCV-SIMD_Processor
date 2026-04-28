@@ -1,4 +1,4 @@
-module sc_multiplier(
+module lib_scalar_multiplier(
     input logic clk_i,
     input logic reset_ni,
 

@@ -1,5 +1,5 @@
 /* 
- * Modification of rs_slot_freeq_1push, ability to have 2 simultaneous pushes
+ * Modification of lib_rs_slot_freeq_1push, ability to have 2 simultaneous pushes
  * Only one pop allowed
  *
  * Buffer has n+1 entries, but only n slots can be filled at one time
@@ -9,7 +9,7 @@
 
 // import config_pkg::*;
 
-module rs_slot_freeq_2push #(
+module lib_rs_slot_freeq_2push #(
     parameter BUFFER_SIZE = 8,
     parameter type T = logic[31:0]
 )(

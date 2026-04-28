@@ -1,6 +1,6 @@
-import circular_fifo_fwft_tb_config_pkg::*;
+import lib_circular_fifo_fwft_tb_config_pkg::*;
 
-interface circular_fifo_fwft_if (
+interface lib_circular_fifo_fwft_if (
     input logic clk
 );
 

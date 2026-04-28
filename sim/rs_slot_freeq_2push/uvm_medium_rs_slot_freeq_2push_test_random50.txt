@@ -1,68 +1,68 @@
-UVM_INFO @ 0: reporter [RNTST] Running test rs_slot_freeq_2push_test_random50...
-UVM_INFO rs_slot_freeq_2push_base_seq.sv(16) @ 23000: uvm_test_top.env.agt.sqr@@seq [SEQ] Starting Sequence
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 23000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(00000000, 00000000) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 23000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 28000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(18c5915d, c0d603f0) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 28000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 33000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1bf6db6e, 5cf8bc7d) exp(dt_out: 00000001, full: 0, empty: 0) act(dt_out: 00000001, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 38000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(ca73d05b, 8fb22be5) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 43000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(37e14fa3, 9f8e7cc4) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 48000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1240e6cd, bdc645f8) exp(dt_out: 00000003, full: 0, empty: 0) act(dt_out: 00000003, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 53000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(a4cb0831, e4c708fa) exp(dt_out: 00000004, full: 0, empty: 0) act(dt_out: 00000004, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 58000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(c379a3fd, af7f844a) exp(dt_out: 00000005, full: 0, empty: 0) act(dt_out: 00000005, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 63000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(b2cad231, 8ea0ac71) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 68000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(444c82cd, e9244527) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 73000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(51b45fe5, cb4fe6b0) exp(dt_out: 00000007, full: 0, empty: 0) act(dt_out: 00000007, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 78000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(cc29ae09, 7f30d71d) exp(dt_out: 00000008, full: 0, empty: 0) act(dt_out: 00000008, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 83000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(b090780c, 19a4e951) exp(dt_out: 00000009, full: 0, empty: 0) act(dt_out: 00000009, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 88000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(a86977a1, ac799c65) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 93000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(826ab6ad, 6a9e190f) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 98000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(2ffce5cf, 954d4227) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 103000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3d9c0d3d, 86bda51a) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 108000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(3f2954f2, 2f9084e0) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 113000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(88b0a2e7, 7cdb7d44) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 118000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(9c323eb7, 2494dfd0) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 123000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(db07808d, df1abc96) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 128000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(a41b21c8, 1bb5e38e) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 133000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(3d4004c2, 0a185009) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 138000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(2d741ae3, faa63c8d) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 143000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(724d0fbb, c0bcf175) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 148000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(04e812f2, e2dc3ef9) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 153000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(404d5ec2, dcf05bab) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 158000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(be140562, 38189d0b) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 163000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(36de2438, a5d9a8fd) exp(dt_out: ca73d05b, full: 0, empty: 0) act(dt_out: ca73d05b, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 168000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(97a6eeab, a6c52bbb) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 173000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(023882e0, 409b828c) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 178000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(543f4e78, aca4c136) exp(dt_out: e4c708fa, full: 0, empty: 0) act(dt_out: e4c708fa, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 183000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(9b5dc3ca, 2be69712) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 183000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 188000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(7accdb66, 1a387105) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 188000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 193000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(e4f60887, 983adbea) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 198000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(eafc3672, 832439c4) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 198000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 203000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(94e40ce6, 36bcbc4a) exp(dt_out: b2cad231, full: 0, empty: 0) act(dt_out: b2cad231, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 208000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(84f86f45, 81679376) exp(dt_out: 51b45fe5, full: 0, empty: 0) act(dt_out: 51b45fe5, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 213000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c559dde7, 19d9d817) exp(dt_out: cb4fe6b0, full: 0, empty: 0) act(dt_out: cb4fe6b0, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 218000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(92310bf0, e0288ed5) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 223000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(a1636a9d, 6ce236de) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 228000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(b701dbfc, 89258557) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 228000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 233000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c27c5758, b6fd2742) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 238000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(bd0505f0, 5759dcc5) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 243000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(897a9b6b, 10d15a0c) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 248000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(abb93fd4, 2ca39c43) exp(dt_out: 3d9c0d3d, full: 1, empty: 0) act(dt_out: 3d9c0d3d, full: 1, empty: 0)
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 248000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 253000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(ed130467, ec8ced6b) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 258000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(5555c396, 0e90f2bf) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 263000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(0df694b3, 8c421745) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 268000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3ae1e8bb, c2f9de2f) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_base_seq.sv(18) @ 268000: uvm_test_top.env.agt.sqr@@seq [SEQ] Sequence Complete
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 273000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(d866494b, a68bd6a1) exp(dt_out: a41b21c8, full: 1, empty: 0) act(dt_out: a41b21c8, full: 1, empty: 0)
+UVM_INFO @ 0: reporter [RNTST] Running test lib_rs_slot_freeq_2push_test_random50...
+UVM_INFO lib_rs_slot_freeq_2push_base_seq.sv(16) @ 23000: uvm_test_top.env.agt.sqr@@seq [SEQ] Starting Sequence
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 23000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(00000000, 00000000) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(38) @ 23000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 28000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(18c5915d, c0d603f0) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 28000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 33000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1bf6db6e, 5cf8bc7d) exp(dt_out: 00000001, full: 0, empty: 0) act(dt_out: 00000001, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 38000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(ca73d05b, 8fb22be5) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 43000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(37e14fa3, 9f8e7cc4) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 48000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1240e6cd, bdc645f8) exp(dt_out: 00000003, full: 0, empty: 0) act(dt_out: 00000003, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 53000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(a4cb0831, e4c708fa) exp(dt_out: 00000004, full: 0, empty: 0) act(dt_out: 00000004, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 58000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(c379a3fd, af7f844a) exp(dt_out: 00000005, full: 0, empty: 0) act(dt_out: 00000005, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 63000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(b2cad231, 8ea0ac71) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 68000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(444c82cd, e9244527) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 73000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(51b45fe5, cb4fe6b0) exp(dt_out: 00000007, full: 0, empty: 0) act(dt_out: 00000007, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 78000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(cc29ae09, 7f30d71d) exp(dt_out: 00000008, full: 0, empty: 0) act(dt_out: 00000008, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 83000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(b090780c, 19a4e951) exp(dt_out: 00000009, full: 0, empty: 0) act(dt_out: 00000009, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 88000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(a86977a1, ac799c65) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 93000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(826ab6ad, 6a9e190f) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 98000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(2ffce5cf, 954d4227) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 103000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3d9c0d3d, 86bda51a) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 108000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(3f2954f2, 2f9084e0) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 113000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(88b0a2e7, 7cdb7d44) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 118000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(9c323eb7, 2494dfd0) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 123000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(db07808d, df1abc96) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 128000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(a41b21c8, 1bb5e38e) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 133000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(3d4004c2, 0a185009) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 138000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(2d741ae3, faa63c8d) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 143000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(724d0fbb, c0bcf175) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 148000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(04e812f2, e2dc3ef9) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 153000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(404d5ec2, dcf05bab) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 158000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(be140562, 38189d0b) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 163000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(36de2438, a5d9a8fd) exp(dt_out: ca73d05b, full: 0, empty: 0) act(dt_out: ca73d05b, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 168000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(97a6eeab, a6c52bbb) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 173000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(023882e0, 409b828c) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 178000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(543f4e78, aca4c136) exp(dt_out: e4c708fa, full: 0, empty: 0) act(dt_out: e4c708fa, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 183000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(9b5dc3ca, 2be69712) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 183000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 188000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(7accdb66, 1a387105) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(38) @ 188000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 193000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(e4f60887, 983adbea) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 198000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(eafc3672, 832439c4) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 198000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 203000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(94e40ce6, 36bcbc4a) exp(dt_out: b2cad231, full: 0, empty: 0) act(dt_out: b2cad231, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 208000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(84f86f45, 81679376) exp(dt_out: 51b45fe5, full: 0, empty: 0) act(dt_out: 51b45fe5, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 213000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c559dde7, 19d9d817) exp(dt_out: cb4fe6b0, full: 0, empty: 0) act(dt_out: cb4fe6b0, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 218000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(92310bf0, e0288ed5) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 223000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(a1636a9d, 6ce236de) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 228000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(b701dbfc, 89258557) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 228000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 233000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c27c5758, b6fd2742) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(38) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 238000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(bd0505f0, 5759dcc5) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 243000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(897a9b6b, 10d15a0c) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 248000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(abb93fd4, 2ca39c43) exp(dt_out: 3d9c0d3d, full: 1, empty: 0) act(dt_out: 3d9c0d3d, full: 1, empty: 0)
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 248000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 253000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(ed130467, ec8ced6b) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 258000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(5555c396, 0e90f2bf) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 263000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(0df694b3, 8c421745) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 268000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3ae1e8bb, c2f9de2f) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_base_seq.sv(18) @ 268000: uvm_test_top.env.agt.sqr@@seq [SEQ] Sequence Complete
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 273000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(d866494b, a68bd6a1) exp(dt_out: a41b21c8, full: 1, empty: 0) act(dt_out: a41b21c8, full: 1, empty: 0)
 UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_objection.svh(1276) @ 273000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
-UVM_INFO rs_slot_freeq_2push_base_test.sv(38) @ 273000: uvm_test_top [TEST RESULT] ----- TEST PASSED -----
+UVM_INFO lib_rs_slot_freeq_2push_base_test.sv(38) @ 273000: uvm_test_top [TEST RESULT] ----- TEST PASSED -----
 UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_report_server.svh(904) @ 273000: reporter [UVM/REPORT/SERVER] 
 --- UVM Report Summary ---
 

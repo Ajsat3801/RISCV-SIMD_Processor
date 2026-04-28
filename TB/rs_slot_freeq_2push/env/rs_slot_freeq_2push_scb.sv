@@ -1,10 +1,10 @@
 
-class rs_slot_freeq_2push_scb extends uvm_scoreboard;
+class lib_rs_slot_freeq_2push_scb extends uvm_scoreboard;
 
-    `uvm_component_utils(rs_slot_freeq_2push_scb)
+    `uvm_component_utils(lib_rs_slot_freeq_2push_scb)
 
-    uvm_analysis_imp #(rs_slot_freeq_2push_tr, rs_slot_freeq_2push_scb) mon_imp;
-    rs_slot_freeq_2push_ref_model_adapter ref_model;
+    uvm_analysis_imp #(lib_rs_slot_freeq_2push_tr, lib_rs_slot_freeq_2push_scb) mon_imp;
+    lib_rs_slot_freeq_2push_ref_model_adapter ref_model;
 
     bit stimulus_completed_f, simulation_completed_f, test_pass, enable_checking_f;
     event simulation_completed_e;
@@ -25,7 +25,7 @@ class rs_slot_freeq_2push_scb extends uvm_scoreboard;
         `uvm_info("SCB","Reference model created successfully", UVM_HIGH)
     endfunction
 
-    virtual function void write(rs_slot_freeq_2push_tr tr);
+    virtual function void write(lib_rs_slot_freeq_2push_tr tr);
 
         T data_out;
         bit full, empty;

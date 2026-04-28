@@ -1,11 +1,11 @@
 // define separate named entry points for expected and actual data
-import circular_fifo_fwft_tb_config_pkg::*;
+import lib_circular_fifo_fwft_tb_config_pkg::*;
 
-class circular_fifo_fwft_scb extends uvm_scoreboard;
+class lib_circular_fifo_fwft_scb extends uvm_scoreboard;
 
-    `uvm_component_utils(circular_fifo_fwft_scb)
-    uvm_analysis_imp #(circular_fifo_fwft_tr, circular_fifo_fwft_scb) mon_imp;
-    circular_fifo_fwft_ref_model_adapter ref_model;
+    `uvm_component_utils(lib_circular_fifo_fwft_scb)
+    uvm_analysis_imp #(lib_circular_fifo_fwft_tr, lib_circular_fifo_fwft_scb) mon_imp;
+    lib_circular_fifo_fwft_ref_model_adapter ref_model;
 
   	bit done_flag = 1'b0;
     bit stimulus_done_flag = 1'b0;
@@ -42,7 +42,7 @@ class circular_fifo_fwft_scb extends uvm_scoreboard;
 
     endfunction
 
-	virtual function void write(circular_fifo_fwft_tr tr);
+	virtual function void write(lib_circular_fifo_fwft_tr tr);
 
 		T data_out;
         bit full, empty;

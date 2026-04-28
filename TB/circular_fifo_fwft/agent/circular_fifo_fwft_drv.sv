@@ -1,10 +1,10 @@
 
-class circular_fifo_fwft_drv extends uvm_driver #(circular_fifo_fwft_tr);
+class lib_circular_fifo_fwft_drv extends uvm_driver #(lib_circular_fifo_fwft_tr);
 
-    virtual circular_fifo_fwft_if vif;
-    circular_fifo_fwft_tr tr;
+    virtual lib_circular_fifo_fwft_if vif;
+    lib_circular_fifo_fwft_tr tr;
 
-    `uvm_component_utils(circular_fifo_fwft_drv)
+    `uvm_component_utils(lib_circular_fifo_fwft_drv)
 
     //constructor
     function new(string name, uvm_component parent);
@@ -13,8 +13,8 @@ class circular_fifo_fwft_drv extends uvm_driver #(circular_fifo_fwft_tr);
   
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if (!uvm_config_db #(virtual circular_fifo_fwft_if)::get(this, "", "vif", vif)) begin
-            `uvm_fatal("DRV/NOVIF", "virtual interface vif not set for circular_fifo_fwft_drv")
+        if (!uvm_config_db #(virtual lib_circular_fifo_fwft_if)::get(this, "", "vif", vif)) begin
+            `uvm_fatal("DRV/NOVIF", "virtual interface vif not set for lib_circular_fifo_fwft_drv")
         end
     endfunction
     
@@ -32,7 +32,7 @@ class circular_fifo_fwft_drv extends uvm_driver #(circular_fifo_fwft_tr);
         end
     endtask
 
-    task drive_to_interface(circular_fifo_fwft_tr tr);
+    task drive_to_interface(lib_circular_fifo_fwft_tr tr);
 
         @(vif.drv_cb);
 

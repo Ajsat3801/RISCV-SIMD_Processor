@@ -1,6 +1,6 @@
 //TO BE UPDATED LATER
 
-interface retirement_bus_if;
+interface if_retirement_bus;
 
     logic valid;
     logic write_to_reg;

@@ -1,9 +1,9 @@
 
-class circular_fifo_fwft_base_seq extends uvm_sequence #(circular_fifo_fwft_tr);
+class lib_circular_fifo_fwft_base_seq extends uvm_sequence #(lib_circular_fifo_fwft_tr);
 
-    `uvm_object_param_utils(circular_fifo_fwft_base_seq)
+    `uvm_object_param_utils(lib_circular_fifo_fwft_base_seq)
 
-    function new(string name = "circular_fifo_fwft_base_seq");
+    function new(string name = "lib_circular_fifo_fwft_base_seq");
         super.new(name);
     endfunction
 

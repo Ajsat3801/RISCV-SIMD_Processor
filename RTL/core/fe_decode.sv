@@ -5,11 +5,11 @@ import instr_pkg::*;
 import config_pkg::*;
 */
 
-module decoder(
+module fe_decode(
     input logic clk_i,
     input logic reset_ni,
 
-    input instr_pkg::data_t raw_instr_i,
+    input instr_pkg::data_t fetched_instr_i,
     input instr_pkg::data_t pc_i,
     input logic fetch_valid_i,
 
@@ -38,17 +38,17 @@ module decoder(
     logic [31:0] intermediate;
     
     always_comb begin
-        opcode = (fetch_valid_i) ? raw_instr_i[6:0] : '0;
+        opcode = (fetch_valid_i) ? fetched_instr_i[6:0] : '0;
         
         decoded_instr_d.valid = fetch_valid_i;
         decoded_instr_d.chip_select = instr_pkg::NONE;
         decoded_instr_d.operation   = '0;
 
-        decoded_instr_d.dest_address = raw_instr_i[11:7];
-        decoded_instr_d.src1_address = raw_instr_i[19:15];
-        decoded_instr_d.src2_address = raw_instr_i[24:20];
+        decoded_instr_d.dest_address = fetched_instr_i[11:7];
+        decoded_instr_d.src1_address = fetched_instr_i[19:15];
+        decoded_instr_d.src2_address = fetched_instr_i[24:20];
 
-        decoded_instr_d.imm    = raw_instr_i[31:20];
+        decoded_instr_d.imm    = fetched_instr_i[31:20];
         decoded_instr_d.extend = '0;
         
         decoded_instr_d.write_to_reg = 1'b1;
@@ -61,14 +61,14 @@ module decoder(
         case(opcode) 
             7'b0110111: begin 
                 // lui instruction
-                decoded_instr_d.src1_address = raw_instr_i[31:27];
-                decoded_instr_d.src2_address = raw_instr_i[26:22];
-                decoded_instr_d.imm = {raw_instr_i[21:12], 2'b00};
+                decoded_instr_d.src1_address = fetched_instr_i[31:27];
+                decoded_instr_d.src2_address = fetched_instr_i[26:22];
+                decoded_instr_d.imm = {fetched_instr_i[21:12], 2'b00};
                 decoded_instr_d.pre_calc = 1'b1;
             end
             7'b0010111: begin 
                 // auipc instruction
-                intermediate = {raw_instr_i[31:12], 12'b000000000000};
+                intermediate = {fetched_instr_i[31:12], 12'b000000000000};
                 intermediate = intermediate + pc_i;
 
                 decoded_instr_d.imm = {intermediate[21:12], 2'b00};
@@ -80,25 +80,25 @@ module decoder(
             7'b0000011: begin
                 // scalar load instructions (only LW supported for now)
                 decoded_instr_d.chip_select = instr_pkg::CS_SLSU;
-                decoded_instr_d.operation   = {raw_instr_i[5], raw_instr_i[14:12]};
+                decoded_instr_d.operation   = {fetched_instr_i[5], fetched_instr_i[14:12]};
             end
             7'b0010011: begin
                 // i-type scalar ALU instructions
                 decoded_instr_d.chip_select = instr_pkg::CS_SALU;
-                decoded_instr_d.operation   = {1'b0, raw_instr_i[14:12]};   
+                decoded_instr_d.operation   = {1'b0, fetched_instr_i[14:12]};   
             end
             7'b0110011: begin 
                 // r-type scalar ALU instructions
-                decoded_instr_d.chip_select = (raw_instr_i[25]) ? instr_pkg::CS_SMULDIV : instr_pkg::CS_SALU;
-                decoded_instr_d.operation = {raw_instr_i[30], raw_instr_i[14:12]}; 
+                decoded_instr_d.chip_select = (fetched_instr_i[25]) ? instr_pkg::CS_MULDIV : instr_pkg::CS_SALU;
+                decoded_instr_d.operation = {fetched_instr_i[30], fetched_instr_i[14:12]}; 
                 decoded_instr_d.read_src2   = 1'b1;
             end 
             7'b1100011: begin
                 // branch instructions
                 decoded_instr_d.chip_select = instr_pkg::CS_BRANCH;
-                decoded_instr_d.operation   = {1'b1, raw_instr_i[14:12]};
+                decoded_instr_d.operation   = {1'b1, fetched_instr_i[14:12]};
 
-                intermediate = {{9{raw_instr_i[31]}}, raw_instr_i[31], raw_instr_i[7], raw_instr_i[30], raw_instr_i[29:25], raw_instr_i[11:8], 1'b0};
+                intermediate = {{9{fetched_instr_i[31]}}, fetched_instr_i[31], fetched_instr_i[7], fetched_instr_i[30], fetched_instr_i[29:25], fetched_instr_i[11:8], 1'b0};
                 intermediate = intermediate + pc_i;
 
                 decoded_instr_d.extend = intermediate[9:0];
@@ -113,14 +113,14 @@ module decoder(
             7'b0100011: begin 
                 // scalar store instructions (only SW supported for now)
                 decoded_instr_d.chip_select = instr_pkg::CS_SLSU;
-                decoded_instr_d.operation   = {raw_instr_i[5],raw_instr_i[14:12]};
-                decoded_instr_d.imm = {raw_instr_i[31:25], raw_instr_i[11:7]};
+                decoded_instr_d.operation   = {fetched_instr_i[5],fetched_instr_i[14:12]};
+                decoded_instr_d.imm = {fetched_instr_i[31:25], fetched_instr_i[11:7]};
                 decoded_instr_d.write_to_reg = 1'b0;
                 decoded_instr_d.read_src2    = 1'b1;
             end
             7'b1101111: begin 
                 // Jump instructions (only jal supported for now)
-                intermediate = {{12{raw_instr_i[31]}}, raw_instr_i[19:12], raw_instr_i[20], raw_instr_i[30], raw_instr_i[29:21], 1'b0};
+                intermediate = {{12{fetched_instr_i[31]}}, fetched_instr_i[19:12], fetched_instr_i[20], fetched_instr_i[30], fetched_instr_i[29:21], 1'b0};
                 intermediate = intermediate + pc_i;
 
                 decoded_instr_d.extend = intermediate[9:0];
@@ -134,23 +134,23 @@ module decoder(
             7'b1010111: begin 
                 // vector ALU instructions
                 decoded_instr_d.chip_select = instr_pkg::CS_VALU;
-                decoded_instr_d.operation   = raw_instr_i[29:26];
+                decoded_instr_d.operation   = fetched_instr_i[29:26];
                 decoded_instr_d.read_src2   = 1'b1;
-                decoded_instr_d.src1_vector = !raw_instr_i[14];
+                decoded_instr_d.src1_vector = !fetched_instr_i[14];
                 decoded_instr_d.src2_vector = 1'b1;
 
             end
             7'b0000111: begin 
                 // vector load instructions (only vle32.v supported for now)
                 decoded_instr_d.chip_select = instr_pkg::CS_VLSU;
-                decoded_instr_d.operation   = {raw_instr_i[5],raw_instr_i[14:12]};
+                decoded_instr_d.operation   = {fetched_instr_i[5],fetched_instr_i[14:12]};
                 
             end
             7'b0100111: begin 
                 // vector store instructions (only vse32.v supported for now)
                 decoded_instr_d.chip_select  = instr_pkg::CS_VLSU;
-                decoded_instr_d.operation    = {raw_instr_i[5],raw_instr_i[14:12]};
-                decoded_instr_d.src2_address = raw_instr_i[11:7];
+                decoded_instr_d.operation    = {fetched_instr_i[5],fetched_instr_i[14:12]};
+                decoded_instr_d.src2_address = fetched_instr_i[11:7];
                 decoded_instr_d.write_to_reg = 1'b0;
                 decoded_instr_d.src2_vector  = 1'b1;
             end

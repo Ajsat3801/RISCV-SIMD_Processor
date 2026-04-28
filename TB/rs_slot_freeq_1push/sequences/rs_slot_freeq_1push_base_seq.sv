@@ -1,9 +1,9 @@
 
-class rs_slot_freeq_1push_base_seq extends uvm_sequence #(rs_slot_freeq_1push_tr);
+class lib_rs_slot_freeq_1push_base_seq extends uvm_sequence #(lib_rs_slot_freeq_1push_tr);
 
-    `uvm_object_utils(rs_slot_freeq_1push_base_seq)
+    `uvm_object_utils(lib_rs_slot_freeq_1push_base_seq)
 
-    function new(string name = "rs_slot_freeq_1push_base_seq");
+    function new(string name = "lib_rs_slot_freeq_1push_base_seq");
         super.new(name);
     endfunction
 

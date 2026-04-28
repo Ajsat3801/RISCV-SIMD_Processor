@@ -1,12 +1,12 @@
-import rs_slot_freeq_1push_dpi_pkg::*;
-import rs_slot_freeq_1push_tb_config_pkg::*;
+import lib_rs_slot_freeq_1push_dpi_pkg::*;
+import lib_rs_slot_freeq_1push_tb_config_pkg::*;
 
-class rs_slot_freeq_1push_ref_model_adapter;
+class lib_rs_slot_freeq_1push_ref_model_adapter;
 
     local int numwords = ($bits(T) + 31) / 32;
 
     function void create_model();
-        rs_slot_freeq_1push_model_create(BUFFER_SIZE, numwords);
+        lib_rs_slot_freeq_1push_model_create(BUFFER_SIZE, numwords);
     endfunction
 
     function void run_model(
@@ -23,7 +23,7 @@ class rs_slot_freeq_1push_ref_model_adapter;
 
         push_data[$bits(T)-1:0] = push_dataT;
 
-        rs_slot_freeq_1push_model_run(
+        lib_rs_slot_freeq_1push_model_run(
             push_data, 
             data_out, 
             push, 

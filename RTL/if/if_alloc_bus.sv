@@ -1,4 +1,4 @@
-interface alloc_bus_if;
+interface if_alloc_bus;
     
     logic valid;
     instr_pkg::rs_slot_id_t rs_slot;

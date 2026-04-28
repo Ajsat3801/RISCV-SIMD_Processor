@@ -1,285 +1,285 @@
-UVM_INFO @ 0: reporter [RNTST] Running test rs_slot_freeq_2push_test_random50...
-UVM_INFO rs_slot_freeq_2push_scb.sv(21) @ 0: uvm_test_top.env.scb [SCB] Creating Reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(25) @ 0: uvm_test_top.env.scb [SCB] Reference model created successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 3000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 3000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 3000: uvm_test_top.env.agt.mon [MON] push_data1: xxxxxxxx | push_data2: xxxxxxxx | data_out: 00000000
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 8000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 8000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 8000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 13000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 13000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 13000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 18000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 18000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 18000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
-UVM_INFO rs_slot_freeq_2push_base_seq.sv(16) @ 23000: uvm_test_top.env.agt.sqr@@seq [SEQ] Starting Sequence
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 23000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 23000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 23000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(00000000, 00000000) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 23000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
-UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 23000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 23000: uvm_test_top.env.agt.drv [DRV] push_data1=18c5915d,push_data2=c0d603f0,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 28000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 28000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 28000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(18c5915d, c0d603f0) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 28000: uvm_test_top.env.agt.mon [MON] push_data1: 18c5915d | push_data2: c0d603f0 | data_out: 00000000
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 28000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 28000: uvm_test_top.env.agt.drv [DRV] push_data1=1bf6db6e,push_data2=5cf8bc7d,push1=0,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 33000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 33000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 33000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1bf6db6e, 5cf8bc7d) exp(dt_out: 00000001, full: 0, empty: 0) act(dt_out: 00000001, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 33000: uvm_test_top.env.agt.mon [MON] push_data1: 1bf6db6e | push_data2: 5cf8bc7d | data_out: 00000001
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 33000: uvm_test_top.env.agt.drv [DRV] push_data1=ca73d05b,push_data2=8fb22be5,push1=1,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 38000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 38000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 38000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(ca73d05b, 8fb22be5) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 38000: uvm_test_top.env.agt.mon [MON] push_data1: ca73d05b | push_data2: 8fb22be5 | data_out: 00000002
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 38000: uvm_test_top.env.agt.drv [DRV] push_data1=37e14fa3,push_data2=9f8e7cc4,push1=0,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 43000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 43000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 43000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(37e14fa3, 9f8e7cc4) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 43000: uvm_test_top.env.agt.mon [MON] push_data1: 37e14fa3 | push_data2: 9f8e7cc4 | data_out: 00000002
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 43000: uvm_test_top.env.agt.drv [DRV] push_data1=1240e6cd,push_data2=bdc645f8,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 48000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 48000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 48000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1240e6cd, bdc645f8) exp(dt_out: 00000003, full: 0, empty: 0) act(dt_out: 00000003, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 48000: uvm_test_top.env.agt.mon [MON] push_data1: 1240e6cd | push_data2: bdc645f8 | data_out: 00000003
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 48000: uvm_test_top.env.agt.drv [DRV] push_data1=a4cb0831,push_data2=e4c708fa,push1=0,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 53000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 53000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 53000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(a4cb0831, e4c708fa) exp(dt_out: 00000004, full: 0, empty: 0) act(dt_out: 00000004, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 53000: uvm_test_top.env.agt.mon [MON] push_data1: a4cb0831 | push_data2: e4c708fa | data_out: 00000004
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 53000: uvm_test_top.env.agt.drv [DRV] push_data1=c379a3fd,push_data2=af7f844a,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 58000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 58000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 58000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(c379a3fd, af7f844a) exp(dt_out: 00000005, full: 0, empty: 0) act(dt_out: 00000005, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 58000: uvm_test_top.env.agt.mon [MON] push_data1: c379a3fd | push_data2: af7f844a | data_out: 00000005
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 58000: uvm_test_top.env.agt.drv [DRV] push_data1=b2cad231,push_data2=8ea0ac71,push1=1,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 63000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 63000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 63000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(b2cad231, 8ea0ac71) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 63000: uvm_test_top.env.agt.mon [MON] push_data1: b2cad231 | push_data2: 8ea0ac71 | data_out: 00000006
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 63000: uvm_test_top.env.agt.drv [DRV] push_data1=444c82cd,push_data2=e9244527,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 68000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 68000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 68000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(444c82cd, e9244527) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 68000: uvm_test_top.env.agt.mon [MON] push_data1: 444c82cd | push_data2: e9244527 | data_out: 00000006
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 68000: uvm_test_top.env.agt.drv [DRV] push_data1=51b45fe5,push_data2=cb4fe6b0,push1=1,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 73000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 73000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 73000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(51b45fe5, cb4fe6b0) exp(dt_out: 00000007, full: 0, empty: 0) act(dt_out: 00000007, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 73000: uvm_test_top.env.agt.mon [MON] push_data1: 51b45fe5 | push_data2: cb4fe6b0 | data_out: 00000007
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 73000: uvm_test_top.env.agt.drv [DRV] push_data1=cc29ae09,push_data2=7f30d71d,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 78000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 78000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 78000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(cc29ae09, 7f30d71d) exp(dt_out: 00000008, full: 0, empty: 0) act(dt_out: 00000008, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 78000: uvm_test_top.env.agt.mon [MON] push_data1: cc29ae09 | push_data2: 7f30d71d | data_out: 00000008
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 78000: uvm_test_top.env.agt.drv [DRV] push_data1=b090780c,push_data2=19a4e951,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 83000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 83000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 83000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(b090780c, 19a4e951) exp(dt_out: 00000009, full: 0, empty: 0) act(dt_out: 00000009, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 83000: uvm_test_top.env.agt.mon [MON] push_data1: b090780c | push_data2: 19a4e951 | data_out: 00000009
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 83000: uvm_test_top.env.agt.drv [DRV] push_data1=a86977a1,push_data2=ac799c65,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 88000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 88000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 88000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(a86977a1, ac799c65) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 88000: uvm_test_top.env.agt.mon [MON] push_data1: a86977a1 | push_data2: ac799c65 | data_out: 0000000a
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 88000: uvm_test_top.env.agt.drv [DRV] push_data1=826ab6ad,push_data2=6a9e190f,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 93000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 93000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 93000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(826ab6ad, 6a9e190f) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 93000: uvm_test_top.env.agt.mon [MON] push_data1: 826ab6ad | push_data2: 6a9e190f | data_out: 0000000a
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 93000: uvm_test_top.env.agt.drv [DRV] push_data1=2ffce5cf,push_data2=954d4227,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 98000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 98000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 98000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(2ffce5cf, 954d4227) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 98000: uvm_test_top.env.agt.mon [MON] push_data1: 2ffce5cf | push_data2: 954d4227 | data_out: 0000000b
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 98000: uvm_test_top.env.agt.drv [DRV] push_data1=3d9c0d3d,push_data2=86bda51a,push1=1,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 103000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 103000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 103000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3d9c0d3d, 86bda51a) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 103000: uvm_test_top.env.agt.mon [MON] push_data1: 3d9c0d3d | push_data2: 86bda51a | data_out: 0000000b
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 103000: uvm_test_top.env.agt.drv [DRV] push_data1=3f2954f2,push_data2=2f9084e0,push1=0,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 108000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 108000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 108000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(3f2954f2, 2f9084e0) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 108000: uvm_test_top.env.agt.mon [MON] push_data1: 3f2954f2 | push_data2: 2f9084e0 | data_out: 0000000c
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 108000: uvm_test_top.env.agt.drv [DRV] push_data1=88b0a2e7,push_data2=7cdb7d44,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 113000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 113000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 113000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(88b0a2e7, 7cdb7d44) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 113000: uvm_test_top.env.agt.mon [MON] push_data1: 88b0a2e7 | push_data2: 7cdb7d44 | data_out: 0000000c
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 113000: uvm_test_top.env.agt.drv [DRV] push_data1=9c323eb7,push_data2=2494dfd0,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 118000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 118000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 118000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(9c323eb7, 2494dfd0) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 118000: uvm_test_top.env.agt.mon [MON] push_data1: 9c323eb7 | push_data2: 2494dfd0 | data_out: 0000000d
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 118000: uvm_test_top.env.agt.drv [DRV] push_data1=db07808d,push_data2=df1abc96,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 123000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 123000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 123000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(db07808d, df1abc96) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 123000: uvm_test_top.env.agt.mon [MON] push_data1: db07808d | push_data2: df1abc96 | data_out: 0000000d
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 123000: uvm_test_top.env.agt.drv [DRV] push_data1=a41b21c8,push_data2=1bb5e38e,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 128000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 128000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 128000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(a41b21c8, 1bb5e38e) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 128000: uvm_test_top.env.agt.mon [MON] push_data1: a41b21c8 | push_data2: 1bb5e38e | data_out: 0000000d
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 128000: uvm_test_top.env.agt.drv [DRV] push_data1=3d4004c2,push_data2=0a185009,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 133000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 133000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 133000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(3d4004c2, 0a185009) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 133000: uvm_test_top.env.agt.mon [MON] push_data1: 3d4004c2 | push_data2: 0a185009 | data_out: 0000000e
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 133000: uvm_test_top.env.agt.drv [DRV] push_data1=2d741ae3,push_data2=faa63c8d,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 138000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 138000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 138000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(2d741ae3, faa63c8d) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 138000: uvm_test_top.env.agt.mon [MON] push_data1: 2d741ae3 | push_data2: faa63c8d | data_out: 0000000e
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 138000: uvm_test_top.env.agt.drv [DRV] push_data1=724d0fbb,push_data2=c0bcf175,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 143000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 143000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 143000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(724d0fbb, c0bcf175) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 143000: uvm_test_top.env.agt.mon [MON] push_data1: 724d0fbb | push_data2: c0bcf175 | data_out: 0000000f
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 143000: uvm_test_top.env.agt.drv [DRV] push_data1=04e812f2,push_data2=e2dc3ef9,push1=0,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 148000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 148000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 148000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(04e812f2, e2dc3ef9) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 148000: uvm_test_top.env.agt.mon [MON] push_data1: 04e812f2 | push_data2: e2dc3ef9 | data_out: 0000000f
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 148000: uvm_test_top.env.agt.drv [DRV] push_data1=404d5ec2,push_data2=dcf05bab,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 153000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 153000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 153000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(404d5ec2, dcf05bab) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 153000: uvm_test_top.env.agt.mon [MON] push_data1: 404d5ec2 | push_data2: dcf05bab | data_out: 0000000f
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 153000: uvm_test_top.env.agt.drv [DRV] push_data1=be140562,push_data2=38189d0b,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 158000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 158000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 158000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(be140562, 38189d0b) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 158000: uvm_test_top.env.agt.mon [MON] push_data1: be140562 | push_data2: 38189d0b | data_out: 0000000f
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 158000: uvm_test_top.env.agt.drv [DRV] push_data1=36de2438,push_data2=a5d9a8fd,push1=0,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 163000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 163000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 163000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(36de2438, a5d9a8fd) exp(dt_out: ca73d05b, full: 0, empty: 0) act(dt_out: ca73d05b, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 163000: uvm_test_top.env.agt.mon [MON] push_data1: 36de2438 | push_data2: a5d9a8fd | data_out: ca73d05b
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 163000: uvm_test_top.env.agt.drv [DRV] push_data1=97a6eeab,push_data2=a6c52bbb,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 168000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 168000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 168000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(97a6eeab, a6c52bbb) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 168000: uvm_test_top.env.agt.mon [MON] push_data1: 97a6eeab | push_data2: a6c52bbb | data_out: 9f8e7cc4
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 168000: uvm_test_top.env.agt.drv [DRV] push_data1=023882e0,push_data2=409b828c,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 173000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 173000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 173000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(023882e0, 409b828c) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 173000: uvm_test_top.env.agt.mon [MON] push_data1: 023882e0 | push_data2: 409b828c | data_out: 9f8e7cc4
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 173000: uvm_test_top.env.agt.drv [DRV] push_data1=543f4e78,push_data2=aca4c136,push1=1,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 178000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 178000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 178000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(543f4e78, aca4c136) exp(dt_out: e4c708fa, full: 0, empty: 0) act(dt_out: e4c708fa, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 178000: uvm_test_top.env.agt.mon [MON] push_data1: 543f4e78 | push_data2: aca4c136 | data_out: e4c708fa
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 178000: uvm_test_top.env.agt.drv [DRV] push_data1=9b5dc3ca,push_data2=2be69712,push1=1,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 183000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 183000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 183000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(9b5dc3ca, 2be69712) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 183000: uvm_test_top.env.agt.mon [MON] push_data1: 9b5dc3ca | push_data2: 2be69712 | data_out: c379a3fd
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 183000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 183000: uvm_test_top.env.agt.drv [DRV] push_data1=7accdb66,push_data2=1a387105,push1=0,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 188000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 188000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 188000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(7accdb66, 1a387105) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 188000: uvm_test_top.env.agt.mon [MON] push_data1: 7accdb66 | push_data2: 1a387105 | data_out: c379a3fd
-UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 188000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 188000: uvm_test_top.env.agt.drv [DRV] push_data1=e4f60887,push_data2=983adbea,push1=1,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 193000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 193000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 193000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(e4f60887, 983adbea) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 193000: uvm_test_top.env.agt.mon [MON] push_data1: e4f60887 | push_data2: 983adbea | data_out: c379a3fd
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 193000: uvm_test_top.env.agt.drv [DRV] push_data1=eafc3672,push_data2=832439c4,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 198000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 198000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 198000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(eafc3672, 832439c4) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 198000: uvm_test_top.env.agt.mon [MON] push_data1: eafc3672 | push_data2: 832439c4 | data_out: c379a3fd
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 198000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 198000: uvm_test_top.env.agt.drv [DRV] push_data1=94e40ce6,push_data2=36bcbc4a,push1=0,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 203000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 203000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 203000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(94e40ce6, 36bcbc4a) exp(dt_out: b2cad231, full: 0, empty: 0) act(dt_out: b2cad231, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 203000: uvm_test_top.env.agt.mon [MON] push_data1: 94e40ce6 | push_data2: 36bcbc4a | data_out: b2cad231
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 203000: uvm_test_top.env.agt.drv [DRV] push_data1=84f86f45,push_data2=81679376,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 208000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 208000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 208000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(84f86f45, 81679376) exp(dt_out: 51b45fe5, full: 0, empty: 0) act(dt_out: 51b45fe5, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 208000: uvm_test_top.env.agt.mon [MON] push_data1: 84f86f45 | push_data2: 81679376 | data_out: 51b45fe5
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 208000: uvm_test_top.env.agt.drv [DRV] push_data1=c559dde7,push_data2=19d9d817,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 213000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 213000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 213000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c559dde7, 19d9d817) exp(dt_out: cb4fe6b0, full: 0, empty: 0) act(dt_out: cb4fe6b0, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 213000: uvm_test_top.env.agt.mon [MON] push_data1: c559dde7 | push_data2: 19d9d817 | data_out: cb4fe6b0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 213000: uvm_test_top.env.agt.drv [DRV] push_data1=92310bf0,push_data2=e0288ed5,push1=1,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 218000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 218000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 218000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(92310bf0, e0288ed5) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 218000: uvm_test_top.env.agt.mon [MON] push_data1: 92310bf0 | push_data2: e0288ed5 | data_out: cc29ae09
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 218000: uvm_test_top.env.agt.drv [DRV] push_data1=a1636a9d,push_data2=6ce236de,push1=1,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 223000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 223000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 223000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(a1636a9d, 6ce236de) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 223000: uvm_test_top.env.agt.mon [MON] push_data1: a1636a9d | push_data2: 6ce236de | data_out: cc29ae09
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 223000: uvm_test_top.env.agt.drv [DRV] push_data1=b701dbfc,push_data2=89258557,push1=0,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 228000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 228000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 228000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(b701dbfc, 89258557) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 228000: uvm_test_top.env.agt.mon [MON] push_data1: b701dbfc | push_data2: 89258557 | data_out: cc29ae09
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 228000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 228000: uvm_test_top.env.agt.drv [DRV] push_data1=c27c5758,push_data2=b6fd2742,push1=0,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 233000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 233000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 233000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c27c5758, b6fd2742) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 233000: uvm_test_top.env.agt.mon [MON] push_data1: c27c5758 | push_data2: b6fd2742 | data_out: cc29ae09
-UVM_WARNING rs_slot_freeq_2push_drv.sv(38) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 233000: uvm_test_top.env.agt.drv [DRV] push_data1=bd0505f0,push_data2=5759dcc5,push1=1,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 238000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 238000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 238000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(bd0505f0, 5759dcc5) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 238000: uvm_test_top.env.agt.mon [MON] push_data1: bd0505f0 | push_data2: 5759dcc5 | data_out: 3d9c0d3d
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 238000: uvm_test_top.env.agt.drv [DRV] push_data1=897a9b6b,push_data2=10d15a0c,push1=0,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 243000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 243000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 243000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(897a9b6b, 10d15a0c) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 243000: uvm_test_top.env.agt.mon [MON] push_data1: 897a9b6b | push_data2: 10d15a0c | data_out: 3d9c0d3d
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 243000: uvm_test_top.env.agt.drv [DRV] push_data1=abb93fd4,push_data2=2ca39c43,push1=0,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 248000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 248000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 248000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(abb93fd4, 2ca39c43) exp(dt_out: 3d9c0d3d, full: 1, empty: 0) act(dt_out: 3d9c0d3d, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 248000: uvm_test_top.env.agt.mon [MON] push_data1: abb93fd4 | push_data2: 2ca39c43 | data_out: 3d9c0d3d
-UVM_WARNING rs_slot_freeq_2push_drv.sv(44) @ 248000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 248000: uvm_test_top.env.agt.drv [DRV] push_data1=ed130467,push_data2=ec8ced6b,push1=0,push2=1,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 253000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 253000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 253000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(ed130467, ec8ced6b) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 253000: uvm_test_top.env.agt.mon [MON] push_data1: ed130467 | push_data2: ec8ced6b | data_out: 86bda51a
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 253000: uvm_test_top.env.agt.drv [DRV] push_data1=5555c396,push_data2=0e90f2bf,push1=1,push2=0,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 258000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 258000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 258000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(5555c396, 0e90f2bf) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 258000: uvm_test_top.env.agt.mon [MON] push_data1: 5555c396 | push_data2: 0e90f2bf | data_out: 86bda51a
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 258000: uvm_test_top.env.agt.drv [DRV] push_data1=0df694b3,push_data2=8c421745,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 263000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 263000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 263000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(0df694b3, 8c421745) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 263000: uvm_test_top.env.agt.mon [MON] push_data1: 0df694b3 | push_data2: 8c421745 | data_out: 2f9084e0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 263000: uvm_test_top.env.agt.drv [DRV] push_data1=3ae1e8bb,push_data2=c2f9de2f,push1=1,push2=1,pop=1 sent to DUT
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 268000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 268000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 268000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3ae1e8bb, c2f9de2f) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 268000: uvm_test_top.env.agt.mon [MON] push_data1: 3ae1e8bb | push_data2: c2f9de2f | data_out: 2f9084e0
-UVM_INFO rs_slot_freeq_2push_drv.sv(52) @ 268000: uvm_test_top.env.agt.drv [DRV] push_data1=d866494b,push_data2=a68bd6a1,push1=0,push2=0,pop=0 sent to DUT
-UVM_INFO rs_slot_freeq_2push_base_seq.sv(18) @ 268000: uvm_test_top.env.agt.sqr@@seq [SEQ] Sequence Complete
-UVM_INFO rs_slot_freeq_2push_scb.sv(34) @ 273000: uvm_test_top.env.scb [SCB] Running reference model
-UVM_INFO rs_slot_freeq_2push_scb.sv(46) @ 273000: uvm_test_top.env.scb [SCB] Reference model ran successfully
-UVM_INFO rs_slot_freeq_2push_scb.sv(57) @ 273000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(d866494b, a68bd6a1) exp(dt_out: a41b21c8, full: 1, empty: 0) act(dt_out: a41b21c8, full: 1, empty: 0)
-UVM_INFO rs_slot_freeq_2push_mon.sv(42) @ 273000: uvm_test_top.env.agt.mon [MON] push_data1: d866494b | push_data2: a68bd6a1 | data_out: a41b21c8
+UVM_INFO @ 0: reporter [RNTST] Running test lib_rs_slot_freeq_2push_test_random50...
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(21) @ 0: uvm_test_top.env.scb [SCB] Creating Reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(25) @ 0: uvm_test_top.env.scb [SCB] Reference model created successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 3000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 3000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 3000: uvm_test_top.env.agt.mon [MON] push_data1: xxxxxxxx | push_data2: xxxxxxxx | data_out: 00000000
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 8000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 8000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 8000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 13000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 13000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 13000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 18000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 18000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 18000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
+UVM_INFO lib_rs_slot_freeq_2push_base_seq.sv(16) @ 23000: uvm_test_top.env.agt.sqr@@seq [SEQ] Starting Sequence
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 23000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 23000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 23000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(00000000, 00000000) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 23000: uvm_test_top.env.agt.mon [MON] push_data1: 00000000 | push_data2: 00000000 | data_out: 00000000
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(38) @ 23000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 23000: uvm_test_top.env.agt.drv [DRV] push_data1=18c5915d,push_data2=c0d603f0,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 28000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 28000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 28000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(18c5915d, c0d603f0) exp(dt_out: 00000000, full: 1, empty: 0) act(dt_out: 00000000, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 28000: uvm_test_top.env.agt.mon [MON] push_data1: 18c5915d | push_data2: c0d603f0 | data_out: 00000000
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 28000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 28000: uvm_test_top.env.agt.drv [DRV] push_data1=1bf6db6e,push_data2=5cf8bc7d,push1=0,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 33000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 33000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 33000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1bf6db6e, 5cf8bc7d) exp(dt_out: 00000001, full: 0, empty: 0) act(dt_out: 00000001, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 33000: uvm_test_top.env.agt.mon [MON] push_data1: 1bf6db6e | push_data2: 5cf8bc7d | data_out: 00000001
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 33000: uvm_test_top.env.agt.drv [DRV] push_data1=ca73d05b,push_data2=8fb22be5,push1=1,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 38000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 38000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 38000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(ca73d05b, 8fb22be5) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 38000: uvm_test_top.env.agt.mon [MON] push_data1: ca73d05b | push_data2: 8fb22be5 | data_out: 00000002
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 38000: uvm_test_top.env.agt.drv [DRV] push_data1=37e14fa3,push_data2=9f8e7cc4,push1=0,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 43000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 43000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 43000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(37e14fa3, 9f8e7cc4) exp(dt_out: 00000002, full: 0, empty: 0) act(dt_out: 00000002, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 43000: uvm_test_top.env.agt.mon [MON] push_data1: 37e14fa3 | push_data2: 9f8e7cc4 | data_out: 00000002
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 43000: uvm_test_top.env.agt.drv [DRV] push_data1=1240e6cd,push_data2=bdc645f8,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 48000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 48000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 48000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(1240e6cd, bdc645f8) exp(dt_out: 00000003, full: 0, empty: 0) act(dt_out: 00000003, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 48000: uvm_test_top.env.agt.mon [MON] push_data1: 1240e6cd | push_data2: bdc645f8 | data_out: 00000003
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 48000: uvm_test_top.env.agt.drv [DRV] push_data1=a4cb0831,push_data2=e4c708fa,push1=0,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 53000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 53000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 53000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(a4cb0831, e4c708fa) exp(dt_out: 00000004, full: 0, empty: 0) act(dt_out: 00000004, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 53000: uvm_test_top.env.agt.mon [MON] push_data1: a4cb0831 | push_data2: e4c708fa | data_out: 00000004
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 53000: uvm_test_top.env.agt.drv [DRV] push_data1=c379a3fd,push_data2=af7f844a,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 58000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 58000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 58000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(c379a3fd, af7f844a) exp(dt_out: 00000005, full: 0, empty: 0) act(dt_out: 00000005, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 58000: uvm_test_top.env.agt.mon [MON] push_data1: c379a3fd | push_data2: af7f844a | data_out: 00000005
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 58000: uvm_test_top.env.agt.drv [DRV] push_data1=b2cad231,push_data2=8ea0ac71,push1=1,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 63000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 63000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 63000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(b2cad231, 8ea0ac71) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 63000: uvm_test_top.env.agt.mon [MON] push_data1: b2cad231 | push_data2: 8ea0ac71 | data_out: 00000006
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 63000: uvm_test_top.env.agt.drv [DRV] push_data1=444c82cd,push_data2=e9244527,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 68000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 68000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 68000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(444c82cd, e9244527) exp(dt_out: 00000006, full: 0, empty: 0) act(dt_out: 00000006, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 68000: uvm_test_top.env.agt.mon [MON] push_data1: 444c82cd | push_data2: e9244527 | data_out: 00000006
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 68000: uvm_test_top.env.agt.drv [DRV] push_data1=51b45fe5,push_data2=cb4fe6b0,push1=1,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 73000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 73000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 73000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(51b45fe5, cb4fe6b0) exp(dt_out: 00000007, full: 0, empty: 0) act(dt_out: 00000007, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 73000: uvm_test_top.env.agt.mon [MON] push_data1: 51b45fe5 | push_data2: cb4fe6b0 | data_out: 00000007
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 73000: uvm_test_top.env.agt.drv [DRV] push_data1=cc29ae09,push_data2=7f30d71d,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 78000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 78000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 78000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(cc29ae09, 7f30d71d) exp(dt_out: 00000008, full: 0, empty: 0) act(dt_out: 00000008, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 78000: uvm_test_top.env.agt.mon [MON] push_data1: cc29ae09 | push_data2: 7f30d71d | data_out: 00000008
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 78000: uvm_test_top.env.agt.drv [DRV] push_data1=b090780c,push_data2=19a4e951,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 83000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 83000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 83000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(b090780c, 19a4e951) exp(dt_out: 00000009, full: 0, empty: 0) act(dt_out: 00000009, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 83000: uvm_test_top.env.agt.mon [MON] push_data1: b090780c | push_data2: 19a4e951 | data_out: 00000009
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 83000: uvm_test_top.env.agt.drv [DRV] push_data1=a86977a1,push_data2=ac799c65,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 88000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 88000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 88000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(a86977a1, ac799c65) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 88000: uvm_test_top.env.agt.mon [MON] push_data1: a86977a1 | push_data2: ac799c65 | data_out: 0000000a
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 88000: uvm_test_top.env.agt.drv [DRV] push_data1=826ab6ad,push_data2=6a9e190f,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 93000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 93000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 93000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(826ab6ad, 6a9e190f) exp(dt_out: 0000000a, full: 0, empty: 0) act(dt_out: 0000000a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 93000: uvm_test_top.env.agt.mon [MON] push_data1: 826ab6ad | push_data2: 6a9e190f | data_out: 0000000a
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 93000: uvm_test_top.env.agt.drv [DRV] push_data1=2ffce5cf,push_data2=954d4227,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 98000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 98000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 98000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(2ffce5cf, 954d4227) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 98000: uvm_test_top.env.agt.mon [MON] push_data1: 2ffce5cf | push_data2: 954d4227 | data_out: 0000000b
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 98000: uvm_test_top.env.agt.drv [DRV] push_data1=3d9c0d3d,push_data2=86bda51a,push1=1,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 103000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 103000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 103000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3d9c0d3d, 86bda51a) exp(dt_out: 0000000b, full: 0, empty: 0) act(dt_out: 0000000b, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 103000: uvm_test_top.env.agt.mon [MON] push_data1: 3d9c0d3d | push_data2: 86bda51a | data_out: 0000000b
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 103000: uvm_test_top.env.agt.drv [DRV] push_data1=3f2954f2,push_data2=2f9084e0,push1=0,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 108000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 108000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 108000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(3f2954f2, 2f9084e0) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 108000: uvm_test_top.env.agt.mon [MON] push_data1: 3f2954f2 | push_data2: 2f9084e0 | data_out: 0000000c
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 108000: uvm_test_top.env.agt.drv [DRV] push_data1=88b0a2e7,push_data2=7cdb7d44,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 113000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 113000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 113000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(88b0a2e7, 7cdb7d44) exp(dt_out: 0000000c, full: 0, empty: 0) act(dt_out: 0000000c, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 113000: uvm_test_top.env.agt.mon [MON] push_data1: 88b0a2e7 | push_data2: 7cdb7d44 | data_out: 0000000c
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 113000: uvm_test_top.env.agt.drv [DRV] push_data1=9c323eb7,push_data2=2494dfd0,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 118000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 118000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 118000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(9c323eb7, 2494dfd0) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 118000: uvm_test_top.env.agt.mon [MON] push_data1: 9c323eb7 | push_data2: 2494dfd0 | data_out: 0000000d
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 118000: uvm_test_top.env.agt.drv [DRV] push_data1=db07808d,push_data2=df1abc96,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 123000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 123000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 123000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(db07808d, df1abc96) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 123000: uvm_test_top.env.agt.mon [MON] push_data1: db07808d | push_data2: df1abc96 | data_out: 0000000d
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 123000: uvm_test_top.env.agt.drv [DRV] push_data1=a41b21c8,push_data2=1bb5e38e,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 128000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 128000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 128000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(a41b21c8, 1bb5e38e) exp(dt_out: 0000000d, full: 0, empty: 0) act(dt_out: 0000000d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 128000: uvm_test_top.env.agt.mon [MON] push_data1: a41b21c8 | push_data2: 1bb5e38e | data_out: 0000000d
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 128000: uvm_test_top.env.agt.drv [DRV] push_data1=3d4004c2,push_data2=0a185009,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 133000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 133000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 133000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(3d4004c2, 0a185009) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 133000: uvm_test_top.env.agt.mon [MON] push_data1: 3d4004c2 | push_data2: 0a185009 | data_out: 0000000e
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 133000: uvm_test_top.env.agt.drv [DRV] push_data1=2d741ae3,push_data2=faa63c8d,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 138000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 138000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 138000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(2d741ae3, faa63c8d) exp(dt_out: 0000000e, full: 0, empty: 0) act(dt_out: 0000000e, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 138000: uvm_test_top.env.agt.mon [MON] push_data1: 2d741ae3 | push_data2: faa63c8d | data_out: 0000000e
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 138000: uvm_test_top.env.agt.drv [DRV] push_data1=724d0fbb,push_data2=c0bcf175,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 143000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 143000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 143000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(724d0fbb, c0bcf175) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 143000: uvm_test_top.env.agt.mon [MON] push_data1: 724d0fbb | push_data2: c0bcf175 | data_out: 0000000f
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 143000: uvm_test_top.env.agt.drv [DRV] push_data1=04e812f2,push_data2=e2dc3ef9,push1=0,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 148000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 148000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 148000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(04e812f2, e2dc3ef9) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 148000: uvm_test_top.env.agt.mon [MON] push_data1: 04e812f2 | push_data2: e2dc3ef9 | data_out: 0000000f
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 148000: uvm_test_top.env.agt.drv [DRV] push_data1=404d5ec2,push_data2=dcf05bab,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 153000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 153000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 153000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(404d5ec2, dcf05bab) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 153000: uvm_test_top.env.agt.mon [MON] push_data1: 404d5ec2 | push_data2: dcf05bab | data_out: 0000000f
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 153000: uvm_test_top.env.agt.drv [DRV] push_data1=be140562,push_data2=38189d0b,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 158000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 158000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 158000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(be140562, 38189d0b) exp(dt_out: 0000000f, full: 0, empty: 0) act(dt_out: 0000000f, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 158000: uvm_test_top.env.agt.mon [MON] push_data1: be140562 | push_data2: 38189d0b | data_out: 0000000f
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 158000: uvm_test_top.env.agt.drv [DRV] push_data1=36de2438,push_data2=a5d9a8fd,push1=0,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 163000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 163000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 163000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 1) data(36de2438, a5d9a8fd) exp(dt_out: ca73d05b, full: 0, empty: 0) act(dt_out: ca73d05b, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 163000: uvm_test_top.env.agt.mon [MON] push_data1: 36de2438 | push_data2: a5d9a8fd | data_out: ca73d05b
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 163000: uvm_test_top.env.agt.drv [DRV] push_data1=97a6eeab,push_data2=a6c52bbb,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 168000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 168000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 168000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(97a6eeab, a6c52bbb) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 168000: uvm_test_top.env.agt.mon [MON] push_data1: 97a6eeab | push_data2: a6c52bbb | data_out: 9f8e7cc4
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 168000: uvm_test_top.env.agt.drv [DRV] push_data1=023882e0,push_data2=409b828c,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 173000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 173000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 173000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(023882e0, 409b828c) exp(dt_out: 9f8e7cc4, full: 0, empty: 0) act(dt_out: 9f8e7cc4, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 173000: uvm_test_top.env.agt.mon [MON] push_data1: 023882e0 | push_data2: 409b828c | data_out: 9f8e7cc4
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 173000: uvm_test_top.env.agt.drv [DRV] push_data1=543f4e78,push_data2=aca4c136,push1=1,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 178000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 178000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 178000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(543f4e78, aca4c136) exp(dt_out: e4c708fa, full: 0, empty: 0) act(dt_out: e4c708fa, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 178000: uvm_test_top.env.agt.mon [MON] push_data1: 543f4e78 | push_data2: aca4c136 | data_out: e4c708fa
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 178000: uvm_test_top.env.agt.drv [DRV] push_data1=9b5dc3ca,push_data2=2be69712,push1=1,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 183000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 183000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 183000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(9b5dc3ca, 2be69712) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 183000: uvm_test_top.env.agt.mon [MON] push_data1: 9b5dc3ca | push_data2: 2be69712 | data_out: c379a3fd
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 183000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 183000: uvm_test_top.env.agt.drv [DRV] push_data1=7accdb66,push_data2=1a387105,push1=0,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 188000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 188000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 188000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(7accdb66, 1a387105) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 188000: uvm_test_top.env.agt.mon [MON] push_data1: 7accdb66 | push_data2: 1a387105 | data_out: c379a3fd
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(38) @ 188000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 188000: uvm_test_top.env.agt.drv [DRV] push_data1=e4f60887,push_data2=983adbea,push1=1,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 193000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 193000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 193000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(e4f60887, 983adbea) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 193000: uvm_test_top.env.agt.mon [MON] push_data1: e4f60887 | push_data2: 983adbea | data_out: c379a3fd
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 193000: uvm_test_top.env.agt.drv [DRV] push_data1=eafc3672,push_data2=832439c4,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 198000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 198000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 198000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(eafc3672, 832439c4) exp(dt_out: c379a3fd, full: 1, empty: 0) act(dt_out: c379a3fd, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 198000: uvm_test_top.env.agt.mon [MON] push_data1: eafc3672 | push_data2: 832439c4 | data_out: c379a3fd
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 198000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 198000: uvm_test_top.env.agt.drv [DRV] push_data1=94e40ce6,push_data2=36bcbc4a,push1=0,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 203000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 203000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 203000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(94e40ce6, 36bcbc4a) exp(dt_out: b2cad231, full: 0, empty: 0) act(dt_out: b2cad231, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 203000: uvm_test_top.env.agt.mon [MON] push_data1: 94e40ce6 | push_data2: 36bcbc4a | data_out: b2cad231
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 203000: uvm_test_top.env.agt.drv [DRV] push_data1=84f86f45,push_data2=81679376,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 208000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 208000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 208000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(84f86f45, 81679376) exp(dt_out: 51b45fe5, full: 0, empty: 0) act(dt_out: 51b45fe5, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 208000: uvm_test_top.env.agt.mon [MON] push_data1: 84f86f45 | push_data2: 81679376 | data_out: 51b45fe5
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 208000: uvm_test_top.env.agt.drv [DRV] push_data1=c559dde7,push_data2=19d9d817,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 213000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 213000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 213000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c559dde7, 19d9d817) exp(dt_out: cb4fe6b0, full: 0, empty: 0) act(dt_out: cb4fe6b0, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 213000: uvm_test_top.env.agt.mon [MON] push_data1: c559dde7 | push_data2: 19d9d817 | data_out: cb4fe6b0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 213000: uvm_test_top.env.agt.drv [DRV] push_data1=92310bf0,push_data2=e0288ed5,push1=1,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 218000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 218000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 218000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 0) data(92310bf0, e0288ed5) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 218000: uvm_test_top.env.agt.mon [MON] push_data1: 92310bf0 | push_data2: e0288ed5 | data_out: cc29ae09
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 218000: uvm_test_top.env.agt.drv [DRV] push_data1=a1636a9d,push_data2=6ce236de,push1=1,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 223000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 223000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 223000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 0) data(a1636a9d, 6ce236de) exp(dt_out: cc29ae09, full: 0, empty: 0) act(dt_out: cc29ae09, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 223000: uvm_test_top.env.agt.mon [MON] push_data1: a1636a9d | push_data2: 6ce236de | data_out: cc29ae09
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 223000: uvm_test_top.env.agt.drv [DRV] push_data1=b701dbfc,push_data2=89258557,push1=0,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 228000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 228000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 228000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(b701dbfc, 89258557) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 228000: uvm_test_top.env.agt.mon [MON] push_data1: b701dbfc | push_data2: 89258557 | data_out: cc29ae09
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 228000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 228000: uvm_test_top.env.agt.drv [DRV] push_data1=c27c5758,push_data2=b6fd2742,push1=0,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 233000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 233000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 233000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(c27c5758, b6fd2742) exp(dt_out: cc29ae09, full: 1, empty: 0) act(dt_out: cc29ae09, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 233000: uvm_test_top.env.agt.mon [MON] push_data1: c27c5758 | push_data2: b6fd2742 | data_out: cc29ae09
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(38) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push1 to 0
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 233000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 233000: uvm_test_top.env.agt.drv [DRV] push_data1=bd0505f0,push_data2=5759dcc5,push1=1,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 238000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 238000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 238000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(bd0505f0, 5759dcc5) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 238000: uvm_test_top.env.agt.mon [MON] push_data1: bd0505f0 | push_data2: 5759dcc5 | data_out: 3d9c0d3d
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 238000: uvm_test_top.env.agt.drv [DRV] push_data1=897a9b6b,push_data2=10d15a0c,push1=0,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 243000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 243000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 243000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 1, 0) data(897a9b6b, 10d15a0c) exp(dt_out: 3d9c0d3d, full: 0, empty: 0) act(dt_out: 3d9c0d3d, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 243000: uvm_test_top.env.agt.mon [MON] push_data1: 897a9b6b | push_data2: 10d15a0c | data_out: 3d9c0d3d
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 243000: uvm_test_top.env.agt.drv [DRV] push_data1=abb93fd4,push_data2=2ca39c43,push1=0,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 248000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 248000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 248000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 1) data(abb93fd4, 2ca39c43) exp(dt_out: 3d9c0d3d, full: 1, empty: 0) act(dt_out: 3d9c0d3d, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 248000: uvm_test_top.env.agt.mon [MON] push_data1: abb93fd4 | push_data2: 2ca39c43 | data_out: 3d9c0d3d
+UVM_WARNING lib_rs_slot_freeq_2push_drv.sv(44) @ 248000: uvm_test_top.env.agt.drv [DRV] FIFO full; setting push2 to 0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 248000: uvm_test_top.env.agt.drv [DRV] push_data1=ed130467,push_data2=ec8ced6b,push1=0,push2=1,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 253000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 253000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 253000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(ed130467, ec8ced6b) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 253000: uvm_test_top.env.agt.mon [MON] push_data1: ed130467 | push_data2: ec8ced6b | data_out: 86bda51a
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 253000: uvm_test_top.env.agt.drv [DRV] push_data1=5555c396,push_data2=0e90f2bf,push1=1,push2=0,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 258000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 258000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 258000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 0, 1) data(5555c396, 0e90f2bf) exp(dt_out: 86bda51a, full: 0, empty: 0) act(dt_out: 86bda51a, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 258000: uvm_test_top.env.agt.mon [MON] push_data1: 5555c396 | push_data2: 0e90f2bf | data_out: 86bda51a
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 258000: uvm_test_top.env.agt.drv [DRV] push_data1=0df694b3,push_data2=8c421745,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 263000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 263000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 263000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(0df694b3, 8c421745) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 263000: uvm_test_top.env.agt.mon [MON] push_data1: 0df694b3 | push_data2: 8c421745 | data_out: 2f9084e0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 263000: uvm_test_top.env.agt.drv [DRV] push_data1=3ae1e8bb,push_data2=c2f9de2f,push1=1,push2=1,pop=1 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 268000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 268000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 268000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 1, 1, 1) data(3ae1e8bb, c2f9de2f) exp(dt_out: 2f9084e0, full: 0, empty: 0) act(dt_out: 2f9084e0, full: 0, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 268000: uvm_test_top.env.agt.mon [MON] push_data1: 3ae1e8bb | push_data2: c2f9de2f | data_out: 2f9084e0
+UVM_INFO lib_rs_slot_freeq_2push_drv.sv(52) @ 268000: uvm_test_top.env.agt.drv [DRV] push_data1=d866494b,push_data2=a68bd6a1,push1=0,push2=0,pop=0 sent to DUT
+UVM_INFO lib_rs_slot_freeq_2push_base_seq.sv(18) @ 268000: uvm_test_top.env.agt.sqr@@seq [SEQ] Sequence Complete
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(34) @ 273000: uvm_test_top.env.scb [SCB] Running reference model
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(46) @ 273000: uvm_test_top.env.scb [SCB] Reference model ran successfully
+UVM_INFO lib_rs_slot_freeq_2push_scb.sv(57) @ 273000: uvm_test_top.env.scb [SCB MATCH] 	ctrls( 0, 0, 0) data(d866494b, a68bd6a1) exp(dt_out: a41b21c8, full: 1, empty: 0) act(dt_out: a41b21c8, full: 1, empty: 0)
+UVM_INFO lib_rs_slot_freeq_2push_mon.sv(42) @ 273000: uvm_test_top.env.agt.mon [MON] push_data1: d866494b | push_data2: a68bd6a1 | data_out: a41b21c8
 UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_objection.svh(1276) @ 273000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
-UVM_INFO rs_slot_freeq_2push_base_test.sv(38) @ 273000: uvm_test_top [TEST RESULT] ----- TEST PASSED -----
+UVM_INFO lib_rs_slot_freeq_2push_base_test.sv(38) @ 273000: uvm_test_top [TEST RESULT] ----- TEST PASSED -----
 UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_report_server.svh(904) @ 273000: reporter [UVM/REPORT/SERVER] 
 --- UVM Report Summary ---
 

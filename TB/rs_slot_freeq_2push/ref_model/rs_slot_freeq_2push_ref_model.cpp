@@ -5,7 +5,7 @@
 
 typedef std::vector<uint32_t> T;
 
-class rs_slot_freeq_2push_ref_model {
+class lib_rs_slot_freeq_2push_ref_model {
     private:
         int size;
         int numwords;
@@ -22,7 +22,7 @@ class rs_slot_freeq_2push_ref_model {
             }
         }
     public:
-        rs_slot_freeq_2push_ref_model(int size, int numwords){
+        lib_rs_slot_freeq_2push_ref_model(int size, int numwords){
             this->size = size;
             this->numwords = numwords;
         }
@@ -55,16 +55,16 @@ class rs_slot_freeq_2push_ref_model {
         }
 };
 
-rs_slot_freeq_2push_ref_model* ref_model;
+lib_rs_slot_freeq_2push_ref_model* ref_model;
 
-extern "C" void rs_slot_freeq_2push_create_model(
+extern "C" void lib_rs_slot_freeq_2push_create_model(
     int size,
     int numwords
 ){
-    ref_model = new rs_slot_freeq_2push_ref_model(size, numwords);
+    ref_model = new lib_rs_slot_freeq_2push_ref_model(size, numwords);
 }
 
-extern "C" void rs_slot_freeq_2push_run_model(
+extern "C" void lib_rs_slot_freeq_2push_run_model(
     svBit reset_n,
     svBitVecVal* push_data1,
     svBitVecVal* push_data2,

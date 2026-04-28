@@ -5,7 +5,7 @@
     There is potential to make this into a sequential circuit if needed
 */
 
-interface operand_bus_if #(parameter type T = instr_pkg::data_t);
+interface if_scalar_request_bus;
 
     instr_pkg::chip_select_e chip_select;
     instr_pkg::rs_slot_id_t rs_slot;
@@ -14,8 +14,8 @@ interface operand_bus_if #(parameter type T = instr_pkg::data_t);
 
     instr_pkg::prf_tag_t prf_tag;
     instr_pkg::rob_address_t rob_id;
-    T operand_a;
-    T operand_b;
+    instr_pkg::data_t operand_a;
+    instr_pkg::data_t operand_b;
     instr_pkg::operations_e operation;
     instr_pkg::prf_tag_t operand_a_tag;
     instr_pkg::prf_tag_t operand_b_tag;

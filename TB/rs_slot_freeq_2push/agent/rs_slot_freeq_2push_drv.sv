@@ -1,10 +1,10 @@
 
-class rs_slot_freeq_2push_drv extends uvm_driver #(rs_slot_freeq_2push_tr);
+class lib_rs_slot_freeq_2push_drv extends uvm_driver #(lib_rs_slot_freeq_2push_tr);
 
-    `uvm_component_utils(rs_slot_freeq_2push_drv)
+    `uvm_component_utils(lib_rs_slot_freeq_2push_drv)
 
-    virtual rs_slot_freeq_2push_if vif;
-    rs_slot_freeq_2push_tr tr;
+    virtual lib_rs_slot_freeq_2push_if vif;
+    lib_rs_slot_freeq_2push_tr tr;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -13,7 +13,7 @@ class rs_slot_freeq_2push_drv extends uvm_driver #(rs_slot_freeq_2push_tr);
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        if(!uvm_config_db #(virtual rs_slot_freeq_2push_if)::get(this,"","vif",vif)) begin
+        if(!uvm_config_db #(virtual lib_rs_slot_freeq_2push_if)::get(this,"","vif",vif)) begin
             `uvm_fatal("DRV","Failed to get VIF from config database")
         end
     endfunction

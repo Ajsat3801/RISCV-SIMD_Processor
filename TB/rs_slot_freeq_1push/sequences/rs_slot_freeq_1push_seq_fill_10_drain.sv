@@ -1,20 +1,20 @@
 
-class rs_slot_freeq_1push_seq_fill_10_drain
-extends rs_slot_freeq_1push_base_seq;
+class lib_rs_slot_freeq_1push_seq_fill_10_drain
+extends lib_rs_slot_freeq_1push_base_seq;
 
-    `uvm_object_utils(rs_slot_freeq_1push_seq_fill_10_drain)
+    `uvm_object_utils(lib_rs_slot_freeq_1push_seq_fill_10_drain)
 
-    function new(string name="rs_slot_freeq_1push_seq_fill_10_drain");
+    function new(string name="lib_rs_slot_freeq_1push_seq_fill_10_drain");
         super.new(name);
     endfunction
 
     task generate_seq();
 
-        rs_slot_freeq_1push_tr tr;
+        lib_rs_slot_freeq_1push_tr tr;
 
         repeat(BUFFER_SIZE) begin
             
-            tr = rs_slot_freeq_1push_tr::type_id::create("tr");
+            tr = lib_rs_slot_freeq_1push_tr::type_id::create("tr");
             start_item(tr);
             
             if(!tr.randomize()) `uvm_fatal("SEQ", "Sequence randomization failed")
@@ -26,7 +26,7 @@ extends rs_slot_freeq_1push_base_seq;
         end
         
         repeat(10) begin
-            tr = rs_slot_freeq_1push_tr::type_id::create("tr");
+            tr = lib_rs_slot_freeq_1push_tr::type_id::create("tr");
 
             start_item(tr);
             if(!tr.randomize()) `uvm_fatal("SEQ", "Sequence Randomization failed")
@@ -34,7 +34,7 @@ extends rs_slot_freeq_1push_base_seq;
         end
 
         repeat(BUFFER_SIZE) begin
-            tr = rs_slot_freeq_1push_tr::type_id::create("tr");
+            tr = lib_rs_slot_freeq_1push_tr::type_id::create("tr");
 
             start_item(tr);
             if(!tr.randomize()) `uvm_fatal("SEQ", "Sequence randomization failed")

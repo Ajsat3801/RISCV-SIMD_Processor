@@ -1,9 +1,9 @@
 
-module fetch(
+module fe_fetch(
     input logic clk_i,
     input logic reset_ni,
 
-    retirement_bus_if.branch branching_i,
+    if_retirement_bus.branch branching_i,
 
     output instr_pkg::raw_instr_t raw_instr_o,
     output instr_pkg::pc_t pc_to_imem_o,

@@ -1,10 +1,10 @@
 
-class rs_slot_freeq_2push_base_test extends uvm_test;
+class lib_rs_slot_freeq_2push_base_test extends uvm_test;
 
-    `uvm_component_utils(rs_slot_freeq_2push_base_test)
+    `uvm_component_utils(lib_rs_slot_freeq_2push_base_test)
 
-    virtual rs_slot_freeq_2push_if vif;
-    rs_slot_freeq_2push_env env;
+    virtual lib_rs_slot_freeq_2push_if vif;
+    lib_rs_slot_freeq_2push_env env;
 
     bit test_passed;
 
@@ -14,9 +14,9 @@ class rs_slot_freeq_2push_base_test extends uvm_test;
 
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        env = rs_slot_freeq_2push_env::type_id::create("env", this);
+        env = lib_rs_slot_freeq_2push_env::type_id::create("env", this);
 
-        if(!uvm_config_db#(virtual rs_slot_freeq_2push_if)::get(this,"","vif",vif)) begin
+        if(!uvm_config_db#(virtual lib_rs_slot_freeq_2push_if)::get(this,"","vif",vif)) begin
             `uvm_fatal("TEST","Unable to get vif from config database")
         end
 

@@ -1,15 +1,15 @@
 
-class circular_fifo_fwft_test_random50 extends circular_fifo_fwft_base_test;
+class lib_circular_fifo_fwft_test_random50 extends lib_circular_fifo_fwft_base_test;
 
-    `uvm_component_utils(circular_fifo_fwft_test_random50);
+    `uvm_component_utils(lib_circular_fifo_fwft_test_random50);
 
-    function new(string name = "circular_fifo_fwft_test_random50", uvm_component parent = null);
+    function new(string name = "lib_circular_fifo_fwft_test_random50", uvm_component parent = null);
         super.new(name,parent);
     endfunction
 
     task run_seq();
-        circular_fifo_fwft_seq_random50 seq;
-        seq = circular_fifo_fwft_seq_random50::type_id::create("seq");
+        lib_circular_fifo_fwft_seq_random50 seq;
+        seq = lib_circular_fifo_fwft_seq_random50::type_id::create("seq");
 
         `uvm_info("TEST","Starting Random 50 Test", UVM_LOW)
 

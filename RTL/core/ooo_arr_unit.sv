@@ -1,13 +1,13 @@
-module alloc_rename_retire #(
+module ooo_arr_unit #(
     parameter logic IS_VECTOR = 1'b0
 )(
     input clk_i,
     input reset_ni,
     input flush_i,
 
-    instruction_bus_if.arr pre_alloc_instr_i,
-    retirement_bus_if.arr retire_instr_i,
-    alloc_bus_if.arr allocated_instr_io,
+    if_dispatch_bus.arr dispatched_instr_i,
+    if_retirement_bus.arr retire_instr_i,
+    if_alloc_bus.arr alloc_instr_o,
 
     output logic arr_full_o
 );
@@ -95,10 +95,10 @@ module alloc_rename_retire #(
          *  3)  instructions writes to a register
          *  4)  destination register of the instruction is not 0
          */
-        allocation_valid =  pre_alloc_instr_i.valid &&
-                            (pre_alloc_instr_i.instr.dest_address != '0) &&
-                            (pre_alloc_instr_i.instr.chip_select[2] == IS_VECTOR) &&
-                            pre_alloc_instr_i.instr.write_to_reg;
+        allocation_valid =  dispatched_instr_i.valid &&
+                            (dispatched_instr_i.instr.dest_address != '0) &&
+                            (dispatched_instr_i.instr.chip_select[2] == IS_VECTOR) &&
+                            dispatched_instr_i.instr.write_to_reg;
 
         arr_full_o = empty;
 
@@ -160,22 +160,22 @@ module alloc_rename_retire #(
              * - Other instruction data sent directly without gating (to handle .vx
              *   instructions
              */
-            allocated_instr_io.valid   <= pre_alloc_instr_i.valid;
-            allocated_instr_io.rs_slot <= pre_alloc_instr_i.rs_slot_id;
-            allocated_instr_io.instr   <= pre_alloc_instr_i.instr;
-            allocated_instr_io.a_is_vector <= pre_alloc_instr_i.instr.src1_vector;
-            allocated_instr_io.b_is_vector <= pre_alloc_instr_i.instr.src2_vector;
+            alloc_instr_o.valid   <= dispatched_instr_i.valid;
+            alloc_instr_o.rs_slot <= dispatched_instr_i.rs_slot_id;
+            alloc_instr_o.instr   <= dispatched_instr_i.instr;
+            alloc_instr_o.a_is_vector <= dispatched_instr_i.instr.src1_vector;
+            alloc_instr_o.b_is_vector <= dispatched_instr_i.instr.src2_vector;
             
             if (allocation_valid) begin
-                allocated_instr_io.prf_tag <= free_list[head];
+                alloc_instr_o.prf_tag <= free_list[head];
 
-                reg_alloc_table[pre_alloc_instr_i.instr.dest_address] <= free_list[head];
+                reg_alloc_table[dispatched_instr_i.instr.dest_address] <= free_list[head];
                 head <= head_next;
             end
-            else allocated_instr_io.prf_tag  <= '0;
+            else alloc_instr_o.prf_tag  <= '0;
             
-            allocated_instr_io.operand_a_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src1_address];
-            allocated_instr_io.operand_b_tag <= reg_alloc_table[pre_alloc_instr_i.instr.src2_address];
+            alloc_instr_o.operand_a_tag <= reg_alloc_table[dispatched_instr_i.instr.src1_address];
+            alloc_instr_o.operand_b_tag <= reg_alloc_table[dispatched_instr_i.instr.src2_address];
 
         end
     end

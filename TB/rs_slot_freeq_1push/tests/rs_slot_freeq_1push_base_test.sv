@@ -1,10 +1,10 @@
 
-class rs_slot_freeq_1push_base_test extends uvm_test;
+class lib_rs_slot_freeq_1push_base_test extends uvm_test;
 
-    `uvm_component_utils(rs_slot_freeq_1push_base_test)
+    `uvm_component_utils(lib_rs_slot_freeq_1push_base_test)
 
-    rs_slot_freeq_1push_env env;
-    virtual rs_slot_freeq_1push_if vif;
+    lib_rs_slot_freeq_1push_env env;
+    virtual lib_rs_slot_freeq_1push_if vif;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -13,9 +13,9 @@ class rs_slot_freeq_1push_base_test extends uvm_test;
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        env = rs_slot_freeq_1push_env::type_id::create("env", this);
+        env = lib_rs_slot_freeq_1push_env::type_id::create("env", this);
 
-        if(!uvm_config_db #(virtual rs_slot_freeq_1push_if)::get(this,"","vif",vif)) begin
+        if(!uvm_config_db #(virtual lib_rs_slot_freeq_1push_if)::get(this,"","vif",vif)) begin
             `uvm_fatal("TEST","Failed to fetch vif from configuration dataase")
         end
 

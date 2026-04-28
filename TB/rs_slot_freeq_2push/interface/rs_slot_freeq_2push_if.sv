@@ -1,6 +1,6 @@
-import rs_slot_freeq_2push_tb_config_pkg::*;
+import lib_rs_slot_freeq_2push_tb_config_pkg::*;
 
-interface rs_slot_freeq_2push_if (input logic clk_i);
+interface lib_rs_slot_freeq_2push_if (input logic clk_i);
 
     T push_data1, push_data2, data_out;
     logic reset_n, push1, push2, pop, empty, full;

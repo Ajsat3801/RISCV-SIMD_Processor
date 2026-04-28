@@ -6,7 +6,7 @@ Round robin policy
 
 //import config_pkg::*;
 
-module sc_wb_arbiter (
+module wb_vector (
     input logic clk_i,
     input logic reset_ni,
     input logic flush_i,
@@ -15,7 +15,7 @@ module sc_wb_arbiter (
     input signal_pkg::sc_ex_output_signal_t ex_result_i[SCALAR_EX_COUNT-1:0],
     output logic wb_ready_o[SCALAR_EX_COUNT-1:0],
 
-    data_bus_if.writeback scalar_data_bus_o
+    if_data_bus.writeback data_bus_o
 );
 
     storage_pkg::alu_result_entry_t fifo_heads[SCALAR_EX_COUNT-1:0]; 
@@ -26,12 +26,9 @@ module sc_wb_arbiter (
     logic wb_chosen, any_full;
 
     logic reset_wb_n;
-
-    int i;
-
     // circular FIFOs with FWFT, so we know what the head of the queue is immediately
 
-    circular_fifo_fwft #(
+    lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4), 
         .T(storage_pkg::alu_result_entry_t) 
     ) alu0_fifo (
@@ -46,7 +43,7 @@ module sc_wb_arbiter (
         .next_full_o(next_full[0])
     );
 
-    circular_fifo_fwft #(
+    lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4),
         .T(storage_pkg::alu_result_entry_t)
     ) alu1_fifo (
@@ -61,7 +58,7 @@ module sc_wb_arbiter (
         .next_full_o(next_full[1])
     );
 
-    circular_fifo_fwft #(
+    lib_circular_fifo_fwft #(
         .BUFFER_SIZE(2),
         .T(storage_pkg::alu_result_entry_t)
     ) muldiv_fifo (
@@ -76,7 +73,7 @@ module sc_wb_arbiter (
         .next_full_o(next_full[2])
     );
 
-    circular_fifo_fwft #(
+    lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4),
         .T(storage_pkg::alu_result_entry_t)
     ) lsu_fifo (
@@ -101,14 +98,14 @@ module sc_wb_arbiter (
         any_full = |(full & ~empty);
         request  = (any_full) ? (full & ~empty) : ~empty;
 
-        for(i = choice;i<SCALAR_EX_COUNT;i++) begin
+        for(int i=choice; i<SCALAR_EX_COUNT; i++) begin
             if(request[i] && !wb_chosen) begin
                 choice_idx = i;
                 wb_chosen  = 1'b1;
             end
         end
         if(!wb_chosen) begin
-            for(i = 0;i<choice;i++) begin
+            for(int i=0; i<choice; i++) begin
                 if(request[i] && !wb_chosen) begin
                     choice_idx = i;
                     wb_chosen  = 1'b1;
@@ -122,8 +119,6 @@ module sc_wb_arbiter (
         end
 
         reset_wb_n = reset_ni && !flush_i;
-
-        wb_ready_o = ~(full | next_full);
         
     end
 
@@ -136,21 +131,28 @@ module sc_wb_arbiter (
 
         else begin
             if(wb_chosen) begin
-                scalar_data_bus_o.valid   <= 1'b1;
-                scalar_data_bus_o.prf_tag <= fifo_heads[choice_idx].prf_tag;
-                scalar_data_bus_o.rob_id  <= fifo_heads[choice_idx].rob_id;
-                scalar_data_bus_o.data    <= fifo_heads[choice_idx].data;
+                data_bus_o.valid   <= 1'b1;
+                data_bus_o.prf_tag <= fifo_heads[choice_idx].prf_tag;
+                data_bus_o.rob_id  <= fifo_heads[choice_idx].rob_id;
+                data_bus_o.data    <= fifo_heads[choice_idx].data;
                 choice  <= choice_next;
                 dequeue <= dequeue_next;
             end
             else begin
-                scalar_data_bus_o.valid   <= 1'b0;
-                scalar_data_bus_o.prf_tag <= '0;
-                scalar_data_bus_o.rob_id  <= '0;
-                scalar_data_bus_o.data    <= '0;
+                data_bus_o.valid   <= 1'b0;
+                data_bus_o.prf_tag <= '0;
+                data_bus_o.rob_id  <= '0;
+                data_bus_o.data    <= '0;
                 dequeue <= '0; //sus
             end
         end
     end
+
+
+generate
+    for (genvar i=0; i<SCALAR_EX_COUNT; i++) begin
+        assign wb_ready_o[i] = ~(full[i] | next_full[i]);
+    end
+endgenerate
 
 endmodule

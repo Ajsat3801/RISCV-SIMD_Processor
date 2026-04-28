@@ -1,8 +1,8 @@
-UVM_INFO @ 0: reporter [RNTST] Running test circular_fifo_fwft_test_random50...
-UVM_INFO circular_fifo_fwft_test_random50.sv(14) @ 0: uvm_test_top [TEST] Starting Random 50 Test
-UVM_INFO circular_fifo_fwft_scoreboard.sv(28) @ 273000: uvm_test_top.env.scb [SCB] Evaluation Complete
+UVM_INFO @ 0: reporter [RNTST] Running test lib_circular_fifo_fwft_test_random50...
+UVM_INFO lib_circular_fifo_fwft_test_random50.sv(14) @ 0: uvm_test_top [TEST] Starting Random 50 Test
+UVM_INFO lib_circular_fifo_fwft_scoreboard.sv(28) @ 273000: uvm_test_top.env.scb [SCB] Evaluation Complete
 UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_objection.svh(1276) @ 273000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
-UVM_INFO circular_fifo_fwft_base_test.sv(52) @ 273000: uvm_test_top [TEST_RESULT] ------ TEST PASSED ------
+UVM_INFO lib_circular_fifo_fwft_base_test.sv(52) @ 273000: uvm_test_top [TEST_RESULT] ------ TEST PASSED ------
 UVM_INFO /apps/vcsmx/vcs/X-2025.06-SP1//etc/uvm-1.2/src/base/uvm_report_server.svh(904) @ 273000: reporter [UVM/REPORT/SERVER] 
 --- UVM Report Summary ---
 

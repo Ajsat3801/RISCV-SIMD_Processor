@@ -1,13 +1,13 @@
 
-class rs_slot_freeq_2push_agt extends uvm_agent;
+class lib_rs_slot_freeq_2push_agt extends uvm_agent;
 
-    `uvm_component_utils(rs_slot_freeq_2push_agt)
+    `uvm_component_utils(lib_rs_slot_freeq_2push_agt)
 
-    rs_slot_freeq_2push_drv drv;
-    rs_slot_freeq_2push_mon mon;
-    rs_slot_freeq_2push_sqr sqr;
+    lib_rs_slot_freeq_2push_drv drv;
+    lib_rs_slot_freeq_2push_mon mon;
+    lib_rs_slot_freeq_2push_sqr sqr;
 
-    virtual rs_slot_freeq_2push_if vif;
+    virtual lib_rs_slot_freeq_2push_if vif;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -16,15 +16,15 @@ class rs_slot_freeq_2push_agt extends uvm_agent;
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        drv = rs_slot_freeq_2push_drv::type_id::create("drv", this);
-        mon = rs_slot_freeq_2push_mon::type_id::create("mon", this);
-        sqr = rs_slot_freeq_2push_sqr::type_id::create("sqr", this);
+        drv = lib_rs_slot_freeq_2push_drv::type_id::create("drv", this);
+        mon = lib_rs_slot_freeq_2push_mon::type_id::create("mon", this);
+        sqr = lib_rs_slot_freeq_2push_sqr::type_id::create("sqr", this);
 
-        if(!uvm_config_db #(virtual rs_slot_freeq_2push_if)::get(this,"","vif",vif)) begin
+        if(!uvm_config_db #(virtual lib_rs_slot_freeq_2push_if)::get(this,"","vif",vif)) begin
             `uvm_fatal("AGT","Failed to get vif from config db")
         end
 
-        uvm_config_db #(virtual rs_slot_freeq_2push_if)::set(this,"*","vif",vif);
+        uvm_config_db #(virtual lib_rs_slot_freeq_2push_if)::set(this,"*","vif",vif);
 
     endfunction
 

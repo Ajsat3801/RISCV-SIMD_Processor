@@ -1,10 +1,10 @@
 
-class circular_fifo_fwft_mon extends uvm_monitor;
+class lib_circular_fifo_fwft_mon extends uvm_monitor;
 
-    virtual circular_fifo_fwft_if vif;
-    uvm_analysis_port #(circular_fifo_fwft_tr) item_collected_port;
+    virtual lib_circular_fifo_fwft_if vif;
+    uvm_analysis_port #(lib_circular_fifo_fwft_tr) item_collected_port;
 
-    `uvm_component_utils(circular_fifo_fwft_mon);
+    `uvm_component_utils(lib_circular_fifo_fwft_mon);
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -13,8 +13,8 @@ class circular_fifo_fwft_mon extends uvm_monitor;
   
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if (!uvm_config_db #(virtual circular_fifo_fwft_if)::get(this, "", "vif", vif)) begin
-            `uvm_fatal("MON", "virtual interface vif not set for circular_fifo_fwft_drv")
+        if (!uvm_config_db #(virtual lib_circular_fifo_fwft_if)::get(this, "", "vif", vif)) begin
+            `uvm_fatal("MON", "virtual interface vif not set for lib_circular_fifo_fwft_drv")
         end
     endfunction
 
@@ -26,12 +26,12 @@ class circular_fifo_fwft_mon extends uvm_monitor;
 
     task collect_transactions();
 
-        circular_fifo_fwft_tr tr;
+        lib_circular_fifo_fwft_tr tr;
 
         @(vif.mon_cb);
       
         if(vif.mon_cb.reset_n) begin
-            tr = circular_fifo_fwft_tr::type_id::create("tr");
+            tr = lib_circular_fifo_fwft_tr::type_id::create("tr");
             tr.push = vif.mon_cb.push;
             tr.push_data = vif.mon_cb.push_data;
             tr.pop = vif.mon_cb.pop;

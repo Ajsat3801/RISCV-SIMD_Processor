@@ -1,20 +1,21 @@
 
-module reorder_buffer (
+module ooo_reorder_buffer (
     input logic clk_i,
     input logic reset_ni,
 
-    alloc_bus_if.rob sc_allocated_instr_io,
-    alloc_bus_if.rob vc_allocated_instr_io,
+    if_alloc_bus.rob sc_allocated_instr_i,
+    if_alloc_bus.rob vc_allocated_instr_i,
 
-    data_bus_if.snoop scalar_wb_i,
-    data_bus_if.snoop vector_wb_i,
-    input signal_pkg::br_output_signal_t branch_i,
+    if_data_bus.snoop sc_data_bus_i,
+    if_data_bus.snoop vc_data_bus_i,
+    input signal_pkg::br_output_signal_t branch_result_i,
 
-    operand_bus_if.rob alloc_instr_o,
+    if_scalar_request_bus.rob sc_request_o,
+    if_vector_request_bus.rob vc_request_o,
 
-    retirement_bus_if.rob retire_instr_o,
+    if_retirement_bus.rob retire_instr_o,
 
-    output logic rob_exp_full_o,
+    output logic rob_full_o,
     output logic flush_o
 );
 
@@ -49,10 +50,10 @@ always_comb begin
     full  = (head.address == tail.address) && (head.epoch != tail.epoch);
     empty = (head.address == tail.address) && (head.epoch == tail.epoch);
 
-    instr_type   = {sc_allocated_instr_io.valid, vc_allocated_instr_io.valid}; 
+    instr_type   = {sc_allocated_instr_i.valid, vc_allocated_instr_i.valid}; 
     
     push_allowed =  !full && 
-                    (sc_allocated_instr_io.valid || vc_allocated_instr_io.valid) && 
+                    (sc_allocated_instr_i.valid || vc_allocated_instr_i.valid) && 
                     (instr_type != INSTR_NOP);
     pop_allowed  = !empty && rob_table[head.address].ready;
 
@@ -63,35 +64,35 @@ always_comb begin
 
     case(instr_type)
         INSTR_VV: begin 
-            rob_input.write_to_reg = vc_allocated_instr_io.instr.write_to_reg;
-            rob_input.prf_tag = vc_allocated_instr_io.prf_tag;
-            rob_input.dest_address = vc_allocated_instr_io.instr.dest_address;
+            rob_input.write_to_reg = vc_allocated_instr_i.instr.write_to_reg;
+            rob_input.prf_tag = vc_allocated_instr_i.prf_tag;
+            rob_input.dest_address = vc_allocated_instr_i.instr.dest_address;
         end
         INSTR_VX: begin
-            rob_input.write_to_reg = vc_allocated_instr_io.instr.write_to_reg;
-            rob_input.prf_tag = vc_allocated_instr_io.prf_tag;
-            rob_input.dest_address = vc_allocated_instr_io.instr.dest_address;
+            rob_input.write_to_reg = vc_allocated_instr_i.instr.write_to_reg;
+            rob_input.prf_tag = vc_allocated_instr_i.prf_tag;
+            rob_input.dest_address = vc_allocated_instr_i.instr.dest_address;
         end
         INSTR_SC: begin
-            rob_input.ready =   sc_allocated_instr_io.instr.pre_calc && 
-                                sc_allocated_instr_io.instr.write_to_reg;
-            rob_input.write_to_reg = sc_allocated_instr_io.instr.write_to_reg;
-            rob_input.prf_tag      = sc_allocated_instr_io.prf_tag;
-            rob_input.dest_address = sc_allocated_instr_io.instr.dest_address;
+            rob_input.ready =   sc_allocated_instr_i.instr.pre_calc && 
+                                sc_allocated_instr_i.instr.write_to_reg;
+            rob_input.write_to_reg = sc_allocated_instr_i.instr.write_to_reg;
+            rob_input.prf_tag      = sc_allocated_instr_i.prf_tag;
+            rob_input.dest_address = sc_allocated_instr_i.instr.dest_address;
             rob_input.data = {
-                sc_allocated_instr_io.instr.src1_address,
-                sc_allocated_instr_io.instr.src2_address,
-                sc_allocated_instr_io.instr.imm,
-                sc_allocated_instr_io.instr.extend
+                sc_allocated_instr_i.instr.src1_address,
+                sc_allocated_instr_i.instr.src2_address,
+                sc_allocated_instr_i.instr.imm,
+                sc_allocated_instr_i.instr.extend
             };
-            rob_input.is_branch = sc_allocated_instr_io.instr.is_branch; 
+            rob_input.is_branch = sc_allocated_instr_i.instr.is_branch; 
             
         end
 
     endcase
 
     // sends signal to instruction queue when 1 slot or no slots are remaining
-    rob_exp_full_o = (head.address == tail_next.address) && 
+    rob_full_o = (head.address == tail_next.address) && 
                      (head.epoch != tail_next.epoch) || full;
     
 end
@@ -102,36 +103,48 @@ always_ff @(posedge clk_i) begin
         for (i=0; i<ROB_LEN; i++) rob_table[i] <= '0;
         head <= '0;
         tail <= '0;
-        alloc_instr_o.rob_valid <= 1'b0;
-        alloc_instr_o.rob_id    <= '0;
+        sc_request_o.rob_valid <= 1'b0;
+        sc_request_o.rob_id    <= '0;
 
     end
     else begin
 
         if(push_allowed) begin
             rob_table[tail.address] <= rob_input;
-            alloc_instr_o.rob_valid <= 1'b1;
-            alloc_instr_o.rob_id    <= tail;
             tail <= tail_next;
-        end
-        else begin
-            alloc_instr_o.rob_valid <= 1'b0;
-            alloc_instr_o.rob_id    <= '0;
+
+            if(instr_type == INSTR_SC || instr_type == INSTR_VX) begin
+                sc_request_o.rob_valid <= 1'b1;
+                sc_request_o.rob_id    <= tail;
+            end
+            else begin
+                sc_request_o.rob_valid <= 1'b0;
+                sc_request_o.rob_id    <= '0;
+            end
+
+            if(instr_type == INSTR_VV || instr_type == INSTR_VX) begin
+                vc_request_o.rob_valid <= 1'b1;
+                vc_request_o.rob_id    <= tail;
+            end
+            else begin
+                vc_request_o.rob_valid <= 1'b0;
+                vc_request_o.rob_id    <= '0;
+            end
         end
 
         // Snooping
         // branch snooping
-        if(branch_i.valid && rob_table[branch_i.rob_id.address].is_branch) begin
-            rob_table[branch_i.rob_id.address].ready <= 1'b1;
-            rob_table[branch_i.rob_id.address].branch_taken <= branch_i.branch_taken;
+        if(branch_result_i.valid && rob_table[branch_result_i.rob_id.address].is_branch) begin
+            rob_table[branch_result_i.rob_id.address].ready <= 1'b1;
+            rob_table[branch_result_i.rob_id.address].branch_taken <= branch_result_i.branch_taken;
         end
         // scalar snooping
-        if(scalar_wb_i.valid) begin
-            rob_table[scalar_wb_i.rob_id.address].ready <= 1'b1;
+        if(sc_data_bus_i.valid) begin
+            rob_table[sc_data_bus_i.rob_id.address].ready <= 1'b1;
         end
         // vector snooping
-        if(vector_wb_i.valid) begin
-            rob_table[vector_wb_i.rob_id.address].ready <= 1'b1;
+        if(vc_data_bus_i.valid) begin
+            rob_table[vc_data_bus_i.rob_id.address].ready <= 1'b1;
         end
 
         // Retire

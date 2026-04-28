@@ -1,10 +1,10 @@
-import circular_fifo_fwft_tb_config_pkg::*;
-import circular_fifo_fwft_dpi_pkg::*;
+import lib_circular_fifo_fwft_tb_config_pkg::*;
+import lib_circular_fifo_fwft_dpi_pkg::*;
 
-class circular_fifo_fwft_ref_model_adapter;
+class lib_circular_fifo_fwft_ref_model_adapter;
 
     function void create_model();
-        circular_fifo_fwft_model_create(BUFFER_SIZE);
+        lib_circular_fifo_fwft_model_create(BUFFER_SIZE);
     endfunction
     
     function void run_ref_model(
@@ -22,7 +22,7 @@ class circular_fifo_fwft_ref_model_adapter;
 
         push_data[$bits(T)-1:0] = push_dataT;
 
-        circular_fifo_fwft_model_run(push_data, data_out, push, pop, full, empty, num_words);
+        lib_circular_fifo_fwft_model_run(push_data, data_out, push, pop, full, empty, num_words);
 
 		data_outT = data_out[$bits(T)-1:0];
     

@@ -1,5 +1,5 @@
 
-module sc_divider (
+module lib_scalar_divider (
     input logic clk_i,
     input logic reset_ni,
     input logic [31:0] dividend_i,

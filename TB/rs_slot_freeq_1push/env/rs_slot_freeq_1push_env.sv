@@ -1,11 +1,11 @@
 // connects agt to scoreboard - coverage in the future
 
-class rs_slot_freeq_1push_env extends uvm_env;
+class lib_rs_slot_freeq_1push_env extends uvm_env;
 
-    `uvm_component_utils(rs_slot_freeq_1push_env)
+    `uvm_component_utils(lib_rs_slot_freeq_1push_env)
 
-    rs_slot_freeq_1push_agt agt;
-    rs_slot_freeq_1push_scb scb;
+    lib_rs_slot_freeq_1push_agt agt;
+    lib_rs_slot_freeq_1push_scb scb;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -14,8 +14,8 @@ class rs_slot_freeq_1push_env extends uvm_env;
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        agt = rs_slot_freeq_1push_agt::type_id::create("agt", this);
-        scb = rs_slot_freeq_1push_scb::type_id::create("scb", this);
+        agt = lib_rs_slot_freeq_1push_agt::type_id::create("agt", this);
+        scb = lib_rs_slot_freeq_1push_scb::type_id::create("scb", this);
 
     endfunction
 

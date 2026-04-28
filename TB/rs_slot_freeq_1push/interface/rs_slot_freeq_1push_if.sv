@@ -1,6 +1,6 @@
-import rs_slot_freeq_1push_tb_config_pkg::*;
+import lib_rs_slot_freeq_1push_tb_config_pkg::*;
 
-interface rs_slot_freeq_1push_if (
+interface lib_rs_slot_freeq_1push_if (
     input logic clk
 );
 

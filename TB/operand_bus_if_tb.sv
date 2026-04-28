@@ -2,7 +2,7 @@
 
 import instr_desc::*;
 
-module operand_bus_if_tb;
+module if_scalar_request_bus_tb;
 
     logic clk;
 
@@ -32,7 +32,7 @@ module operand_bus_if_tb;
     initial clk = 1'b0;
     always #5 clk = ~clk;
 
-    operand_bus_if bus();
+    if_scalar_request_bus bus();
 
     task idle();
         begin

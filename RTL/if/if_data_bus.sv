@@ -1,4 +1,4 @@
-interface data_bus_if #(
+interface if_data_bus #(
     parameter type T = instr_pkg::data_t
     );
 

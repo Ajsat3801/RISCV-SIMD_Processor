@@ -1,4 +1,4 @@
-module vc_mini_alu(
+module lib_vector_alu_lane(
 
     // connection to reservation station
     input instr_pkg::operations_e operation,

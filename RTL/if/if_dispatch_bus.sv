@@ -1,5 +1,5 @@
 
-interface instruction_bus_if;
+interface if_dispatch_bus;
 
     logic valid;
     instr_pkg::decoded_instr_t instr;

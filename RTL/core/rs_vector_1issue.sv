@@ -1,23 +1,23 @@
 
-module vc_rs #(
+module rs_vector_1issue #(
     parameter instr_pkg::chip_select_e CHIP_SELECT = instr_pkg::CS_VALU
 )(
     input clk_i,
     input reset_ni,
     input flush_i,
 
-    operand_bus_if.rs sc_operand_bus_i,
-    dispatch_bus_if.rs vc_dispatch_bus_i,
+    if_scalar_request_bus.rs sc_rs_request_i,
+    if_vector_request_bus.rs vc_rs_request_i,
 
-    data_bus_if.snoop sc_data_bus_i,
-    data_bus_if.snoop vc_data_bus_i,
-
-    output signal_pkg::vc_dispatched_instr_t dispatch_o,
+    if_data_bus.snoop sc_data_bus_i,
+    if_data_bus.snoop vc_data_bus_i,
+    input logic vc_ex_ready_i,
+    output signal_pkg::vc_dispatched_instr_t vc_read_request_o,
 
     output instr_pkg::rs_slot_id_t released_rs_slot_id_o,
-    output logic rs_slot_released_o,
+    output logic rs_slot_released_o
 
-    input logic wb_ready_i
+    
 );
 
     storage_pkg::vc_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
@@ -31,27 +31,27 @@ module vc_rs #(
 
     always_comb begin
 
-        built_entry.occupied = sc_operand_bus_i.rs_entry.occupied && vc_dispatch_bus_i.valid;
-        built_entry.prf_tag  = vc_dispatch_bus_i.prf_tag;
-        built_entry.rob_id   = vc_dispatch_bus_i.rob_id;
+        built_entry.occupied = sc_rs_request_i.rs_entry.occupied && vc_rs_request_i.valid;
+        built_entry.prf_tag  = vc_rs_request_i.prf_tag;
+        built_entry.rob_id   = vc_rs_request_i.rob_id;
         
-        built_entry.operation   = vc_dispatch_bus_i.operation;
-        built_entry.a_is_vector = vc_dispatch_bus_i.a_is_vector;
-        built_entry.b_is_vector = vc_dispatch_bus_i.b_is_vector;
+        built_entry.operation   = vc_rs_request_i.operation;
+        built_entry.a_is_vector = vc_rs_request_i.a_is_vector;
+        built_entry.b_is_vector = vc_rs_request_i.b_is_vector;
 
         if (!built_entry.a_is_vector) begin
-            built_entry.operand_a       = sc_operand_bus_i.rs_entry.operand_a;
-            built_entry.operand_a_tag   = sc_operand_bus_i.rs_entry.operand_a_tag;
-            built_entry.operand_a_ready = sc_operand_bus_i.rs_entry.operand_a_ready;
+            built_entry.operand_a       = sc_rs_request_i.rs_entry.operand_a;
+            built_entry.operand_a_tag   = sc_rs_request_i.rs_entry.operand_a_tag;
+            built_entry.operand_a_ready = sc_rs_request_i.rs_entry.operand_a_ready;
         end
         else begin
             built_entry.operand_a       = '0;
-            built_entry.operand_a_tag   = vc_dispatch_bus_i.operand_a_tag;
-            built_entry.operand_a_ready = vc_dispatch_bus_i.operand_a_ready;
+            built_entry.operand_a_tag   = vc_rs_request_i.operand_a_tag;
+            built_entry.operand_a_ready = vc_rs_request_i.operand_a_ready;
         end
         
-        built_entry.operand_b_tag = vc_dispatch_bus_i.operand_b_tag;
-        built_entry.operand_b_ready = vc_dispatch_bus_i.operand_b_ready;
+        built_entry.operand_b_tag = vc_rs_request_i.operand_b_tag;
+        built_entry.operand_b_ready = vc_rs_request_i.operand_b_ready;
 
         mask_upper       = '0;
         upper_canditates = '0;
@@ -60,7 +60,7 @@ module vc_rs #(
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid = built_entry.occupied && vc_dispatch_bus_i.chip_select == CHIP_SELECT;
+        instr_valid = built_entry.occupied && vc_rs_request_i.chip_select == CHIP_SELECT;
 
         for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
             eligible[i] =   buffer[i].occupied && 
@@ -72,9 +72,9 @@ module vc_rs #(
                     built_entry.operand_a_ready &&
                     built_entry.operand_b_ready && 
                     !(|eligible) &&
-                    wb_ready_i;
+                    vc_ex_ready_i;
 
-        dispatch =  |eligible && wb_ready_i;
+        dispatch =  |eligible && vc_ex_ready_i;
 
         if (dispatch) begin
             mask_upper[0] = mask[0];
@@ -101,7 +101,7 @@ module vc_rs #(
         end
         else begin
             mask_next = mask;
-            choice = (bypass) ? vc_dispatch_bus_i.rs_slot : '0;
+            choice = (bypass) ? vc_rs_request_i.rs_slot : '0;
         end
     end 
 
@@ -111,7 +111,7 @@ module vc_rs #(
             for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) buffer[i] <= '0;
 
             released_rs_slot_id_o <= '0;
-            dispatch_o <= '0;
+            vc_read_request_o <= '0;
             mask <= {{SINGLE_SLOT_RS_LEN-1{1'b0}},1'b1};
 
         end
@@ -160,44 +160,44 @@ module vc_rs #(
             // dequeue instructions
             if(bypass) begin
                 // send slice of RS input to output, removing the tags and ready
-                dispatch_o.valid     <= built_entry.occupied;
-                dispatch_o.prf_tag   <= built_entry.prf_tag;
-                dispatch_o.rob_id    <= built_entry.rob_id;
-                dispatch_o.operand_a <= built_entry.operand_a;
-                dispatch_o.operation <= built_entry.operation;
+                vc_read_request_o.valid     <= built_entry.occupied;
+                vc_read_request_o.prf_tag   <= built_entry.prf_tag;
+                vc_read_request_o.rob_id    <= built_entry.rob_id;
+                vc_read_request_o.operand_a <= built_entry.operand_a;
+                vc_read_request_o.operation <= built_entry.operation;
 
-                dispatch_o.a_is_vector <= built_entry.a_is_vector;
-                dispatch_o.b_is_vector <= built_entry.b_is_vector;
-                dispatch_o.operand_a_tag <= built_entry.operand_a_tag;
-                dispatch_o.operand_b_tag <= built_entry.operand_b_tag;
+                vc_read_request_o.a_is_vector <= built_entry.a_is_vector;
+                vc_read_request_o.b_is_vector <= built_entry.b_is_vector;
+                vc_read_request_o.operand_a_tag <= built_entry.operand_a_tag;
+                vc_read_request_o.operand_b_tag <= built_entry.operand_b_tag;
             end
             
             else if(dispatch) begin
                 // send slice of ROB entry to output, removing the tags and ready
-                dispatch_o.valid     <= buffer[choice].occupied;
-                dispatch_o.prf_tag   <= buffer[choice].prf_tag;
-                dispatch_o.rob_id    <= buffer[choice].rob_id;
-                dispatch_o.operand_a <= buffer[choice].operand_a;
-                dispatch_o.operation <= buffer[choice].operation;
-                dispatch_o.a_is_vector <= buffer[choice].a_is_vector;
-                dispatch_o.b_is_vector <= buffer[choice].b_is_vector;
-                dispatch_o.operand_a_tag <= buffer[choice].operand_a_tag;
-                dispatch_o.operand_b_tag <= buffer[choice].operand_b_tag;
+                vc_read_request_o.valid     <= buffer[choice].occupied;
+                vc_read_request_o.prf_tag   <= buffer[choice].prf_tag;
+                vc_read_request_o.rob_id    <= buffer[choice].rob_id;
+                vc_read_request_o.operand_a <= buffer[choice].operand_a;
+                vc_read_request_o.operation <= buffer[choice].operation;
+                vc_read_request_o.a_is_vector <= buffer[choice].a_is_vector;
+                vc_read_request_o.b_is_vector <= buffer[choice].b_is_vector;
+                vc_read_request_o.operand_a_tag <= buffer[choice].operand_a_tag;
+                vc_read_request_o.operand_b_tag <= buffer[choice].operand_b_tag;
                 
                 // clearing buffer entry and sending released value
                 buffer[choice] <= '0;
             end
-            else dispatch_o <= '0;
+            else vc_read_request_o <= '0;
             
             released_rs_slot_id_o <= choice;
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[vc_dispatch_bus_i.rs_slot] <= built_entry;
+            if (instr_valid && !bypass) buffer[vc_rs_request_i.rs_slot] <= built_entry;
 
         end
     end
 
-    assign rs_slot_released_o = dispatch_o.valid;
+    assign rs_slot_released_o = vc_read_request_o.valid;
 
 endmodule

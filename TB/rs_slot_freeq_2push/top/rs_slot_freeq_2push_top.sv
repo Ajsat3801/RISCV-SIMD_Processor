@@ -2,9 +2,9 @@
 module top;
 
     bit clk;
-    rs_slot_freeq_2push_if intf(.clk_i(clk));
+    lib_rs_slot_freeq_2push_if intf(.clk_i(clk));
 
-    rs_slot_freeq_2push #(
+    lib_rs_slot_freeq_2push #(
         .BUFFER_SIZE(BUFFER_SIZE),
         .T(T)
     ) dut (
@@ -26,8 +26,8 @@ module top;
     end
 
     initial begin
-        uvm_config_db #(virtual rs_slot_freeq_2push_if)::set(null,"*","vif",intf);
-        run_test("rs_slot_freeq_2push_test_random50");
+        uvm_config_db #(virtual lib_rs_slot_freeq_2push_if)::set(null,"*","vif",intf);
+        run_test("lib_rs_slot_freeq_2push_test_random50");
     end
 
 endmodule
