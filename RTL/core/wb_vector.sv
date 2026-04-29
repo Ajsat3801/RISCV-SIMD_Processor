@@ -6,19 +6,19 @@ Round robin policy
 
 //import config_pkg::*;
 
-module wb_scalar (
+module wb_vector (
     input logic clk_i,
     input logic reset_ni,
     input logic flush_i,
 
     // EX units
-    input signal_pkg::sc_ex_output_signal_t ex_result_i[VECTOR_EX_COUNT-1:0],
+    input signal_pkg::vc_ex_output_signal_t ex_result_i[VECTOR_EX_COUNT-1:0],
     output logic wb_ready_o[VECTOR_EX_COUNT-1:0],
 
     if_data_bus.writeback data_bus_o
 );
 
-    storage_pkg::vc_result_entry_t fifo_heads[VECTOR_EX_COUNT-1:0]; 
+    signal_pkg::vc_ex_output_signal_t fifo_heads[VECTOR_EX_COUNT-1:0]; 
 
     logic choice, choice_idx, choice_next;
     logic[VECTOR_EX_COUNT-1:0] empty, full, next_full;
@@ -30,7 +30,7 @@ module wb_scalar (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4), 
-        .T(storage_pkg::vc_result_entry_t) 
+        .T(signal_pkg::vc_ex_output_signal_t) 
     ) valu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -45,7 +45,7 @@ module wb_scalar (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4),
-        .T(storage_pkg::vc_result_entry_t)
+        .T(signal_pkg::vc_ex_output_signal_t)
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),

@@ -18,7 +18,7 @@ module core #()(
 
     input vc_pre_load_i,
     input instr_pkg::prf_tag_t vc_pre_load_addr_i,
-    input instr_pkg::data_t vc_pre_load_data_i,
+    input instr_pkg::vector_data_t vc_pre_load_data_i,
 
     output logic ready_o
 );
@@ -57,7 +57,7 @@ module core #()(
 
     // signal from reservation station to prf for vector
     // VECTOR RS -> PRF
-    signal_pkg::vc_issued_instr_t vc_issued_instr[VECTOR_EX_COUNT-1:0];
+    signal_pkg::vc_dispatched_instr_t vc_issued_instr[VECTOR_EX_COUNT-1:0];
 
     // functional units output signals
     // EX -> WB
@@ -80,6 +80,10 @@ module core #()(
     // WB -> RS
     logic sc_wb_ready[SCALAR_EX_COUNT-1:0];
     logic vc_wb_ready[VECTOR_EX_COUNT-1:0];
+
+    // ready inputs into RS, bitwise and of sc_ex_ready and sc_wb_ready
+    logic sc_rs_ex_ready[SCALAR_EX_COUNT-1:0];
+    logic vc_rs_ex_ready[VECTOR_EX_COUNT-1:0];
 
     /*
         Fetched OP -> fetched_instr
@@ -115,31 +119,54 @@ module core #()(
     if_data_bus #(.T(instr_pkg::data_t)) u_sc_prf_input();
     if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_prf_input();
 
+    if_data_bus #(.T(instr_pkg::data_t)) u_sc_preload_in();
+    if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_preload_in();
+
+    genvar i;
+
+    generate
+        for(i=0; i<SCALAR_EX_COUNT; i++) begin : gen_sc_ready_gate
+            assign  sc_rs_ex_ready[i] = sc_ex_ready[i] && sc_wb_ready[i];
+        end
+
+        for(i=0; i<VECTOR_EX_COUNT; i++) begin : gen_vc_ready_gate
+            assign vc_rs_ex_ready[i] = vc_ex_ready[i] && vc_wb_ready[i];
+        end
+    endgenerate
+
     always_comb begin
         /*
          * Handling pre-loading of PRF
          */
+        u_sc_preload_in.valid = sc_pre_load_i;
+        u_sc_preload_in.prf_tag = sc_pre_load_addr_i;
+        u_sc_preload_in.data = sc_pre_load_data_i;
+
+        u_vc_preload_in.valid = vc_pre_load_i;
+        u_vc_preload_in.prf_tag = vc_pre_load_addr_i;
+        u_vc_preload_in.data = vc_pre_load_data_i;
+
         if (sc_pre_load_i) begin
-            u_sc_prf_input.valid   = sc_pre_load_i;
-            u_sc_prf_input.prf_tag = sc_pre_load_addr_i;
-            u_sc_prf_input.data    = sc_pre_load_data_i;
+            u_sc_prf_input.valid =  u_sc_preload_in.valid;
+            u_sc_prf_input.prf_tag =  u_sc_preload_in.prf_tag;
+            u_sc_prf_input.data =  u_sc_preload_in.data;
         end
         else begin
-            u_sc_prf_input.valid   = u_sc_data_bus.valid;
+            u_sc_prf_input.valid = u_sc_data_bus.valid;
             u_sc_prf_input.prf_tag = u_sc_data_bus.prf_tag;
-            u_sc_prf_input.data    = u_sc_data_bus.data;
+            u_sc_prf_input.data = u_sc_data_bus.data;
         end
 
         if (vc_pre_load_i) begin
-            u_vc_prf_input.valid   = vc_pre_load_i;
-            u_vc_prf_input.prf_tag = vc_pre_load_addr_i;
-            u_vc_prf_input.data    = vc_pre_load_data_i;
+            u_vc_prf_input.valid = u_vc_preload_in.valid;
+            u_vc_prf_input.prf_tag = u_vc_preload_in.prf_tag;
+            u_vc_prf_input.data = u_vc_preload_in.data;
         end
         else begin
-            u_vc_prf_input.valid   = u_vc_data_bus.valid;
+            u_vc_prf_input.valid = u_vc_data_bus.valid;
             u_vc_prf_input.prf_tag = u_vc_data_bus.prf_tag;
-            u_vc_prf_input.data    = u_vc_data_bus.data;
-        end
+            u_vc_prf_input.data = u_vc_data_bus.data;
+        end 
 
     end
 
@@ -181,7 +208,7 @@ module core #()(
         .dispatched_instr_i(u_dispatch_bus),
         .retire_instr_i(u_retirement_bus),
         .alloc_instr_o(u_sc_alloc_bus),
-        .arr_full_o(scalar_arr_full)
+        .arr_full_o(sc_arr_full)
     );
 
     ooo_arr_unit #(.IS_VECTOR(1'b1)) u_vector_arr (
@@ -191,7 +218,7 @@ module core #()(
         .dispatched_instr_i(u_dispatch_bus),
         .retire_instr_i(u_retirement_bus),
         .alloc_instr_o(u_vc_alloc_bus),
-        .arr_full_o(vector_arr_full)
+        .arr_full_o(vc_arr_full)
     );
 
     ooo_reorder_buffer u_reorder_buffer (
@@ -201,7 +228,7 @@ module core #()(
         .vc_allocated_instr_i(u_vc_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
-        .branch_result_i(branch_result),
+        .branch_result_i(br_ex_result),
         .sc_request_o(u_sc_request_bus),
         .vc_request_o(u_vc_request_bus),
         .retire_instr_o(u_retirement_bus),
@@ -228,7 +255,7 @@ module core #()(
         .vc_request_instr_o(u_vc_request_bus),
         .vc_wb_instr_i(u_vc_prf_input),
         .vc_issued_instr_i(vc_issued_instr),
-        .vc_ex_ready_i(vc_ex_ready & vc_wb_ready),
+        .vc_ex_ready_i(vc_rs_ex_ready),
         .vc_ex_request_o(vc_ex_request),
         .vc_ex_ready_o(vc_ex_ready_prf)
     ); 
@@ -243,8 +270,8 @@ module core #()(
         .flush_i(flush),
         .sc_rs_request_i(u_sc_request_bus),
         .sc_data_bus_i(u_sc_data_bus),
-        .sc_ex0_ready_i(sc_ex_ready[0] && sc_wb_ready[0]),
-        .sc_ex1_ready_i(sc_ex_ready[1] && sc_wb_ready[1]),
+        .sc_ex0_ready_i(sc_rs_ex_ready[0]),
+        .sc_ex1_ready_i(sc_rs_ex_ready[1]),
         .sc_ex0_request_o(sc_ex_request[0]),
         .sc_ex1_request_o(sc_ex_request[1]),
         .released_rs_slot_id_o(released_rs_slot_id_arr[1:0]),
@@ -257,10 +284,10 @@ module core #()(
         .flush_i(flush),
         .sc_rs_request_i(u_sc_request_bus),
         .sc_data_bus_i(u_sc_data_bus),
-        .sc_ex_ready_i(sc_ex_ready[2] && sc_wb_ready[2]),
+        .sc_ex_ready_i(sc_rs_ex_ready[2]),
         .sc_ex_request_o(sc_ex_request[2]),
         .released_rs_slot_id_o(released_rs_slot_id_arr[2]),
-        .rs_slot_released_o(rs_slot_released_arr[2]),
+        .rs_slot_released_o(rs_slot_released_arr[2])
     );
 
     rs_common_lsu u_lsu_rs (
@@ -282,23 +309,23 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_rs_input_i(u_sc_request_bus),
+        .sc_rs_request_i(u_sc_request_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .sc_ex_ready_i(br_ex_ready),
-        .sc_ex_request_o(br_ex_req)
+        .sc_ex_request_o(br_ex_request),
         .released_rs_slot_id_o(released_rs_slot_id_arr[4]),
-        .rs_slot_released_o(rs_slot_released_arr[4]),
+        .rs_slot_released_o(rs_slot_released_arr[4])
     );
 
     rs_vector_1issue #(.CHIP_SELECT(instr_pkg::CS_VALU)) u_vector_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_rs_input_i(u_sc_request_bus),
-        .vc_rs_input_i(u_vc_request_bus),
+        .sc_rs_request_i(u_sc_request_bus),
+        .vc_rs_request_i(u_vc_request_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
-        .vc_wb_ready_i(vc_ex_ready_prf[0]),
+        .vc_ex_ready_i(vc_ex_ready_prf[0]),
         .vc_read_request_o(vc_issued_instr[0]),
         .released_rs_slot_id_o(released_rs_slot_id_arr[5]),
         .rs_slot_released_o(rs_slot_released_arr[5])
@@ -353,13 +380,14 @@ module core #()(
         .vc_ex_request_i(vc_ex_request[1]),
         .sc_ex_result_o(sc_ex_result[3]),
         .vc_ex_result_o(vc_ex_result[1]),
-        .sc_ex_ready_o(vc_ex_ready[3]),
+        .sc_ex_ready_o(sc_ex_ready[3]),
         .vc_ex_ready_o(vc_ex_ready[1])
     );
 
     ex_vector_alu u_vector_alu (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
+        .flush_i(flush),
         .vc_ex_request_i(vc_ex_request[0]),
         .vc_ex_result_o(vc_ex_result[0]),
         .vc_ex_ready_o(vc_ex_ready[0])

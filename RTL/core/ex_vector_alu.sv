@@ -5,7 +5,9 @@ module ex_vector_alu (
     input  logic flush_i,
     
     input  signal_pkg::vc_ex_input_signal_t vc_ex_request_i,
-    output signal_pkg::vc_ex_output_signal_t vc_ex_result_o
+    output signal_pkg::vc_ex_output_signal_t vc_ex_result_o,
+
+    output logic vc_ex_ready_o
 );
 
     genvar i;

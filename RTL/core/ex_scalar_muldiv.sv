@@ -8,7 +8,7 @@ module ex_scalar_muldiv(
 
     //connection to writeback arbitrer
     output signal_pkg::sc_ex_output_signal_t sc_ex_result_o,
-    output logic sc_ex_ready_o,
+    output logic sc_ex_ready_o
 );
 
 // radix booth 4 iterative multiplier
@@ -17,11 +17,12 @@ module ex_scalar_muldiv(
 typedef enum logic[2:0] {READY, MUL, DIV} muldiv_state_e;
 muldiv_state_e state, state_next;
 
-logic[63:0] result;
+logic[63:0] mul_result, div_result;
 logic mul_valid_i, mul_valid_o;
 logic div_valid_i, div_valid_o;
 logic unsigned_mul, unsigned_div;
 logic ex_complete;
+logic sc_ex_ready, sc_ex_ready_next;
 
 instr_pkg::prf_tag_t prf_tag;
 instr_pkg::rob_address_t rob_id;
@@ -34,7 +35,7 @@ lib_scalar_multiplier u_multiplier (
     .multiplier_i(sc_ex_request_i.operand_b),
     .unsigned_multiplicand(unsigned_mul),
     .valid_i(mul_valid_i),
-    .result_o (result),
+    .result_o (mul_result),
     .valid_o (mul_valid_o)
 );
 
@@ -45,7 +46,7 @@ lib_scalar_divider u_divider (
     .divisor_i(sc_ex_request_i.operand_b),
     .unsigned_div(unsigned_div),
     .valid_i(div_valid_i),
-    .result_o(result),
+    .result_o(div_result),
     .valid_o(div_valid_o)
 );
 
@@ -106,18 +107,18 @@ always_comb begin
         endcase
     end 
 
-    sc_ex_result_o <= '0;
-    sc_ex_ready_o <= 1'b0;
+    sc_ex_result_o = '0;
+    sc_ex_ready_o = 1'b0;
 
     unique case (operation.muldiv) 
-        instr_pkg::MULDIV_MUL    : sc_ex_result_o.data <= result[31:0];
-        instr_pkg::MULDIV_MULH   : sc_ex_result_o.data <= result[63:32];
-        instr_pkg::MULDIV_MULHSU : sc_ex_result_o.data <= result[63:32];
-        instr_pkg::MULDIV_MULHU  : sc_ex_result_o.data <= result[63:32];
-        instr_pkg::MULDIV_DIV    : sc_ex_result_o.data <= result[31:0];
-        instr_pkg::MULDIV_DIVU   : sc_ex_result_o.data <= result[31:0];
-        instr_pkg::MULDIV_REM    : sc_ex_result_o.data <= result[63:32];
-        instr_pkg::MULDIV_REMU   : sc_ex_result_o.data <= result[63:32];
+        instr_pkg::MULDIV_MUL    : sc_ex_result_o.data <= mul_result[31:0];
+        instr_pkg::MULDIV_MULH   : sc_ex_result_o.data <= mul_result[63:32];
+        instr_pkg::MULDIV_MULHSU : sc_ex_result_o.data <= mul_result[63:32];
+        instr_pkg::MULDIV_MULHU  : sc_ex_result_o.data <= mul_result[63:32];
+        instr_pkg::MULDIV_DIV    : sc_ex_result_o.data <= div_result[31:0];
+        instr_pkg::MULDIV_DIVU   : sc_ex_result_o.data <= div_result[31:0];
+        instr_pkg::MULDIV_REM    : sc_ex_result_o.data <= div_result[63:32];
+        instr_pkg::MULDIV_REMU   : sc_ex_result_o.data <= div_result[63:32];
         default: sc_ex_result_o.data <= '0;
     endcase
 
@@ -125,10 +126,12 @@ always_comb begin
 
     if (ex_complete) begin
         sc_ex_result_o.valid = 1'b1;
+        sc_ex_result_o.prf_tag <= prf_tag;
+        sc_ex_result_o.rob_id <= rob_id;
         state_next = READY;
-        sc_ex_ready_o = 1'b1;
     end
-    else if(state == READY) sc_ex_ready_o = 1'b1;
+    
+    if(state_next == READY) sc_ex_ready_o = 1'b1;
 
 end
 
@@ -138,6 +141,7 @@ always_ff @(posedge clk_i) begin
         rob_id <= '0;
         operation.muldiv <= instr_pkg::MULDIV_MUL;
         state <= READY;
+        sc_ex_ready <= 1'b1;
     end
     else begin
         if(state == READY) begin

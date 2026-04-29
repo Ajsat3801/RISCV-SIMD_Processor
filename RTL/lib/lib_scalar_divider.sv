@@ -32,8 +32,6 @@ always_comb begin
     result_next = {(result[62:31] + m), result[30:0], 1'b0};
     if(!result_next[63]) result_next[0] = 1'b1;
 
-    result_o = result;
-
 
 end
 always_ff @(posedge clk_i) begin
@@ -42,8 +40,27 @@ always_ff @(posedge clk_i) begin
         count <= '1;
         negative_output <= 1'b0;
         valid_o <= 1'b0;
+        state <= READY;
+        result_o <= '0;
     end
     else begin
+        if(state == BUSY) begin
+            if(count == '0) begin
+                state <= READY;
+                valid_o <= 1'b1;
+                count <= '1;
+                result_o <= result;
+            end
+            else begin
+                valid_o <= 1'b0;
+                count <= count - 1'b1;
+                result_o <= '0;
+            end
+        end
+        else begin
+            valid_o <= 1'b0;
+            result_o <= '0;
+        end
         // begins operation
         if(valid_i && state == READY) begin
             if(!unsigned_div) begin
@@ -59,20 +76,7 @@ always_ff @(posedge clk_i) begin
             state <= BUSY;
         end
 
-        if(state == BUSY) begin
-            if(count == '0) begin
-                state <= READY;
-                valid_o <= 1'b1;
-                count <= '1;
-            end
-            else begin
-                valid_o <= 1'b0;
-                count <= count - 1'b1;
-            end
-        end
-        else begin
-            valid_o <= 1'b0;
-        end
+        
     end
 end
 

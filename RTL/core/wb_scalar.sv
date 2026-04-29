@@ -6,7 +6,7 @@ Round robin policy
 
 //import config_pkg::*;
 
-module wb_vector (
+module wb_scalar (
     input logic clk_i,
     input logic reset_ni,
     input logic flush_i,

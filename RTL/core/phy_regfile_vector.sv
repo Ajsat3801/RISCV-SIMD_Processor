@@ -13,7 +13,7 @@
         ready bit set
  */
 
-module vc_physical_regfile (
+module phy_regfile_vector (
     input logic clk_i,
     input logic reset_ni,
 

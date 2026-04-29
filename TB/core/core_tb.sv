@@ -4,20 +4,26 @@
 
 module core_tb;
     logic clk, reset_n;
-    logic fetch_valid, pre_load;
-    instr_pkg::data_t raw_instr, pc, pre_load_data;
-    instr_pkg::prf_tag_t pre_load_addr;
+    logic fetch_valid, sc_pre_load, vc_pre_load;
+    instr_pkg::data_t raw_instr, pc, sc_pre_load_data;
+    instr_pkg::vector_data_t vc_pre_load_data;
+    instr_pkg::prf_tag_t sc_pre_load_addr, vc_pre_load_addr;
     logic ready;
+
+    int cycles;
 
     core dut(
         .clk_i(clk),
         .reset_ni(reset_n),
-        .raw_instr_i(raw_instr),
+        .fetched_instr_i(raw_instr),
         .pc_i(pc),
         .fetch_valid_i(fetch_valid),
-        .pre_load_i(pre_load),
-        .pre_load_addr_i(pre_load_addr),
-        .pre_load_data_i(pre_load_data),
+        .sc_pre_load_i(sc_pre_load),
+        .sc_pre_load_addr_i(sc_pre_load_addr),
+        .sc_pre_load_data_i(sc_pre_load_data),
+        .vc_pre_load_i(vc_pre_load),
+        .vc_pre_load_addr_i(vc_pre_load_addr),
+        .vc_pre_load_data_i(vc_pre_load_data),
         .ready_o(ready)
     );
 
@@ -31,11 +37,12 @@ module core_tb;
 
         reset_n = 1'b0;
         fetch_valid = 1'b0;
-        pre_load = 1'b0;
+        sc_pre_load = 1'b0;
         raw_instr = '0;
         pc = '0;
-        pre_load_addr = '0;
-        pre_load_data = '0;
+        sc_pre_load_addr = '0;
+        sc_pre_load_data = '0;
+        cycles = 0;
     end
 
     initial begin
@@ -45,28 +52,42 @@ module core_tb;
         repeat (3) @(posedge clk)
 
         #10;
-        pre_load = 1'b1;
-        pre_load_addr = 7'b0000001;
-        pre_load_data = 7'b0000001;
+        sc_pre_load = 1'b1;
+        sc_pre_load_addr = 7'b0000001;
+        sc_pre_load_data = 7'b0000001;
 
         #20;
-        pre_load = 1'b1;
-        pre_load_addr = 7'b0000010;
-        pre_load_data = 7'b0000010;
+        sc_pre_load = 1'b1;
+        sc_pre_load_addr = 7'b0000010;
+        sc_pre_load_data = 7'b0000010;
 
         #20;
-        pre_load = 1'b0;
-        pre_load_addr = '0;
-        pre_load_data = '0;
+        sc_pre_load = 1'b0;
+        sc_pre_load_addr = '0;
+        sc_pre_load_data = '0;
 
         fetch_valid = 1'b1;
         // ADD R3 R1 R2
         raw_instr = 32'b00000000001000001000000110110011;
         
         #20;
-        fetch_valid = 1'b1;
-        // SUM R4 R1 R2
-        raw_instr = 32'b01100000001000001000001000110011;
+        // SUB R4 R2 R1
+        raw_instr = 32'b01100000000100010000001000110011;
+
+        #20
+        // ADD R5 R3 R4
+        raw_instr = 32'b00000000001100100000001010110011;
+
+        #20
+        // MUL R6 R2 R5
+        raw_instr = 32'b00000010010100010000001100110011;
+
+        #20
+        // DIV R7 R6 R5 
+        raw_instr = 32'b00000010010100110101001110110011;
+
+        // TODO: Divider seems to always be giving 8 as the output, check;
+
 
         #20
         fetch_valid = 1'b0;
@@ -74,28 +95,90 @@ module core_tb;
     end
 
     task automatic display_final_state();
-        $display("[FINAL] addr1:%h, addr2:%h, addr3:%h, addr4:%h",
+        $display("[FINAL] R1:%h, R2:%h, R3:%h, R4:%h, R5:%h R6: %h, R7:%h",
                 dut.u_scalar_prf.regfile[1], 
                 dut.u_scalar_prf.regfile[2], 
                 dut.u_scalar_prf.regfile[32], 
-                dut.u_scalar_prf.regfile[33]
+                dut.u_scalar_prf.regfile[33],
+                dut.u_scalar_prf.regfile[34],
+                dut.u_scalar_prf.regfile[35],
+                dut.u_scalar_prf.regfile[36]
         );
     endtask
 
     task automatic display_stage_valids();             
-        $display("[CORE] fetch=%h, decode=%h, queue=%h, alloc=%h, operand=%h, rs=%h %h, alu=%h %h, wb=%h, retire=%h",
-                dut.u_decoder.fetch_valid_i,
-                dut.u_decoder.decoded_instr_o.valid, 
-                dut.u_instruction_bus.valid,
-                dut.u_scalar_alloc_bus.valid,
-                dut.u_scalar_operand_bus.prf_valid,
-                dut.u_sc_alu0.alu_input_i.valid, dut.u_sc_alu1.alu_input_i.valid,
-                dut.u_scalar_writeback.ex_result_i[0].valid, dut.u_scalar_writeback.ex_result_i[1].valid,
-                dut.u_scalar_writeback.scalar_data_bus_o.valid,
-                dut.u_retirement_bus.valid
+        $display("[SC CORE] fetch=%h, decode=%h, queue=%h, alloc=%h, load=%h, rs=%h %h %h, ex=%h %h %h, wb=%h, retire=%h",
+                dut.u_decode.fetch_valid_i,
+                dut.u_decode.decoded_instr_o.valid, 
+                dut.u_instr_q.dispatched_instr_o.valid,
+                dut.u_scalar_arr.alloc_instr_o.valid,
+                dut.u_sc_request_bus.rs_entry.occupied,
+                dut.u_scalar_alu_rs.sc_ex0_request_o.valid, dut.u_scalar_alu_rs.sc_ex1_request_o.valid,
+                dut.u_scalar_muldiv_rs.sc_ex_request_o.valid,
+                dut.u_scalar_alu0.sc_ex_result_o.valid, dut.u_scalar_alu1.sc_ex_result_o.valid,
+                dut.u_scalar_muldiv.sc_ex_result_o.valid,
+                dut.u_scalar_writeback.data_bus_o.valid,
+                dut.u_reorder_buffer.retire_instr_o.valid
         );
     endtask
-
+    task automatic display_muldiv_rs_states();
+        $display("[MULDIV RS] in:%b @ %h (%h %h), ex: %b %b state: %h data_in: %d %b out: %d %b",
+                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_entry.occupied,
+                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_slot,
+                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_entry.operand_a_ready,
+                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_entry.operand_b_ready,
+                dut.u_scalar_muldiv.sc_ex_ready_o,
+                dut.u_scalar_muldiv_rs.sc_ex_ready_i,
+                dut.u_scalar_muldiv.state,
+                dut.u_scalar_muldiv_rs.sc_data_bus_i.prf_tag,
+                dut.u_scalar_muldiv_rs.sc_data_bus_i.valid,
+                dut.u_scalar_muldiv_rs.sc_ex_request_o.prf_tag,
+                dut.u_scalar_muldiv_rs.sc_ex_request_o.valid
+                
+        );
+    endtask
+    task automatic display_muldiv_states();
+        $display("[MULDIV] in:%b @ %0d %0d (%h %h), state: %h out: %b %0d %0d %h ready:%b",
+                
+                dut.u_scalar_muldiv.sc_ex_request_i.valid,
+                dut.u_scalar_muldiv.sc_ex_request_i.prf_tag,
+                dut.u_scalar_muldiv.sc_ex_request_i.rob_id,
+                dut.u_scalar_muldiv.sc_ex_request_i.operand_a,
+                dut.u_scalar_muldiv.sc_ex_request_i.operand_b,
+                dut.u_scalar_muldiv.state,
+                dut.u_scalar_muldiv.sc_ex_result_o.valid,
+                dut.u_scalar_muldiv.sc_ex_result_o.prf_tag,
+                dut.u_scalar_muldiv.sc_ex_request_i.rob_id,
+                dut.u_scalar_muldiv.sc_ex_result_o.data,
+                dut.u_scalar_muldiv.sc_ex_ready_o
+                
+        );
+        $display("[MUL] in:%b (%h %h %b), state: %h out: %b",
+                
+                dut.u_scalar_muldiv.u_multiplier.valid_i,
+                dut.u_scalar_muldiv.u_multiplier.multiplicand_i,
+                dut.u_scalar_muldiv.u_multiplier.multiplier_i,
+                dut.u_scalar_muldiv.u_multiplier.unsigned_multiplicand,
+                dut.u_scalar_muldiv.u_multiplier.state,
+                //dut.u_scalar_muldiv.u_multiplier.result_o,
+                dut.u_scalar_muldiv.u_multiplier.valid_o,
+                
+        );
+        $display("[DIV] in:%b (%h %h %b), count: %h state: %h out: %b",
+                
+                dut.u_scalar_muldiv.u_divider.valid_i,
+                dut.u_scalar_muldiv.u_divider.dividend_i,
+                dut.u_scalar_muldiv.u_divider.divisor_i,
+                dut.u_scalar_muldiv.u_divider.unsigned_div,
+                dut.u_scalar_muldiv.u_divider.count,
+                dut.u_scalar_muldiv.u_divider.state,
+                //dut.u_scalar_muldiv.u_divider.result_o,
+                dut.u_scalar_muldiv.u_divider.valid_o,
+                
+        );
+        
+    endtask
+/*
     task automatic display_decode_states();
         $display("[DECODE] opcode:%h, cs:%h",
                 dut.u_decoder.opcode,
@@ -170,10 +253,10 @@ module core_tb;
         foreach (dut.u_scalar_arr.commit_table[i]) 
             $write("%0d ", dut.u_scalar_arr.commit_table[i].tag);
         $write("\n");
-        /*$display("[ARR] \nRAT:%p \nCommit:%p",
+        $display("[ARR] \nRAT:%p \nCommit:%p",
                 dut.u_scalar_arr.reg_alloc_table,
                 dut.u_scalar_arr.commit_table
-        );*/
+        );
     endtask
 
     task automatic display_alu_states();
@@ -212,18 +295,21 @@ module core_tb;
             dut.u_scalar_writeback.scalar_data_bus_o.data
         );
     endtask
-
+*/
     task automatic display_rob_states();
         $display("[ROB] in: %b %d",
-                dut.u_reorder_buffer.scalar_wb_i.valid,
-                dut.u_reorder_buffer.scalar_wb_i.rob_id,
+                dut.u_reorder_buffer.sc_data_bus_i.valid,
+                dut.u_reorder_buffer.sc_data_bus_i.rob_id,
         );
     endtask
-
     always @(posedge clk) begin
-        $display("Time: %0t",$time());
+        cycles++;
+
+        $display("Time: %0t, cycle: %0d",$time(), cycles);
         display_final_state();
         //display_stage_valids();
+        //display_muldiv_rs_states();
+        //display_muldiv_states();
         //display_decode_states();
         //display_iq_states();
         //display_rs_states();
@@ -233,11 +319,8 @@ module core_tb;
         //display_prf_states_wb();
         //display_arr_states();
         //display_rob_states();
-    end
 
-    initial begin
-        #500;
-        $finish;
+        if(cycles >= 128) $finish;
     end
 
 endmodule
