@@ -42,6 +42,8 @@ module fe_instruction_queue (
  *      when the buffer is full. Handled by decoder
  *   -> Number of entries in the fifo is 1 more than the buffer size for simpler logic
  *   -> If chip select is 1 we check 0th RS fifo. chip select 0 is a NOP
+ * TODO Future Improvements
+ *   -> Implement bypass and remove 1 cycle lag when queue is empty
  */
 
     // RS Slot tracking buffer
@@ -92,7 +94,7 @@ module fe_instruction_queue (
         .empty_o(rs_empty[1]),
         .full_o(rs_full[1])
     );
-    /*
+    
     lib_rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
         .T(logic[RS_ADDR_W-1:0])
@@ -105,7 +107,7 @@ module fe_instruction_queue (
         .data_o(next_rs_slot[2]),
         .empty_o(rs_empty[2]),
         .full_o(rs_full[2])
-    );*/
+    );
 
     lib_rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),

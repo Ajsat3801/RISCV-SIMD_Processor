@@ -22,7 +22,7 @@ divider_state_e state;
 
 logic[4:0] count;
 
-logic [63:0] result, result_next;
+logic [63:0] result, result_next, dbg_shft, dbg_add;
 logic negative_output;
 logic [31:0] u_divisor, m;
 
@@ -30,7 +30,17 @@ always_comb begin
 
     m = (result[62]) ? u_divisor : (~u_divisor + 1'b1);
     result_next = {(result[62:31] + m), result[30:0], 1'b0};
+    dbg_shft = {result[62:0], 1'b0};
+    dbg_add = {(dbg_shft[63:32] + m), dbg_shft[31:0]};
     if(!result_next[63]) result_next[0] = 1'b1;
+
+    /*
+    result = result_next if busy
+    result = sign_ext(in) if accept_input and !unsigned div
+    result = {0,in} if accept in_input and unsigned_div
+    result = 0 if ready and no input
+
+    */
 
 
 end
@@ -44,39 +54,39 @@ always_ff @(posedge clk_i) begin
         result_o <= '0;
     end
     else begin
+        
         if(state == BUSY) begin
-            if(count == '0) begin
-                state <= READY;
-                valid_o <= 1'b1;
-                count <= '1;
-                result_o <= result;
-            end
-            else begin
-                valid_o <= 1'b0;
-                count <= count - 1'b1;
-                result_o <= '0;
-            end
-        end
-        else begin
-            valid_o <= 1'b0;
-            result_o <= '0;
-        end
-        // begins operation
-        if(valid_i && state == READY) begin
-            if(!unsigned_div) begin
-                u_divisor <= (divisor_i[31]) ? ((~divisor_i) + 1'b1) : divisor_i;
-                result <= (dividend_i[31]) ? {32'b0, (~dividend_i + 1'b1)} : {32'b0, dividend_i};
-                negative_output <= dividend_i[31] ^ divisor_i[31];
-            end
-            else begin
-                u_divisor <= divisor_i;
-                result <= {32'b0, dividend_i};
-            end
-            count <= '1;
-            state <= BUSY;
+            result  <= result_next;
+            valid_o <= (count == '0) ? 1'b1 : 1'b0;
+            state   <= (count == '0) ? READY : BUSY;
+            count   <= count - 1'b1;
         end
 
-        
+        else begin
+            valid_o <= 1'b0;
+            count <= '1;
+
+            if(valid_i) begin
+                if(!unsigned_div) begin
+                    u_divisor <= (divisor_i[31]) ? ((~divisor_i) + 1'b1) : divisor_i;
+                    result <= (dividend_i[31]) ? {32'b0, (~dividend_i + 1'b1)} : {32'b0, dividend_i};
+                    negative_output <= dividend_i[31] ^ divisor_i[31];
+                end
+                else begin
+                    u_divisor <= divisor_i;
+                    result <= {32'b0, dividend_i};
+                end
+                state <= BUSY;
+            end
+            else begin
+                result <= '0;
+                state <= READY;
+            end
+        end
+
+        // reminder = reminder + divisor is negative
+        result_o[63:32] <= (result_next[63]) ? (result_next[63:32] + u_divisor) :result_next[63:32];
+        result_o[31:0]  <= (negative_output) ? (~result_next[31:0] + 1'b1) : result_next[31:0];
     end
 end
 

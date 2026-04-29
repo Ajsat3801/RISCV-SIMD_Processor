@@ -66,6 +66,11 @@ module core_tb;
         sc_pre_load_addr = '0;
         sc_pre_load_data = '0;
 
+        cycles = 0;
+        $display("---------------------------------------------------------------------------------");
+        $display("                                    BEGIN TEST");
+        $display("---------------------------------------------------------------------------------");
+
         fetch_valid = 1'b1;
         // ADD R3 R1 R2
         raw_instr = 32'b00000000001000001000000110110011;
@@ -85,9 +90,6 @@ module core_tb;
         #20
         // DIV R7 R6 R5 
         raw_instr = 32'b00000010010100110101001110110011;
-
-        // TODO: Divider seems to always be giving 8 as the output, check;
-
 
         #20
         fetch_valid = 1'b0;
@@ -177,6 +179,40 @@ module core_tb;
                 
         );
         
+    endtask
+    task automatic display_div_states();
+        $display("[DIV] in:%b (%h %h %b), count: %h state: %h",
+                
+                dut.u_scalar_muldiv.u_divider.valid_i,
+                dut.u_scalar_muldiv.u_divider.dividend_i,
+                dut.u_scalar_muldiv.u_divider.divisor_i,
+                dut.u_scalar_muldiv.u_divider.unsigned_div,
+                dut.u_scalar_muldiv.u_divider.count,
+                dut.u_scalar_muldiv.u_divider.state,
+                
+        ); 
+        $display("out(val:%b)  : %b", dut.u_scalar_muldiv.u_divider.valid_o,dut.u_scalar_muldiv.u_divider.result_o,);
+        $display("result      : %b", dut.u_scalar_muldiv.u_divider.result);
+        $display("result_next : %b", dut.u_scalar_muldiv.u_divider.result_next);
+    endtask
+    task automatic display_div_intermediates();
+        $display("result    : %b %b", 
+            dut.u_scalar_muldiv.u_divider.result[63:32],
+            dut.u_scalar_muldiv.u_divider.result[31:0]
+        );
+        $display("dbg_shft  : %b %b", 
+            dut.u_scalar_muldiv.u_divider.dbg_shft[63:32],
+            dut.u_scalar_muldiv.u_divider.dbg_shft[31:0]
+        );
+        $display("m         : %b", dut.u_scalar_muldiv.u_divider.m);
+        $display("dbg_add   : %b %b", 
+            dut.u_scalar_muldiv.u_divider.dbg_add[63:32],
+            dut.u_scalar_muldiv.u_divider.dbg_add[31:0]
+        );
+        $display("next      : %b %b", 
+            dut.u_scalar_muldiv.u_divider.result_next[63:32],
+            dut.u_scalar_muldiv.u_divider.result_next[31:0]
+        );
     endtask
 /*
     task automatic display_decode_states();
@@ -304,12 +340,15 @@ module core_tb;
     endtask
     always @(posedge clk) begin
         cycles++;
+        //if(dut.u_scalar_muldiv.u_divider.state == 1) begin
 
         $display("Time: %0t, cycle: %0d",$time(), cycles);
-        display_final_state();
-        //display_stage_valids();
+        //display_final_state();
+        display_stage_valids();
         //display_muldiv_rs_states();
         //display_muldiv_states();
+        //display_div_states();
+        //display_div_intermediates();
         //display_decode_states();
         //display_iq_states();
         //display_rs_states();
@@ -319,8 +358,9 @@ module core_tb;
         //display_prf_states_wb();
         //display_arr_states();
         //display_rob_states();
+        //end
 
-        if(cycles >= 128) $finish;
+        if(cycles >= 80) $finish;
     end
 
 endmodule

@@ -2,6 +2,10 @@
 Arbiter for writeback
 Takes inputs from all the EX units and sends one instruction per cycle to CDB
 Round robin policy
+
+TODO: IMPROVEMENTS
+-> Mask based round robin like RS
+-> Remove 1 cycle lag 
 */
 
 //import config_pkg::*;

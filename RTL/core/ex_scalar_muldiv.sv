@@ -54,6 +54,7 @@ always_comb begin
     mul_valid_i = 1'b0;
     div_valid_i = 1'b0;
     unsigned_mul = 1'b0;
+    unsigned_div = 1'b0;
     state_next = state;
 
     if(sc_ex_request_i.valid) begin
@@ -105,7 +106,7 @@ always_comb begin
                 state_next = state;
             end
         endcase
-    end 
+    end  
 
     sc_ex_result_o = '0;
     sc_ex_ready_o = 1'b0;
