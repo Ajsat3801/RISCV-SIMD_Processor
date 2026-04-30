@@ -1,5 +1,6 @@
 /*Extremely basic functional testing
  * Primarily to check if all modules are compiling and a very basic program runs
+ TODO: Retirement seems to be not working. 
 */
 
 module core_tb;
@@ -123,7 +124,6 @@ module core_tb;
                 dut.u_scalar_prf.regfile[36]
         );
     endtask
-
     task automatic display_final_state_vc();
         $display("[FINAL] R1:%h, R2:%h, R3:%h, R4:%h, R5:%h R6: %h, R7:%h",
                 dut.u_vector_prf.regfile[1], 
@@ -142,7 +142,6 @@ module core_tb;
             dut.u_vector_prf.vc_wb_instr_i.data,
         );
     endtask
-
     task automatic display_stage_valids();             
         $display("[SC CORE] fetch=%h, decode=%h, queue=%h, alloc=%h, load=%h, rs=%h %h %h, ex=%h %h %h, wb=%h, retire=%h",
                 dut.u_decode.fetch_valid_i,
@@ -159,7 +158,7 @@ module core_tb;
         );
     endtask
     task automatic display_stage_valids_vc();             
-        $display("[SC CORE] fetch=%h, decode=%h, queue=%h, alloc=%h, load=%h, rs=%h, ex=%h, wb=%h, retire=%b %b",
+        $display("[VC CORE] fetch=%h, decode=%h, queue=%h, alloc=%h, load=%h, rs=%h, ex=%h, wb=%h, retire=%b %b",
                 dut.u_decode.fetch_valid_i, //fetch
                 dut.u_decode.decoded_instr_o.valid, //decode
                 dut.u_instr_q.dispatched_instr_o.valid, //queue
@@ -270,7 +269,6 @@ module core_tb;
                 dut.u_decoder.decoded_instr_o.chip_select
         );
     endtask
-
     task automatic display_iq_states();
         $display("[IQ] in_valid:%h, rs:%b %h %h, cs:%h head:%h out:%b %d",
                 dut.u_instr_q.decoded_instr_i.valid,
@@ -285,20 +283,22 @@ module core_tb;
                 dut.u_instr_q.alloc_instr_o.rs_slot_id
         );
     endtask
-
+*/
     task automatic display_rs_states();
-        $display("[RS] in_valid:%h, slot:%h ready:%h %h, out: %d %d %b %b",
-                dut.u_sc_alu_rs.rs_input_i.rs_entry.occupied,
-                dut.u_sc_alu_rs.rs_input_i.rs_slot,
-                dut.u_sc_alu_rs.rs_input_i.rs_entry.operand_a_ready,
-                dut.u_sc_alu_rs.rs_input_i.rs_entry.operand_b_ready,
-                dut.u_sc_alu_rs.dispatch1_o.prf_tag,
-                dut.u_sc_alu_rs.dispatch2_o.prf_tag,
-                dut.u_sc_alu_rs.dispatch1_o.valid,
-                dut.u_sc_alu_rs.dispatch2_o.valid
+        $display("[RS] in:[%b @ %0d (%h %h)] ready:%b %b out:[%0d %0d %b %b]",
+                dut.u_scalar_alu_rs.sc_rs_request_i.rs_entry.occupied,
+                dut.u_scalar_alu_rs.sc_rs_request_i.rs_slot,
+                dut.u_scalar_alu_rs.sc_rs_request_i.rs_entry.operand_a_ready,
+                dut.u_scalar_alu_rs.sc_rs_request_i.rs_entry.operand_b_ready,
+                dut.u_scalar_alu_rs.sc_ex0_ready_i,
+                dut.u_scalar_alu_rs.sc_ex1_ready_i,
+                dut.u_scalar_alu_rs.sc_ex0_request_o.prf_tag,
+                dut.u_scalar_alu_rs.sc_ex1_request_o.prf_tag,
+                dut.u_scalar_alu_rs.sc_ex0_request_o.valid,
+                dut.u_scalar_alu_rs.sc_ex1_request_o.valid
         );
     endtask
-
+/*
     task automatic display_prf_states_alloc();
         $display("[PRF_ALLOC] in_valid:%h %h, alloc: %d %d ",
                 dut.u_scalar_prf.allocated_instr_i.valid,
@@ -322,16 +322,40 @@ module core_tb;
                 dut.u_vector_prf.vc_wb_instr_i.prf_tag
         );
     endtask
-    task automatic display_wb_states();
-        $display("[WB] in [%b %h @ %d %d] out [%b %h @ %d %d]",
+    task automatic display_wb_states_vc();
+        $display("[WB] in[%b %h @ %d %d] [%b %b] out[%b %h @ %d %d]",
                 dut.u_vector_writeback.ex_result_i[0].valid,
                 dut.u_vector_writeback.ex_result_i[0].data,
                 dut.u_vector_writeback.ex_result_i[0].rob_id,
                 dut.u_vector_writeback.ex_result_i[0].prf_tag,
+                dut.u_vector_writeback.full,
+                dut.u_vector_writeback.empty,
                 dut.u_vector_writeback.data_bus_o.valid,
                 dut.u_vector_writeback.data_bus_o.data,
                 dut.u_vector_writeback.data_bus_o.rob_id,
                 dut.u_vector_writeback.data_bus_o.prf_tag
+        );
+    endtask
+    task automatic display_wb_states_sc();
+        $display("[WB] in[%b %h @ %d %d] in[%b %h @ %d %d] in[%b %h @ %d %d] \n[%b %b] out[%b %h @ %d %d]",
+                dut.u_scalar_writeback.ex_result_i[0].valid,
+                dut.u_scalar_writeback.ex_result_i[0].data,
+                dut.u_scalar_writeback.ex_result_i[0].rob_id,
+                dut.u_scalar_writeback.ex_result_i[0].prf_tag,
+                dut.u_scalar_writeback.ex_result_i[1].valid,
+                dut.u_scalar_writeback.ex_result_i[1].data,
+                dut.u_scalar_writeback.ex_result_i[1].rob_id,
+                dut.u_scalar_writeback.ex_result_i[1].prf_tag,
+                dut.u_scalar_writeback.ex_result_i[2].valid,
+                dut.u_scalar_writeback.ex_result_i[2].data,
+                dut.u_scalar_writeback.ex_result_i[2].rob_id,
+                dut.u_scalar_writeback.ex_result_i[2].prf_tag,
+                dut.u_scalar_writeback.full,
+                dut.u_scalar_writeback.empty,
+                dut.u_scalar_writeback.data_bus_o.valid,
+                dut.u_scalar_writeback.data_bus_o.data,
+                dut.u_scalar_writeback.data_bus_o.rob_id,
+                dut.u_scalar_writeback.data_bus_o.prf_tag
         );
     endtask
 /*
@@ -394,9 +418,43 @@ module core_tb;
     endtask
 */
     task automatic display_rob_states();
-        $display("[ROB] in: %b %d",
+        $display("[ROB] in[%b %d @ %d] retire[%b %d] ",
                 dut.u_reorder_buffer.sc_data_bus_i.valid,
+                dut.u_reorder_buffer.sc_data_bus_i.prf_tag,
                 dut.u_reorder_buffer.sc_data_bus_i.rob_id,
+                dut.u_reorder_buffer.retire_instr_o.valid,
+                dut.u_reorder_buffer.retire_instr_o.prf_tag
+        );
+    endtask
+    task automatic display_commit_states();
+        $display("[FINAL] R1:%h R2:%h R3:%h R4:%h R5:%h R6:%h R7:%h",
+            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[1]],
+            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[2]],
+            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[3]],
+            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[4]],
+            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[5]],
+            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[6]],
+            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[7]]
+        );
+    endtask
+    task automatic display_commit_table();
+        $display("[SPEC] R1:%d R2:%d R3:%d R4:%d R5:%d R6:%d R7:%d",
+            dut.u_scalar_arr.reg_alloc_table[1],
+            dut.u_scalar_arr.reg_alloc_table[2],
+            dut.u_scalar_arr.reg_alloc_table[3],
+            dut.u_scalar_arr.reg_alloc_table[4],
+            dut.u_scalar_arr.reg_alloc_table[5],
+            dut.u_scalar_arr.reg_alloc_table[6],
+            dut.u_scalar_arr.reg_alloc_table[7]
+        );
+        $display("[COMMIT] R1:%d R2:%d R3:%d R4:%d R5:%d R6:%d R7:%d",
+            dut.u_scalar_arr.commit_table[1],
+            dut.u_scalar_arr.commit_table[2],
+            dut.u_scalar_arr.commit_table[3],
+            dut.u_scalar_arr.commit_table[4],
+            dut.u_scalar_arr.commit_table[5],
+            dut.u_scalar_arr.commit_table[6],
+            dut.u_scalar_arr.commit_table[7]
         );
     endtask
     always @(posedge clk) begin
@@ -404,8 +462,10 @@ module core_tb;
         //if(dut.u_scalar_muldiv.u_divider.state == 1) begin
 
         $display("Time: %0t, cycle: %0d",$time(), cycles);
+        //display_commit_table();
+        //display_commit_states();
         //display_final_state_sc();
-        display_final_state_vc();
+        //display_final_state_vc();
         //display_preload_state();
         //display_stage_valids();
         //display_stage_valids_vc();
@@ -417,14 +477,15 @@ module core_tb;
         //display_iq_states();
         //display_rs_states();
         //display_alu_states();
-        //display_wb_states();
+        //display_wb_states_vc();
+        //display_wb_states_sc();
         //display_prf_states_alloc();
         //display_prf_states_wb();
         //display_arr_states();
-        //display_rob_states();
+        display_rob_states();
         //end
 
-        if(cycles >= 128) $finish;
+        if(cycles >= 80) $finish;
     end
 
 endmodule

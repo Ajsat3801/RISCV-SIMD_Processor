@@ -24,10 +24,12 @@ module wb_scalar (
 
     storage_pkg::alu_result_entry_t fifo_heads[SCALAR_EX_COUNT-1:0]; 
 
-    logic[EX_IDX_W-1:0] choice, choice_idx, choice_next;
-    logic[SCALAR_EX_COUNT-1:0] empty, full, next_full;
-    logic[SCALAR_EX_COUNT-1:0] dequeue, dequeue_next, request;
-    logic wb_chosen, any_full;
+    logic[EX_IDX_W-1:0] choice;
+    logic[SCALAR_EX_COUNT-1:0] empty, full, next_full, eligible;
+    logic[SCALAR_EX_COUNT-1:0] dequeue, dequeue_next;
+    logic[SCALAR_EX_COUNT-1:0] mask, mask_upper, mask_next;
+    logic[SCALAR_EX_COUNT-1:0] canditates1, canditates2_upper, canditates2_lower;
+    logic[SCALAR_EX_COUNT-1:0] winner_upper, winner_lower, winner1, winner2;
 
     logic reset_wb_n;
     // circular FIFOs with FWFT, so we know what the head of the queue is immediately
@@ -92,63 +94,72 @@ module wb_scalar (
         .next_full_o(next_full[3])
     );
 
+    assign reset_wb_n = reset_ni && !flush_i;
+
     always_comb begin
 
-        wb_chosen    = 1'b0;
-        choice_idx   = choice;
-        choice_next  = choice;
-        dequeue_next = '0;
+        eligible = ~empty;
 
-        any_full = |(full & ~empty);
-        request  = (any_full) ? (full & ~empty) : ~empty;
+        mask_upper = mask[0];
+        for(int i=1;i<SCALAR_EX_COUNT; i++) begin
+            mask_upper[i] = mask_upper[i-1] | mask[i];
+        end
 
-        for(int i=choice; i<SCALAR_EX_COUNT; i++) begin
-            if(request[i] && !wb_chosen) begin
-                choice_idx = i;
-                wb_chosen  = 1'b1;
+        canditates1 = eligible & full;
+
+        winner1 = canditates1 & (~canditates1 + 1'b1);
+
+        canditates2_upper = eligible & mask_upper & ~winner1;
+        canditates2_lower = eligible & ~mask_upper & ~winner1;
+
+        winner_upper = canditates2_upper & (~canditates2_upper + 1'b1);
+        winner_lower = canditates2_lower & (~canditates2_lower + 1'b1);
+
+        winner2 = (|canditates2_upper) ? winner_upper : winner_lower;
+
+        if(|winner1) begin // something is full
+            for(int i=0; i<SCALAR_EX_COUNT; i++) begin
+                if(winner1[i]) choice = i[EX_IDX_W-1:0];
             end
+            mask_next = {winner1[SCALAR_EX_COUNT-2:0], winner1[SCALAR_EX_COUNT-1]};
+            dequeue_next = winner1;
+            data_bus_o.valid   = 1'b1;
+            data_bus_o.prf_tag = fifo_heads[choice].prf_tag;
+            data_bus_o.rob_id  = fifo_heads[choice].rob_id;
+            data_bus_o.data    = fifo_heads[choice].data;
         end
-        if(!wb_chosen) begin
-            for(int i=0; i<choice; i++) begin
-                if(request[i] && !wb_chosen) begin
-                    choice_idx = i;
-                    wb_chosen  = 1'b1;
-                end
+        else if(|winner2) begin // nothing full but something empty
+            for(int i=0; i<SCALAR_EX_COUNT; i++) begin
+                if(winner2[i]) choice = i[EX_IDX_W-1:0];
             end
+            mask_next = {winner2[SCALAR_EX_COUNT-2:0], winner2[SCALAR_EX_COUNT-1]};
+            dequeue_next = winner2;
+            data_bus_o.valid   = 1'b1;
+            data_bus_o.prf_tag = fifo_heads[choice].prf_tag;
+            data_bus_o.rob_id  = fifo_heads[choice].rob_id;
+            data_bus_o.data    = fifo_heads[choice].data;
         end
-
-        if(wb_chosen) begin
-            choice_next = choice_idx + 1'b1;
-            dequeue_next[choice_idx] = 1'b1;
+        else begin // all empty
+            data_bus_o.valid   = 1'b0;
+            data_bus_o.prf_tag = '0;
+            data_bus_o.rob_id  = '0;
+            data_bus_o.data    = '0;
+            mask_next = mask;
+            dequeue_next = '0;
         end
-
-        reset_wb_n = reset_ni && !flush_i;
         
     end
 
     always_ff @(posedge clk_i) begin
 
         if(!reset_ni || flush_i) begin
-            choice  <= '0;
+            mask <= {{SCALAR_EX_COUNT-1{1'b0}},1'b1};
             dequeue <= '0;
         end
 
         else begin
-            if(wb_chosen) begin
-                data_bus_o.valid   <= 1'b1;
-                data_bus_o.prf_tag <= fifo_heads[choice_idx].prf_tag;
-                data_bus_o.rob_id  <= fifo_heads[choice_idx].rob_id;
-                data_bus_o.data    <= fifo_heads[choice_idx].data;
-                choice  <= choice_next;
-                dequeue <= dequeue_next;
-            end
-            else begin
-                data_bus_o.valid   <= 1'b0;
-                data_bus_o.prf_tag <= '0;
-                data_bus_o.rob_id  <= '0;
-                data_bus_o.data    <= '0;
-                dequeue <= '0; //sus
-            end
+            mask <= mask_next;
+            dequeue <= dequeue_next;
         end
     end
 

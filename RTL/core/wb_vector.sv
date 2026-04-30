@@ -20,9 +20,9 @@ module wb_vector (
 
     signal_pkg::vc_ex_output_signal_t fifo_heads[VECTOR_EX_COUNT-1:0]; 
 
-    logic choice, choice_idx, choice_next;
+    logic choice;
     logic[VECTOR_EX_COUNT-1:0] empty, full, next_full;
-    logic[VECTOR_EX_COUNT-1:0] dequeue, dequeue_next;
+    logic[VECTOR_EX_COUNT-1:0] dequeue;
 
     logic wb_chosen, reset_wb_n;
 
@@ -36,7 +36,7 @@ module wb_vector (
         .reset_ni(reset_wb_n),
         .push_i(ex_result_i[0].valid),
         .push_data_i(ex_result_i[0]),
-        .pop_i(dequeue_next[0]),
+        .pop_i(dequeue[0]),
         .data_o(fifo_heads[0]),
         .empty_o(empty[0]),
         .full_o(full[0]),
@@ -51,73 +51,48 @@ module wb_vector (
         .reset_ni(reset_wb_n),
         .push_i(ex_result_i[1].valid),
         .push_data_i(ex_result_i[1]),
-        .pop_i(dequeue_next[1]),
+        .pop_i(dequeue[1]),
         .data_o(fifo_heads[1]),
         .empty_o(empty[1]),
         .full_o(full[1]),
         .next_full_o(next_full[1])
     );
 
+    assign reset_wb_n = reset_ni && !flush_i;
+
     always_comb begin
 
-        dequeue_next = '0;
         wb_chosen = 1'b0;
 
         if(full[0] || (!full[1] && !empty[0] && empty[1])) begin
             choice = 1'b0;
             wb_chosen = (empty[0]) ? 1'b0 : 1'b1;
-            dequeue_next = (empty[0]) ? 2'b00 : 2'b01;
+            dequeue = (empty[0]) ? 2'b00 : 2'b01;
         end
         else begin
             choice = 1'b1;
             wb_chosen = (empty[1]) ? 1'b0 : 1'b1;
-            dequeue_next = (empty[1]) ? 2'b00 : 2'b10;
+            dequeue = (empty[1]) ? 2'b00 : 2'b10;
         end
 
-        /*
-        if(full[1]) choice_idx  = 1'b1;
-        else if(full[0]) choice_idx  = 1'b0;
-        else choice_idx = (empty == 2'b00) ? choice : empty[1];
-        
-        if (empty != 2'b11) begin
-            dequeue_next[choice_idx] = 1'b1;
-            wb_chosen = 1'b1;
+        if(wb_chosen) begin
+            data_bus_o.valid   <= 1'b1;
+            data_bus_o.prf_tag <= fifo_heads[choice].prf_tag;
+            data_bus_o.rob_id  <= fifo_heads[choice].rob_id;
+            data_bus_o.data    <= fifo_heads[choice].data;
         end
-        */
-        choice_next = ~choice_idx;
-        
-        reset_wb_n = reset_ni && !flush_i;
-        
-    end
-
-    always_ff @(posedge clk_i) begin
-
-        if(!reset_ni || flush_i) begin
-            dequeue <= '0;
-        end
-
         else begin
-            if(wb_chosen) begin
-                data_bus_o.valid   <= 1'b1;
-                data_bus_o.prf_tag <= fifo_heads[choice].prf_tag;
-                data_bus_o.rob_id  <= fifo_heads[choice].rob_id;
-                data_bus_o.data    <= fifo_heads[choice].data;
-                dequeue <= dequeue_next;
-            end
-            else begin
-                data_bus_o.valid   <= 1'b0;
-                data_bus_o.prf_tag <= '0;
-                data_bus_o.rob_id  <= '0;
-                data_bus_o.data    <= '0;
-                dequeue <= '0; //sus
-            end
+            data_bus_o.valid   <= 1'b0;
+            data_bus_o.prf_tag <= '0;
+            data_bus_o.rob_id  <= '0;
+            data_bus_o.data    <= '0;
         end
     end
 
-generate
-    for (genvar i=0; i<VECTOR_EX_COUNT; i++) begin
-        assign wb_ready_o[i] = ~(full[i] | next_full[i]);
-    end
-endgenerate
+    generate
+        for (genvar i=0; i<VECTOR_EX_COUNT; i++) begin
+            assign wb_ready_o[i] = ~(full[i] | next_full[i]);
+        end
+    endgenerate
 
 endmodule
