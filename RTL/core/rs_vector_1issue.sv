@@ -12,7 +12,7 @@ module rs_vector_1issue #(
     if_data_bus.snoop sc_data_bus_i,
     if_data_bus.snoop vc_data_bus_i,
     input logic vc_ex_ready_i,
-    output signal_pkg::vc_dispatched_instr_t vc_read_request_o,
+    output packet_pkg::vc_operand_read_request_t vc_read_request_o,
 
     output instr_pkg::rs_slot_id_t released_rs_slot_id_o,
     output logic rs_slot_released_o
@@ -20,14 +20,14 @@ module rs_vector_1issue #(
     
 );
 
-    storage_pkg::vc_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
+    packet_pkg::vc_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
     logic instr_valid, dispatch, bypass;
     
     logic [SINGLE_SLOT_RS_LEN-1:0] eligible, mask, mask_next, winner;
     logic [SINGLE_SLOT_RS_LEN-1:0] mask_upper, upper_canditates, lower_canditates, winner_upper, winner_lower;
     instr_pkg::rs_slot_id_t choice;
 
-    storage_pkg::vc_rs_entry_t built_entry;
+    packet_pkg::vc_rs_entry_t built_entry;
 
     always_comb begin
 

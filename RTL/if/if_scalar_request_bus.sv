@@ -24,7 +24,7 @@ interface if_scalar_request_bus;
     logic a_is_vector, b_is_vector;
     
     // connections from RS
-    storage_pkg::sc_rs_entry_t rs_entry;
+    packet_pkg::sc_rs_entry_t rs_entry;
 
     assign rs_entry.occupied  = prf_valid && rob_valid;
     assign rs_entry.prf_tag   = prf_tag;

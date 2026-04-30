@@ -1,7 +1,7 @@
 // import statements for OpenROAD, already included in EDA playground
 /*
 import config_pkg::*;
-import signal_pkg::*;
+import packet_pkg::*;
 */
 
 module core #()(
@@ -38,7 +38,7 @@ module core #()(
 
     logic flush;
 
-    instr_pkg::decoded_instr_t decoded_instr;
+    packet_pkg::decoded_instr_t decoded_instr;
     
     instr_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
     logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
@@ -51,19 +51,19 @@ module core #()(
 
     // FOR SCALAR : RS -> EX
     // FOR VECTOR : PRF -> EX
-    signal_pkg::sc_ex_input_signal_t sc_ex_request[SCALAR_EX_COUNT-1:0];
-    signal_pkg::sc_ex_input_signal_t br_ex_request;
-    signal_pkg::vc_ex_input_signal_t vc_ex_request[VECTOR_EX_COUNT-1:0];
+    packet_pkg::sc_ex_request_t sc_ex_request[SCALAR_EX_COUNT-1:0];
+    packet_pkg::sc_ex_request_t br_ex_request;
+    packet_pkg::vc_ex_request_t vc_ex_request[VECTOR_EX_COUNT-1:0];
 
     // signal from reservation station to prf for vector
     // VECTOR RS -> PRF
-    signal_pkg::vc_dispatched_instr_t vc_issued_instr[VECTOR_EX_COUNT-1:0];
+    packet_pkg::vc_operand_read_request_t vc_issued_instr[VECTOR_EX_COUNT-1:0];
 
     // functional units output signals
     // EX -> WB
-    signal_pkg::sc_ex_output_signal_t sc_ex_result[SCALAR_EX_COUNT-1:0];
-    signal_pkg::br_output_signal_t br_ex_result;
-    signal_pkg::vc_ex_output_signal_t vc_ex_result[VECTOR_EX_COUNT-1:0];
+    packet_pkg::sc_ex_result_t sc_ex_result[SCALAR_EX_COUNT-1:0];
+    packet_pkg::br_result_t br_ex_result;
+    packet_pkg::vc_ex_result_t vc_ex_result[VECTOR_EX_COUNT-1:0];
 
     // ready signals from FUs
     // SCALAR: EX -> RS

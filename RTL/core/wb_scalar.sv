@@ -16,13 +16,13 @@ module wb_scalar (
     input logic flush_i,
 
     // EX units
-    input signal_pkg::sc_ex_output_signal_t ex_result_i[SCALAR_EX_COUNT-1:0],
+    input packet_pkg::sc_ex_result_t ex_result_i[SCALAR_EX_COUNT-1:0],
     output logic wb_ready_o[SCALAR_EX_COUNT-1:0],
 
     if_data_bus.writeback data_bus_o
 );
 
-    storage_pkg::alu_result_entry_t fifo_heads[SCALAR_EX_COUNT-1:0]; 
+    packet_pkg::sc_ex_result_t fifo_heads[SCALAR_EX_COUNT-1:0]; 
 
     logic[EX_IDX_W-1:0] choice;
     logic[SCALAR_EX_COUNT-1:0] empty, full, next_full, eligible;
@@ -36,7 +36,7 @@ module wb_scalar (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4), 
-        .T(storage_pkg::alu_result_entry_t) 
+        .T(packet_pkg::sc_ex_result_t) 
     ) alu0_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -51,7 +51,7 @@ module wb_scalar (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4),
-        .T(storage_pkg::alu_result_entry_t)
+        .T(packet_pkg::sc_ex_result_t)
     ) alu1_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -66,7 +66,7 @@ module wb_scalar (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(2),
-        .T(storage_pkg::alu_result_entry_t)
+        .T(packet_pkg::sc_ex_result_t)
     ) muldiv_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -81,7 +81,7 @@ module wb_scalar (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4),
-        .T(storage_pkg::alu_result_entry_t)
+        .T(packet_pkg::sc_ex_result_t)
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),

@@ -1,6 +1,5 @@
 /*Extremely basic functional testing
  * Primarily to check if all modules are compiling and a very basic program runs
- TODO: Retirement seems to be not working. 
 */
 
 module core_tb;

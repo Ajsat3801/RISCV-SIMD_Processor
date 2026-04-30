@@ -4,8 +4,8 @@ module ex_vector_alu (
     input  logic reset_ni,
     input  logic flush_i,
     
-    input  signal_pkg::vc_ex_input_signal_t vc_ex_request_i,
-    output signal_pkg::vc_ex_output_signal_t vc_ex_result_o,
+    input  packet_pkg::vc_ex_request_t vc_ex_request_i,
+    output packet_pkg::vc_ex_result_t vc_ex_result_o,
 
     output logic vc_ex_ready_o
 );

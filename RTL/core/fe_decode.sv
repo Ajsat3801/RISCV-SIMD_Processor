@@ -13,7 +13,7 @@ module fe_decode(
     input instr_pkg::data_t pc_i,
     input logic fetch_valid_i,
 
-    output instr_pkg::decoded_instr_t decoded_instr_o
+    output packet_pkg::decoded_instr_t decoded_instr_o
 );
 
 /*  INSTRUCTION DECODER
@@ -33,7 +33,7 @@ module fe_decode(
  *  ->  no flush requires as the module doesnt store current state of processor
 */
 
-    instr_pkg::decoded_instr_t decoded_instr_d;
+    packet_pkg::decoded_instr_t decoded_instr_d;
     logic [6:0]  opcode;
     logic [31:0] intermediate;
     

@@ -101,42 +101,4 @@ package instr_pkg;
         logic [ROB_ADDR_W-1:0] address;
     } rob_address_t;
 
-/*
- * DECODED INSTRUCTION
- * see previous typedefs for chip_select & operations
- * addresses are of architectural regs, not physical. 
- * 12 bit imm used for i type, loads, stores, b type etc
- * 10 bit extend is used for pre-calculated data
- * pre-calculated data = 32 bits = {src1, src2, imm, extend}
- * pre-calc data is used in lui, auipc, branches, jal
- * control variables:
- *     write_to_reg: whether result is written back
- *     pre_calc: whether output is pre-calculated or not
- *     is_branch: whether there is branch
- *     read_src2: src2 is not read in itype,xui,branches and loads
- *     src1_vector, src2_vector: whether input is scalar or vector
- */
-
-    typedef struct packed {
-     
-        logic valid;
-        chip_select_e chip_select;
-        operations_e operation;
-        
-        arf_address_t dest_address;
-        arf_address_t src1_address;
-        arf_address_t src2_address;
-        
-        logic [11:0] imm;
-        logic [9:0] extend;
-
-        logic write_to_reg;
-        logic pre_calc; 
-        logic is_branch;
-        logic read_src2;
-        logic src1_vector;
-        logic src2_vector;
-        
-    } decoded_instr_t;
-
 endpackage

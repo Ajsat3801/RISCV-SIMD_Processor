@@ -25,11 +25,11 @@ module phy_regfile_vector (
     if_data_bus.prf vc_wb_instr_i,
 
     // inputs from RS for instruction ready to be executed
-    input signal_pkg::vc_dispatched_instr_t vc_issued_instr_i[VECTOR_EX_COUNT-1:0],
+    input packet_pkg::vc_operand_read_request_t vc_issued_instr_i[VECTOR_EX_COUNT-1:0],
     input logic vc_ex_ready_i[VECTOR_EX_COUNT-1:0],
 
     // sending operands and instruction data to ex
-    output signal_pkg::vc_ex_input_signal_t vc_ex_request_o[VECTOR_EX_COUNT-1:0],
+    output packet_pkg::vc_ex_request_t vc_ex_request_o[VECTOR_EX_COUNT-1:0],
     output logic vc_ex_ready_o[VECTOR_EX_COUNT-1:0]
     
 );

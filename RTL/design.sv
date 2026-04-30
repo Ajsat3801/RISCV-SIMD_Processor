@@ -4,8 +4,7 @@
 
 `include "config_pkg.sv"
 `include "instr_pkg.sv"
-`include "signal_pkg.sv"
-`include "storage_pkg.sv"
+`include "packet_pkg.sv"
 
 `include "if_alloc_bus.sv"
 `include "if_data_bus.sv"

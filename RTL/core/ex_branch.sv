@@ -4,8 +4,8 @@ module ex_branch(
     input logic reset_ni,
     input logic flush_i,
 
-    input signal_pkg::sc_ex_input_signal_t br_ex_request_i,
-    output signal_pkg::br_output_signal_t br_ex_result_o,
+    input packet_pkg::sc_ex_request_t br_ex_request_i,
+    output packet_pkg::br_result_t br_ex_result_o,
     output logic br_ex_ready_o
 );
     logic a_lt_b, a_lt_b_u, a_eq_b;

@@ -13,14 +13,14 @@ module rs_scalar_2issue #(
     input  logic sc_ex0_ready_i,
     input  logic sc_ex1_ready_i,
 
-    output signal_pkg::sc_ex_input_signal_t sc_ex0_request_o,
-    output signal_pkg::sc_ex_input_signal_t sc_ex1_request_o,
+    output packet_pkg::sc_ex_request_t sc_ex0_request_o,
+    output packet_pkg::sc_ex_request_t sc_ex1_request_o,
 
     output instr_pkg::rs_slot_id_t released_rs_slot_id_o[1:0],
     output logic rs_slot_released_o[1:0]
 );
 
-    storage_pkg::sc_rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
+    packet_pkg::sc_rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
     instr_pkg::rs_slot_id_t choice1, choice2;
 
     logic bypass_to_slot1, bypass_to_slot2;

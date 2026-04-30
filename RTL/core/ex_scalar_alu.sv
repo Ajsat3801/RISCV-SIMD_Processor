@@ -4,14 +4,14 @@ module ex_scalar_alu(
     input logic flush_i,
 
     // connection to reservation station
-    input signal_pkg::sc_ex_input_signal_t sc_ex_request_i,
+    input packet_pkg::sc_ex_request_t sc_ex_request_i,
 
     //connection to writeback arbitrer
-    output signal_pkg::sc_ex_output_signal_t sc_ex_result_o,
+    output packet_pkg::sc_ex_result_t sc_ex_result_o,
     output sc_ex_ready_o
 );
     
-    signal_pkg::sc_ex_output_signal_t alu_result;
+    packet_pkg::sc_ex_result_t alu_result;
     logic ex_ready;
 
     always_ff @(posedge clk_i) begin

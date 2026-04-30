@@ -8,7 +8,7 @@ module ooo_reorder_buffer (
 
     if_data_bus.snoop sc_data_bus_i,
     if_data_bus.snoop vc_data_bus_i,
-    input signal_pkg::br_output_signal_t branch_result_i,
+    input packet_pkg::br_result_t branch_result_i,
 
     if_scalar_request_bus.rob sc_request_o,
     if_vector_request_bus.rob vc_request_o,
@@ -28,8 +28,8 @@ both 1 -> vx instruction, -> store vector prf in dest
 both 0 -> NOP -> output not valid
 */
 
-storage_pkg::rob_entry_t rob_table[ROB_LEN-1:0];
-storage_pkg::rob_entry_t rob_input;
+packet_pkg::rob_entry_t rob_table[ROB_LEN-1:0];
+packet_pkg::rob_entry_t rob_input;
 instr_pkg::rob_address_t head, tail, head_next, tail_next;
 logic full, empty;
 logic push_allowed, pop_allowed;

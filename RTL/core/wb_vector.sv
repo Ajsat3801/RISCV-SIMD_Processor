@@ -12,13 +12,13 @@ module wb_vector (
     input logic flush_i,
 
     // EX units
-    input signal_pkg::vc_ex_output_signal_t ex_result_i[VECTOR_EX_COUNT-1:0],
+    input packet_pkg::vc_ex_result_t ex_result_i[VECTOR_EX_COUNT-1:0],
     output logic wb_ready_o[VECTOR_EX_COUNT-1:0],
 
     if_data_bus.writeback data_bus_o
 );
 
-    signal_pkg::vc_ex_output_signal_t fifo_heads[VECTOR_EX_COUNT-1:0]; 
+    packet_pkg::vc_ex_result_t fifo_heads[VECTOR_EX_COUNT-1:0]; 
 
     logic choice;
     logic[VECTOR_EX_COUNT-1:0] empty, full, next_full;
@@ -30,7 +30,7 @@ module wb_vector (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4), 
-        .T(signal_pkg::vc_ex_output_signal_t) 
+        .T(packet_pkg::vc_ex_result_t) 
     ) valu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -45,7 +45,7 @@ module wb_vector (
 
     lib_circular_fifo_fwft #(
         .BUFFER_SIZE(4),
-        .T(signal_pkg::vc_ex_output_signal_t)
+        .T(packet_pkg::vc_ex_result_t)
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),

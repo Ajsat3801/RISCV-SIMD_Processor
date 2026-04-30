@@ -2,3 +2,4 @@
 *.xlsx
 .claudeignore
 .vscode/*
+doc/test.drawio.svg

@@ -2,7 +2,7 @@ interface if_vector_request_bus;
     
     logic valid;
     instr_pkg::rs_slot_id_t rs_slot;
-    instr_pkg::decoded_instr_t instr;
+    packet_pkg::decoded_instr_t instr;
     logic rob_valid;
     instr_pkg::rob_address_t rob_id;
     instr_pkg::prf_tag_t prf_tag;

@@ -10,8 +10,8 @@ module rs_common_lsu (
     if_data_bus.snoop sc_data_bus_i,
     if_data_bus.snoop vc_data_bus_i,
     
-    output signal_pkg::sc_ex_input_signal_t  sc_ex_request_o,
-    output signal_pkg::vc_dispatched_instr_t vc_read_request_o,
+    output packet_pkg::sc_ex_request_t  sc_ex_request_o,
+    output packet_pkg::vc_operand_read_request_t vc_read_request_o,
     
     input  logic vc_ex_ready_i,
 
@@ -19,7 +19,7 @@ module rs_common_lsu (
     output logic rs_slot_released_o
 );
 
-    storage_pkg::lsu_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
+    packet_pkg::lsu_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
     logic instr_valid, dispatch, bypass;
     
     logic [SINGLE_SLOT_RS_LEN-1:0] eligible, mask, mask_next, winner;
@@ -27,7 +27,7 @@ module rs_common_lsu (
     instr_pkg::rs_slot_id_t choice;
 
 
-    storage_pkg::lsu_rs_entry_t built_entry, dispatch_q;
+    packet_pkg::lsu_rs_entry_t built_entry, dispatch_q;
 
     typedef enum logic {VECTOR_DISPATCHED, NO_DISPATCH} dispatch_state_e;
     dispatch_state_e dispatch_state;

@@ -6,7 +6,7 @@ module fe_instruction_queue (
     input logic reset_ni,
     input logic flush_i,
 
-    input instr_pkg::decoded_instr_t decoded_instr_i,
+    input packet_pkg::decoded_instr_t decoded_instr_i,
     input instr_pkg::rs_slot_id_t released_rs_slot_id_i [RS_DISPATCH_COUNT-1:0],
     input logic rs_slot_released_i [RS_DISPATCH_COUNT-1:0],
     
@@ -51,12 +51,12 @@ module fe_instruction_queue (
     logic[RS_COUNT-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
     // Instruction FIFO
-    instr_pkg::decoded_instr_t instr_fifo[INSTRUCTION_QUEUE_LEN:0]; // N+1 entry buffer
+    packet_pkg::decoded_instr_t instr_fifo[INSTRUCTION_QUEUE_LEN:0]; // N+1 entry buffer
     logic[INSTRUCTION_QUEUE_PTR_LEN-1:0] head, tail, head_next, tail_next;
     logic full, empty, enqueue, dequeue, ready;
 
     // output flip flops
-    instr_pkg::decoded_instr_t alloc_instr_q;
+    packet_pkg::decoded_instr_t alloc_instr_q;
     instr_pkg::rs_slot_id_t rs_slot_id_q;
 
     // intermediate variables
