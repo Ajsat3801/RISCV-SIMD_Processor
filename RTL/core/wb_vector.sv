@@ -60,10 +60,21 @@ module wb_vector (
 
     always_comb begin
 
-        choice_next  = choice;
         dequeue_next = '0;
         wb_chosen = 1'b0;
 
+        if(full[0] || (!full[1] && !empty[0] && empty[1])) begin
+            choice = 1'b0;
+            wb_chosen = (empty[0]) ? 1'b0 : 1'b1;
+            dequeue_next = (empty[0]) ? 2'b00 : 2'b01;
+        end
+        else begin
+            choice = 1'b1;
+            wb_chosen = (empty[1]) ? 1'b0 : 1'b1;
+            dequeue_next = (empty[1]) ? 2'b00 : 2'b10;
+        end
+
+        /*
         if(full[1]) choice_idx  = 1'b1;
         else if(full[0]) choice_idx  = 1'b0;
         else choice_idx = (empty == 2'b00) ? choice : empty[1];
@@ -72,6 +83,7 @@ module wb_vector (
             dequeue_next[choice_idx] = 1'b1;
             wb_chosen = 1'b1;
         end
+        */
         choice_next = ~choice_idx;
         
         reset_wb_n = reset_ni && !flush_i;
@@ -81,17 +93,15 @@ module wb_vector (
     always_ff @(posedge clk_i) begin
 
         if(!reset_ni || flush_i) begin
-            choice  <= '0;
             dequeue <= '0;
         end
 
         else begin
             if(wb_chosen) begin
                 data_bus_o.valid   <= 1'b1;
-                data_bus_o.prf_tag <= fifo_heads[choice_idx].prf_tag;
-                data_bus_o.rob_id  <= fifo_heads[choice_idx].rob_id;
-                data_bus_o.data    <= fifo_heads[choice_idx].data;
-                choice  <= choice_next;
+                data_bus_o.prf_tag <= fifo_heads[choice].prf_tag;
+                data_bus_o.rob_id  <= fifo_heads[choice].rob_id;
+                data_bus_o.data    <= fifo_heads[choice].data;
                 dequeue <= dequeue_next;
             end
             else begin

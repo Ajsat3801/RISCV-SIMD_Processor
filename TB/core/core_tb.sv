@@ -55,16 +55,28 @@ module core_tb;
         sc_pre_load = 1'b1;
         sc_pre_load_addr = 7'b0000001;
         sc_pre_load_data = 7'b0000001;
+        
+        vc_pre_load = 1'b1;
+        vc_pre_load_addr = 7'b1000001;
+        vc_pre_load_data = {4{32'd1}};
 
         #20;
         sc_pre_load = 1'b1;
         sc_pre_load_addr = 7'b0000010;
         sc_pre_load_data = 7'b0000010;
+        
+        vc_pre_load = 1'b1;
+        vc_pre_load_addr = 7'b1000010;
+        vc_pre_load_data = {4{32'd2}};
 
         #20;
         sc_pre_load = 1'b0;
         sc_pre_load_addr = '0;
         sc_pre_load_data = '0;
+
+        vc_pre_load = 1'b0;
+        vc_pre_load_addr = '0;
+        vc_pre_load_data = '0;
 
         cycles = 0;
         $display("---------------------------------------------------------------------------------");
@@ -92,11 +104,15 @@ module core_tb;
         raw_instr = 32'b00000010010100110101001110110011;
 
         #20
+        // VADD.VV R3 R1 R2
+        raw_instr = 32'b00000000001000001000000111010111;
+
+        #20
         fetch_valid = 1'b0;
 
     end
 
-    task automatic display_final_state();
+    task automatic display_final_state_sc();
         $display("[FINAL] R1:%h, R2:%h, R3:%h, R4:%h, R5:%h R6: %h, R7:%h",
                 dut.u_scalar_prf.regfile[1], 
                 dut.u_scalar_prf.regfile[2], 
@@ -105,6 +121,25 @@ module core_tb;
                 dut.u_scalar_prf.regfile[34],
                 dut.u_scalar_prf.regfile[35],
                 dut.u_scalar_prf.regfile[36]
+        );
+    endtask
+
+    task automatic display_final_state_vc();
+        $display("[FINAL] R1:%h, R2:%h, R3:%h, R4:%h, R5:%h R6: %h, R7:%h",
+                dut.u_vector_prf.regfile[1], 
+                dut.u_vector_prf.regfile[2], 
+                dut.u_vector_prf.regfile[32], 
+                dut.u_vector_prf.regfile[33],
+                dut.u_vector_prf.regfile[34],
+                dut.u_vector_prf.regfile[35],
+                dut.u_vector_prf.regfile[36]
+        );
+    endtask
+    task automatic display_preload_state();
+        $display("[PRE-LOAD] Vector preload: %b %d %h",
+            dut.u_vector_prf.vc_wb_instr_i.valid,
+            dut.u_vector_prf.vc_wb_instr_i.prf_tag,
+            dut.u_vector_prf.vc_wb_instr_i.data,
         );
     endtask
 
@@ -121,6 +156,20 @@ module core_tb;
                 dut.u_scalar_muldiv.sc_ex_result_o.valid,
                 dut.u_scalar_writeback.data_bus_o.valid,
                 dut.u_reorder_buffer.retire_instr_o.valid
+        );
+    endtask
+    task automatic display_stage_valids_vc();             
+        $display("[SC CORE] fetch=%h, decode=%h, queue=%h, alloc=%h, load=%h, rs=%h, ex=%h, wb=%h, retire=%b %b",
+                dut.u_decode.fetch_valid_i, //fetch
+                dut.u_decode.decoded_instr_o.valid, //decode
+                dut.u_instr_q.dispatched_instr_o.valid, //queue
+                dut.u_vector_arr.alloc_instr_o.valid, //alloc
+                dut.u_vc_request_bus.valid, //load
+                dut.u_vector_alu_rs.vc_read_request_o.valid, // rs
+                dut.u_vector_alu.vc_ex_result_o.valid, // ex
+                dut.u_vector_writeback.data_bus_o.valid, //wb
+                dut.u_reorder_buffer.retire_instr_o.valid, //retire
+                dut.u_reorder_buffer.retire_instr_o.prf_tag
         );
     endtask
     task automatic display_muldiv_rs_states();
@@ -265,15 +314,27 @@ module core_tb;
                 dut.u_scalar_prf.instr_o.rob_id
         );
     endtask
-
+*/
     task automatic display_prf_states_wb();
-        $display("[PRF WB] in_valid:%h, tag: %d, data:%h",
-                dut.u_scalar_prf.writeback_instr_i.valid,
-                dut.u_scalar_prf.writeback_instr_i.prf_tag,
-                dut.u_scalar_prf.writeback_instr_i.data
+        $display("[PRF WB] in [%b %h @ %b]",
+                dut.u_vector_prf.vc_wb_instr_i.valid,
+                dut.u_vector_prf.vc_wb_instr_i.data,
+                dut.u_vector_prf.vc_wb_instr_i.prf_tag
         );
     endtask
-
+    task automatic display_wb_states();
+        $display("[WB] in [%b %h @ %d %d] out [%b %h @ %d %d]",
+                dut.u_vector_writeback.ex_result_i[0].valid,
+                dut.u_vector_writeback.ex_result_i[0].data,
+                dut.u_vector_writeback.ex_result_i[0].rob_id,
+                dut.u_vector_writeback.ex_result_i[0].prf_tag,
+                dut.u_vector_writeback.data_bus_o.valid,
+                dut.u_vector_writeback.data_bus_o.data,
+                dut.u_vector_writeback.data_bus_o.rob_id,
+                dut.u_vector_writeback.data_bus_o.prf_tag
+        );
+    endtask
+/*
     task automatic display_arr_states();
         $display("[ARR] retirement: %b %d %d %b",
                 dut.u_scalar_arr.retire_instr_i.valid,
@@ -343,8 +404,11 @@ module core_tb;
         //if(dut.u_scalar_muldiv.u_divider.state == 1) begin
 
         $display("Time: %0t, cycle: %0d",$time(), cycles);
-        //display_final_state();
-        display_stage_valids();
+        //display_final_state_sc();
+        display_final_state_vc();
+        //display_preload_state();
+        //display_stage_valids();
+        //display_stage_valids_vc();
         //display_muldiv_rs_states();
         //display_muldiv_states();
         //display_div_states();
@@ -360,7 +424,7 @@ module core_tb;
         //display_rob_states();
         //end
 
-        if(cycles >= 80) $finish;
+        if(cycles >= 128) $finish;
     end
 
 endmodule

@@ -31,10 +31,10 @@ module ooo_arr_unit #(
     localparam FIFO_ADDR_SIZE = $clog2(PRF_DEPTH);
     typedef logic[FIFO_ADDR_SIZE] prf_fifo_addr_t;
 
-    instr_pkg::prf_tag_t reg_alloc_table  [ARCH_REG_DEPTH-1:0];
-    instr_pkg::prf_tag_t commit_table [ARCH_REG_DEPTH-1:0];
-    instr_pkg::prf_tag_t free_list[PRF_DEPTH-1:0];
-    instr_pkg::prf_tag_t free_list_flushed[PRF_DEPTH-1:0];
+    instr_pkg::prf_address_t reg_alloc_table  [ARCH_REG_DEPTH-1:0];
+    instr_pkg::prf_address_t commit_table [ARCH_REG_DEPTH-1:0];
+    instr_pkg::prf_address_t free_list[PRF_DEPTH-1:0];
+    instr_pkg::prf_address_t free_list_flushed[PRF_DEPTH-1:0];
     logic[PRF_DEPTH-1:0] prf_used;
 
     prf_fifo_addr_t head, tail;
@@ -150,8 +150,8 @@ module ooo_arr_unit #(
                 free_list[tail] <= commit_table[retire_instr_i.dest_address];
                 tail <= tail_next;
 
-                commit_table[retire_instr_i.dest_address] <= retire_instr_i.prf_tag;
-                prf_used[retire_instr_i.prf_tag] <= 1'b1;
+                commit_table[retire_instr_i.dest_address] <= retire_instr_i.prf_tag.tag;
+                prf_used[retire_instr_i.prf_tag.tag] <= 1'b1;
             end
 
             /* INSTRUCTION ALLOCATION
@@ -167,7 +167,7 @@ module ooo_arr_unit #(
             alloc_instr_o.b_is_vector <= dispatched_instr_i.instr.src2_vector;
             
             if (allocation_valid) begin
-                alloc_instr_o.prf_tag <= free_list[head];
+                alloc_instr_o.prf_tag <= {IS_VECTOR, free_list[head]};
 
                 reg_alloc_table[dispatched_instr_i.instr.dest_address] <= free_list[head];
                 head <= head_next;

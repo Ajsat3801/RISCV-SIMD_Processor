@@ -78,10 +78,11 @@ package instr_pkg;
     typedef logic [REG_ADDR_W-1:0] arf_address_t;
     typedef logic [RS_ADDR_W-1:0]  rs_slot_id_t;
     
-    typedef logic [VECTOR_SIZE:0] [DATA_SIZE-1:0] vector_data_t;
+    typedef logic [VECTOR_SIZE-1:0] [DATA_SIZE-1:0] vector_data_t;
 
     typedef logic [IMEM_WORD_SIZE-1:0] raw_instr_t;
     typedef logic [(IMEM_ADDR_SIZE+2)-1:0] pc_t;
+    typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
     
 /*
  * tag of an instruction used for snoop etc
@@ -89,9 +90,10 @@ package instr_pkg;
  * Other bits are the address of data at PRF
  * Note: address width of scalar and vector PRF is same
  */
-	typedef struct packed {
+	
+    typedef struct packed {
         logic vector;
-        logic [(PRF_ADDR_W-1):0] tag;
+        prf_address_t tag;
     } prf_tag_t;
     
     typedef struct packed {
