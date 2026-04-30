@@ -62,7 +62,7 @@ always_comb begin
 
     rob_input = '0;
 
-    case(instr_type)
+    unique case(instr_type)
         INSTR_VV: begin 
             rob_input.write_to_reg = vc_allocated_instr_i.instr.write_to_reg;
             rob_input.prf_tag = vc_allocated_instr_i.prf_tag;
@@ -85,9 +85,11 @@ always_comb begin
                 sc_allocated_instr_i.instr.imm,
                 sc_allocated_instr_i.instr.extend
             };
-            rob_input.is_branch = sc_allocated_instr_i.instr.is_branch; 
-            
-        end
+            rob_input.is_branch = sc_allocated_instr_i.instr.is_branch;
+        end 
+        default:
+            rob_input = '0;
+        
 
     endcase
 

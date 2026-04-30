@@ -298,23 +298,29 @@ module core_tb;
                 dut.u_scalar_alu_rs.sc_ex1_request_o.valid
         );
     endtask
-/*
-    task automatic display_prf_states_alloc();
-        $display("[PRF_ALLOC] in_valid:%h %h, alloc: %d %d ",
-                dut.u_scalar_prf.allocated_instr_i.valid,
-                dut.u_scalar_prf.writeback_instr_i.valid,
-                dut.u_scalar_prf.allocated_instr_i.prf_tag,
-                dut.u_scalar_prf.allocated_instr_i.rs_slot
-        );
-        $display("Out valid: %b slot:%h ready:%h %h rob:%d",
-                dut.u_scalar_prf.instr_o.prf_valid,
-                dut.u_scalar_prf.instr_o.rs_slot,
-                dut.u_scalar_prf.instr_o.operand_a_ready,
-                dut.u_scalar_prf.instr_o.operand_b_ready,
-                dut.u_scalar_prf.instr_o.rob_id
+    task automatic display_rs_states_vc();
+        $display("[VC RS] in:[%b @ %0d (%h %h)] ready:%b out:[%0d %b]",
+                dut.u_vector_alu_rs.vc_rs_request_i.valid,
+                dut.u_vector_alu_rs.vc_rs_request_i.prf_tag,
+                dut.u_vector_alu_rs.vc_rs_request_i.operand_a_ready,
+                dut.u_vector_alu_rs.vc_rs_request_i.operand_b_ready,
+                dut.u_vector_alu_rs.vc_ex_ready_i,
+                dut.u_vector_alu_rs.vc_read_request_o.prf_tag,
+                dut.u_vector_alu_rs.vc_read_request_o.valid,
         );
     endtask
-*/
+
+    task automatic display_prf_states_alloc();
+        $display("[PRF_ALLOC] in [%h @ %0d] out[%b @ %0d (%b %b)]",
+                dut.u_vector_prf.vc_alloc_instr_i.valid,
+                dut.u_vector_prf.vc_alloc_instr_i.prf_tag,
+                dut.u_vector_prf.vc_request_instr_o.valid,
+                dut.u_vector_prf.vc_request_instr_o.prf_tag,
+                dut.u_vector_prf.vc_request_instr_o.operand_a_ready,
+                dut.u_vector_prf.vc_request_instr_o.operand_b_ready
+        );
+    endtask
+
     task automatic display_prf_states_wb();
         $display("[PRF WB] in [%b %h @ %b]",
                 dut.u_vector_prf.vc_wb_instr_i.valid,
@@ -418,10 +424,17 @@ module core_tb;
     endtask
 */
     task automatic display_rob_states();
-        $display("[ROB] in[%b %d @ %d] retire[%b %d] ",
+        $display("[ROB] data_in sc[%b %0d @ %0d] vc[%b %0d @ %0d] instr_type: %b tail:%d head[%b tag:%d] retire[%b tag:%d] ",
                 dut.u_reorder_buffer.sc_data_bus_i.valid,
                 dut.u_reorder_buffer.sc_data_bus_i.prf_tag,
                 dut.u_reorder_buffer.sc_data_bus_i.rob_id,
+                dut.u_reorder_buffer.vc_data_bus_i.valid,
+                dut.u_reorder_buffer.vc_data_bus_i.prf_tag,
+                dut.u_reorder_buffer.vc_data_bus_i.rob_id,
+                dut.u_reorder_buffer.instr_type,
+                dut.u_reorder_buffer.tail,
+                dut.u_reorder_buffer.rob_table[dut.u_reorder_buffer.head.address].ready,
+                dut.u_reorder_buffer.rob_table[dut.u_reorder_buffer.head.address].prf_tag,
                 dut.u_reorder_buffer.retire_instr_o.valid,
                 dut.u_reorder_buffer.retire_instr_o.prf_tag
         );
@@ -435,6 +448,17 @@ module core_tb;
             dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[5]],
             dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[6]],
             dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[7]]
+        );
+    endtask
+    task automatic display_commit_states_vc();
+        $display("[FINAL] R1:%h R2:%h R3:%h R4:%h R5:%h R6:%h R7:%h",
+            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[1]],
+            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[2]],
+            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[3]],
+            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[4]],
+            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[5]],
+            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[6]],
+            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[7]]
         );
     endtask
     task automatic display_commit_table();
@@ -462,8 +486,10 @@ module core_tb;
         //if(dut.u_scalar_muldiv.u_divider.state == 1) begin
 
         $display("Time: %0t, cycle: %0d",$time(), cycles);
+        //display_rob_states();
         //display_commit_table();
         //display_commit_states();
+        display_commit_states_vc();
         //display_final_state_sc();
         //display_final_state_vc();
         //display_preload_state();
@@ -476,16 +502,17 @@ module core_tb;
         //display_decode_states();
         //display_iq_states();
         //display_rs_states();
+        //display_rs_states_vc();
         //display_alu_states();
         //display_wb_states_vc();
         //display_wb_states_sc();
         //display_prf_states_alloc();
         //display_prf_states_wb();
         //display_arr_states();
-        display_rob_states();
+        
         //end
 
-        if(cycles >= 80) $finish;
+        if(cycles >= 128) $finish;
     end
 
 endmodule

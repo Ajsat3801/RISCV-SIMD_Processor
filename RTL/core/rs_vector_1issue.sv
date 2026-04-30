@@ -31,7 +31,7 @@ module rs_vector_1issue #(
 
     always_comb begin
 
-        built_entry.occupied = sc_rs_request_i.rs_entry.occupied && vc_rs_request_i.valid;
+        
         built_entry.prf_tag  = vc_rs_request_i.prf_tag;
         built_entry.rob_id   = vc_rs_request_i.rob_id;
         
@@ -40,11 +40,13 @@ module rs_vector_1issue #(
         built_entry.b_is_vector = vc_rs_request_i.b_is_vector;
 
         if (!built_entry.a_is_vector) begin
+            built_entry.occupied = sc_rs_request_i.rs_entry.occupied || vc_rs_request_i.valid;
             built_entry.operand_a       = sc_rs_request_i.rs_entry.operand_a;
             built_entry.operand_a_tag   = sc_rs_request_i.rs_entry.operand_a_tag;
             built_entry.operand_a_ready = sc_rs_request_i.rs_entry.operand_a_ready;
         end
         else begin
+            built_entry.occupied = vc_rs_request_i.valid;
             built_entry.operand_a       = '0;
             built_entry.operand_a_tag   = vc_rs_request_i.operand_a_tag;
             built_entry.operand_a_ready = vc_rs_request_i.operand_a_ready;

@@ -87,7 +87,7 @@ module ooo_arr_unit #(
         retirement_valid =  retire_instr_i.valid &&
                             retire_instr_i.write_to_reg &&
                             (retire_instr_i.dest_address != '0) && 
-                            !(retire_instr_i.prf_tag.vector == IS_VECTOR);
+                            (retire_instr_i.prf_tag.vector == IS_VECTOR);
 
         /*  CONDITIONS FOR ALLOCATION TO BE VALID
          *  1)  allocation signal valid
@@ -160,7 +160,7 @@ module ooo_arr_unit #(
              * - Other instruction data sent directly without gating (to handle .vx
              *   instructions
              */
-            alloc_instr_o.valid   <= dispatched_instr_i.valid;
+            alloc_instr_o.valid   <= dispatched_instr_i.valid && (dispatched_instr_i.instr.chip_select[2] == IS_VECTOR);
             alloc_instr_o.rs_slot <= dispatched_instr_i.rs_slot_id;
             alloc_instr_o.instr   <= dispatched_instr_i.instr;
             alloc_instr_o.a_is_vector <= dispatched_instr_i.instr.src1_vector;
