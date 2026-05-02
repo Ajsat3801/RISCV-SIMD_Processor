@@ -2,4 +2,4 @@
 *.xlsx
 .claudeignore
 .vscode/*
-doc/test.drawio.svg
+doc/block_diagram_old.drawio.svg

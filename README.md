@@ -18,7 +18,7 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 
 | Instruction                                          | Processing Unit     |
 |------------------------------------------------------|---------------------|
-| ADD, SLL, SRL, SRA, SUB, AND, OR, XOR, SLT, SLTU     | Scalar ALU          |
+| ADD, SLL, SRL, SUB, AND, OR, XOR, SLT, SLTU          | Scalar ALU          |
 | ADDI, SLLI, SRLI, ANDI, ORI, XORI, SLTI, SLTIU       | Scalar ALU          |
 | BEQ, BNE, BLT, BGE, BLTU, BGEU                       | Branch Unit         |
 | JAL, LUI, AUIPC                                      | Procesed in decoder |
@@ -36,7 +36,19 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 
 ### Microarchitecture
 
+#### Overview
+
 ![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/block_diagram.drawio.svg)
+
+#### Stages for each type of instruction
+
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/sc_alu_ops.drawio.svg "Flow for scalar ALU and multiply divide operations")  
+
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/vc_alu_ops.drawio.svg, "Flow for vector alu operations")
+
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/branch_ops.drawio.svg "Flow for conditional branch operations")
+
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ui_ops.drawio.svg, "Flow for unconditional branches and upper immediate operations")
 
 ## Verification
 
