@@ -1,5 +1,9 @@
-//TO BE UPDATED LATER
-
+/* RETIRE INSTRUCTION BUS
+ * ->  interface to broadcast a retired instruction
+ * ->  originates from ROB and ARR units update their respective commit tables
+ * ->  for branch to update pc to data, valid && is_branch && branch_taken
+ * ->  LSU snoops retirement bus as store instructions is to be written only on retirement
+*/
 interface if_retirement_bus;
 
     logic valid;
@@ -17,11 +21,6 @@ interface if_retirement_bus;
         output is_branch, branch_taken
     );
 
-    modport prf (
-        input valid,
-        input write_to_reg, prf_tag
-    );
-
     modport arr (
         input valid, 
         input write_to_reg, prf_tag,
@@ -30,7 +29,13 @@ interface if_retirement_bus;
 
     modport branch (
         input valid,
-        input is_branch, branch_taken
+        input is_branch, branch_taken,
+        input data
+    );
+
+    modport lsu (
+        input valid,
+        input prf_tag
     );
 
 endinterface

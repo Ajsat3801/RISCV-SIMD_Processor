@@ -44,11 +44,11 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 
 ![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/sc_alu_ops.drawio.svg "Flow for scalar ALU and multiply divide operations")  
 
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/vc_alu_ops.drawio.svg, "Flow for vector alu operations")
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/vc_alu_ops.drawio.svg "Flow for vector alu operations")
 
 ![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/branch_ops.drawio.svg "Flow for conditional branch operations")
 
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/ui_ops.drawio.svg, "Flow for unconditional branches and upper immediate operations")
+![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/ui_ops.drawio.svg "Flow for unconditional branches and upper immediate operations")
 
 ## Verification
 

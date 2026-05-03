@@ -7,6 +7,8 @@ module ex_common_lsu(
     input packet_pkg::sc_ex_request_t sc_ex_request_i,
     input packet_pkg::vc_ex_request_t vc_ex_request_i,
 
+    if_retirement_bus.lsu retire_instr_i,
+
     output packet_pkg::sc_ex_result_t sc_ex_result_o,
     output packet_pkg::vc_ex_result_t vc_ex_result_o,
 

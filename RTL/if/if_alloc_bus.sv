@@ -1,3 +1,9 @@
+/* ALLOCATED INSTRUCTION BUS
+ * ->  Interface between ARR units, reorder buffer and physical registers
+ * ->  2 instances created, one for scalar and one for vector
+ * ->  (Future scope: potential to reduce the number of fields sent inside instr)
+*/
+
 interface if_alloc_bus;
     
     logic valid;

@@ -54,7 +54,7 @@ module phy_regfile_scalar (
                 sc_request_instr_o.operand_a <= regfile[sc_alloc_instr_i.operand_a_tag.tag];
                 sc_request_instr_o.operand_b <= regfile[sc_alloc_instr_i.operand_b_tag.tag];
 
-                if(sc_alloc_instr_i.instr.pre_calc && sc_alloc_instr_i.write_to_reg) begin
+                if(sc_alloc_instr_i.instr.pre_calc && sc_alloc_instr_i.instr.write_to_reg) begin
                     regfile[sc_alloc_instr_i.prf_tag.tag] <= {  sc_alloc_instr_i.instr.src1_address,
                                                                 sc_alloc_instr_i.instr.src2_address,
                                                                 sc_alloc_instr_i.instr.imm, 

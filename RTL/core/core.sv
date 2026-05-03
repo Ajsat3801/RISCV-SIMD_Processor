@@ -1,5 +1,23 @@
-// import statements for OpenROAD, already included in EDA playground
-/*
+/* CORE MODULE
+ *  Functions/Behavior:
+ *  ->  Integrates the whole pipeline
+ *  ->  Pre-loading of scalar and vector PRF supported
+ *  Inputs:
+ *  ->  outputs of fetch module (raw 32bit instruction, current PC and valid)
+ *  ->  pre_load variables (flag, address, pre load data)
+ *  Outputs
+ *  ->  ready for next instruction (input of fetch module)
+ *  Notes
+ *  ->  Fetch is remaining, current inputs and outputs of core are those of fetch
+ *  ->  Index of each FU:   scalar: 0-> alu0, 1->alu1, 2->muldiv, 3->lsu
+                            vector: 0-> valu, 1->lsu
+ *  Potential Optimizations for physical constraints
+ *  ->  separate RS for branching and separate branch packet
+ *  ->  smaller RS for branches
+ *  ->  send only required info in allocation bus instead of full decoded instruction
+ */
+
+/* import statements for OpenROAD, already included in EDA playground
 import config_pkg::*;
 import packet_pkg::*;
 */
@@ -23,19 +41,6 @@ module core #()(
     output logic ready_o
 );
 
-/*  CORE FOR PHASE 1
- *  Functions/Behavior
- *   -> Fully scalar OOO unit with 2 scalar ALUs
- *   -> Pre-loading of scalar PRF supported
- *  Inputs
- *   -> outputs of fetch module (raw 32bit instruction, current PC and valid)
- *   -> pre_load variables (flag, address, pre load data)
- *  Outputs
- *   -> ready for next instruction (input of fetch module)
- *  Notes
- *   -> Fetch is remaining, current inputs and outputs of core are those of fetch
- */
-
     logic flush;
 
     packet_pkg::decoded_instr_t decoded_instr;
@@ -45,10 +50,6 @@ module core #()(
 
     logic rob_full, sc_arr_full, vc_arr_full;
     
-    // functional units input signals
-    // for scalar 0-> alu0, 1->alu1, 2->muldiv, 3->lsu
-    // for vector 0-> valu, 1->lsu
-
     // FOR SCALAR : RS -> EX
     // FOR VECTOR : PRF -> EX
     packet_pkg::sc_ex_request_t sc_ex_request[SCALAR_EX_COUNT-1:0];
@@ -85,7 +86,7 @@ module core #()(
     logic sc_rs_ex_ready[SCALAR_EX_COUNT-1:0];
     logic vc_rs_ex_ready[VECTOR_EX_COUNT-1:0];
 
-    /*
+    /*  Naming Convention
         Fetched OP -> fetched_instr
         Decoded OP -> decoded_instr
         Queue OP   -> dispatched_instr
@@ -378,6 +379,7 @@ module core #()(
         .flush_i(flush),
         .sc_ex_request_i(sc_ex_request[3]),
         .vc_ex_request_i(vc_ex_request[1]),
+        .retire_instr_i(u_retirement_bus)
         .sc_ex_result_o(sc_ex_result[3]),
         .vc_ex_result_o(vc_ex_result[1]),
         .sc_ex_ready_o(sc_ex_ready[3]),

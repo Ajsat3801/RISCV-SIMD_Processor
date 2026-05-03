@@ -13,7 +13,7 @@ package instr_pkg;
     typedef enum logic[2:0] { 
         NONE    = 3'b000, CS_BRANCH  = 3'b100,
         CS_SALU = 3'b001, CS_MULDIV = 3'b010, CS_SLSU = 3'b011,
-        CS_VALU = 3'b101,                      CS_VLSU = 3'b111
+        CS_VALU = 3'b101,                     CS_VLSU = 3'b111
     } chip_select_e;
 
 /* R-TYPE OPERATIONS (Scalar ALU, Scalar MULDIV and Branch)

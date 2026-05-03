@@ -1,5 +1,6 @@
 *.docx
 *.xlsx
 .claudeignore
-.vscode/*
+.vscode/*s
 doc/block_diagram_old.drawio.svg
+macros/*
