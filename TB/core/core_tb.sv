@@ -2,18 +2,18 @@ module core_tb;
 
     logic clk, reset_n;
     logic fetch_valid, sc_pre_load, vc_pre_load;
-    instr_pkg::data_t raw_instr, pc, sc_pre_load_data;
-    instr_pkg::vector_data_t vc_pre_load_data;
-    instr_pkg::prf_tag_t sc_pre_load_addr, vc_pre_load_addr;
+    signal_pkg::data_t raw_instr, pc, sc_pre_load_data;
+    signal_pkg::vector_data_t vc_pre_load_data;
+    signal_pkg::prf_tag_t sc_pre_load_addr, vc_pre_load_addr;
     logic ready;
 
-    instr_pkg::arf_address_t prev_dest_address, vc_prev_dest_address;
-    instr_pkg::prf_tag_t prev_prf_tag, vc_prev_prf_tag;
+    signal_pkg::arf_address_t prev_dest_address, vc_prev_dest_address;
+    signal_pkg::prf_tag_t prev_prf_tag, vc_prev_prf_tag;
     logic prev_retire, vc_prev_retire;
     
     int cycles;
 
-    instr_pkg::data_t instr_array[0:4];
+    signal_pkg::data_t instr_array[0:4];
 
     core dut(
         .clk_i(clk),

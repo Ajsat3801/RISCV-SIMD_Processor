@@ -1,10 +1,10 @@
 interface if_data_bus #(
-    parameter type T = instr_pkg::data_t
+    parameter type T = signal_pkg::data_t
     );
 
     logic valid;
-    instr_pkg::prf_tag_t prf_tag;
-    instr_pkg::rob_address_t rob_id;
+    signal_pkg::prf_tag_t prf_tag;
+    signal_pkg::rob_address_t rob_id;
     T data;
 
     modport writeback (

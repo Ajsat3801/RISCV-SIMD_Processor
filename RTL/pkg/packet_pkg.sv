@@ -5,7 +5,7 @@ package packet_pkg;
 // DECODED INSTRUCTION
 // ---------------------------------------------------------------------------- 
 /* 
- * -> see instr_pkg typedefs for chip_select & operations definitions
+ * -> see signal_pkg typedefs for chip_select & operations definitions
  * -> addresses are of architectural regs, not physical. 
  * -> 12 bit imm used for i type, loads, stores, b type etc
  * -> 10 bit extend is used for pre-calculated data
@@ -22,12 +22,12 @@ package packet_pkg;
     typedef struct packed {
      
         logic valid;
-        instr_pkg::chip_select_e chip_select;
-        instr_pkg::operations_e operation;
+        signal_pkg::chip_select_e chip_select;
+        signal_pkg::operations_e operation;
         
-        instr_pkg::arf_address_t dest_address;
-        instr_pkg::arf_address_t src1_address;
-        instr_pkg::arf_address_t src2_address;
+        signal_pkg::arf_address_t dest_address;
+        signal_pkg::arf_address_t src1_address;
+        signal_pkg::arf_address_t src2_address;
         
         logic [11:0] imm;
         logic [9:0] extend;
@@ -48,26 +48,26 @@ package packet_pkg;
     typedef struct packed {
         logic valid;
         
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
 
-        instr_pkg::data_t operand_a;
-        instr_pkg::data_t operand_b;
+        signal_pkg::data_t operand_a;
+        signal_pkg::data_t operand_b;
 
-        instr_pkg::operations_e operation;
+        signal_pkg::operations_e operation;
 
     } sc_ex_request_t;
 
     typedef struct packed {
         logic valid;
 
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
 
-        instr_pkg::vector_data_t operand_a;
-        instr_pkg::vector_data_t operand_b;
+        signal_pkg::vector_data_t operand_a;
+        signal_pkg::vector_data_t operand_b;
 
-        instr_pkg::operations_e operation;
+        signal_pkg::operations_e operation;
 
         logic a_is_vector;
         logic b_is_vector;
@@ -77,18 +77,18 @@ package packet_pkg;
     typedef struct packed {
         logic valid;
         
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
 
-        instr_pkg::data_t operand_a;
+        signal_pkg::data_t operand_a;
         
-        instr_pkg::operations_e operation;
+        signal_pkg::operations_e operation;
 
         logic a_is_vector;
         logic b_is_vector;
 
-        instr_pkg::prf_tag_t operand_a_tag;
-        instr_pkg::prf_tag_t operand_b_tag;
+        signal_pkg::prf_tag_t operand_a_tag;
+        signal_pkg::prf_tag_t operand_b_tag;
 
     } vc_operand_read_request_t;
 
@@ -98,16 +98,16 @@ package packet_pkg;
     typedef struct packed {
         logic valid;
 
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
 
-        instr_pkg::data_t data;
+        signal_pkg::data_t data;
     } sc_ex_result_t;
 
     typedef struct packed {
         logic valid;
         
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::rob_address_t rob_id;
         logic branch_taken;
 
     } br_result_t;
@@ -115,10 +115,10 @@ package packet_pkg;
     typedef struct packed {
         logic valid;
 
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
 
-        instr_pkg::vector_data_t data;
+        signal_pkg::vector_data_t data;
 
     } vc_ex_result_t;
 
@@ -129,16 +129,16 @@ package packet_pkg;
     typedef struct packed {
         logic occupied;
         
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
         
-        instr_pkg::data_t operand_a;
-        instr_pkg::data_t operand_b; 
+        signal_pkg::data_t operand_a;
+        signal_pkg::data_t operand_b; 
         
-        instr_pkg::operations_e operation;
+        signal_pkg::operations_e operation;
 
-        instr_pkg::prf_tag_t operand_a_tag;
-        instr_pkg::prf_tag_t operand_b_tag;
+        signal_pkg::prf_tag_t operand_a_tag;
+        signal_pkg::prf_tag_t operand_b_tag;
 
         logic operand_a_ready;
         logic operand_b_ready;
@@ -148,18 +148,18 @@ package packet_pkg;
     typedef struct packed {
         logic occupied;
         
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
 
-        instr_pkg::data_t operand_a;
+        signal_pkg::data_t operand_a;
         
-        instr_pkg::operations_e operation;
+        signal_pkg::operations_e operation;
 
         logic a_is_vector;
         logic b_is_vector;
 
-        instr_pkg::prf_tag_t operand_a_tag;
-        instr_pkg::prf_tag_t operand_b_tag;
+        signal_pkg::prf_tag_t operand_a_tag;
+        signal_pkg::prf_tag_t operand_b_tag;
 
         logic operand_a_ready;
         logic operand_b_ready;
@@ -169,19 +169,19 @@ package packet_pkg;
     typedef struct packed {
         logic occupied;
         
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
 
-        instr_pkg::data_t operand_a;
-        instr_pkg::data_t operand_b;
+        signal_pkg::data_t operand_a;
+        signal_pkg::data_t operand_b;
         
-        instr_pkg::operations_e operation;
+        signal_pkg::operations_e operation;
 
         logic a_is_vector;
         logic b_is_vector;
 
-        instr_pkg::prf_tag_t operand_a_tag;
-        instr_pkg::prf_tag_t operand_b_tag;
+        signal_pkg::prf_tag_t operand_a_tag;
+        signal_pkg::prf_tag_t operand_b_tag;
 
         logic operand_a_ready;
         logic operand_b_ready;
@@ -192,10 +192,10 @@ package packet_pkg;
         logic ready;
         logic write_to_reg;
 
-        instr_pkg::prf_tag_t prf_tag;
-        instr_pkg::arf_address_t dest_address;
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::arf_address_t dest_address;
 
-        instr_pkg::data_t data;
+        signal_pkg::data_t data;
 
         logic is_branch;
         logic branch_taken;

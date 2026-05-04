@@ -28,7 +28,7 @@ module phy_regfile_scalar (
 );
 
     logic[PRF_DEPTH-1:0] ready;
-    instr_pkg::data_t regfile[PRF_DEPTH-1:0];
+    signal_pkg::data_t regfile[PRF_DEPTH-1:0];
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
@@ -71,7 +71,7 @@ module phy_regfile_scalar (
                 sc_request_instr_o.operand_b <= '0;
             end
 
-            sc_request_instr_o.prf_valid     <= sc_alloc_instr_i.valid && !(sc_alloc_instr_i.instr.chip_select == instr_pkg::NONE);
+            sc_request_instr_o.prf_valid     <= sc_alloc_instr_i.valid && !(sc_alloc_instr_i.instr.chip_select == signal_pkg::NONE);
             sc_request_instr_o.chip_select   <= sc_alloc_instr_i.instr.chip_select;
             sc_request_instr_o.rs_slot       <= sc_alloc_instr_i.rs_slot;
             sc_request_instr_o.prf_tag       <= sc_alloc_instr_i.prf_tag;

@@ -6,19 +6,19 @@ module fe_fetch(
     input  logic compute_i,
     
     input  logic ready_i,
-    output instr_pkg::raw_instr_t instr_decode_o,
-    output instr_pkg::pc_t pc_decode_o,
+    output signal_pkg::raw_instr_t instr_decode_o,
+    output signal_pkg::pc_t pc_decode_o,
     output logic fetch_valid_o,
 
     if_retirement_bus.branch retire_instr_i,
 
-    input  instr_pkg::raw_instr_t instr_imem_i,
+    input  signal_pkg::raw_instr_t instr_imem_i,
     input  logic imem_valid_i,
-    output instr_pkg::pc_t pc_imem_o,
+    output signal_pkg::pc_t pc_imem_o,
     output logic read_enable_o
 );
     
-    instr_pkg::pc_t pc, pc_sent;
+    signal_pkg::pc_t pc, pc_sent;
     logic branch_taken;
 
     always_comb begin

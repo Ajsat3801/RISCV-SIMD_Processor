@@ -1,7 +1,7 @@
 //import config_pkg::*;
 
 module rs_scalar_2issue #(
-    parameter instr_pkg::chip_select_e CHIP_SELECT = instr_pkg::CS_SALU
+    parameter signal_pkg::chip_select_e CHIP_SELECT = signal_pkg::CS_SALU
 )(
     input  logic clk_i,
     input  logic reset_ni,
@@ -16,12 +16,12 @@ module rs_scalar_2issue #(
     output packet_pkg::sc_ex_request_t sc_ex0_request_o,
     output packet_pkg::sc_ex_request_t sc_ex1_request_o,
 
-    output instr_pkg::rs_slot_id_t released_rs_slot_id_o[1:0],
+    output signal_pkg::rs_slot_id_t released_rs_slot_id_o[1:0],
     output logic rs_slot_released_o[1:0]
 );
 
     packet_pkg::sc_rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
-    instr_pkg::rs_slot_id_t choice1, choice2;
+    signal_pkg::rs_slot_id_t choice1, choice2;
 
     logic bypass_to_slot1, bypass_to_slot2;
     logic winner1_to_slot1, winner1_to_slot2, winner2_to_slot2;

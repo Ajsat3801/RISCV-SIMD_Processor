@@ -46,12 +46,12 @@ module ex_branch(
             br_ex_result_o.rob_id <= br_ex_request_i.rob_id;
 
             unique case (br_ex_request_i.operation.br)
-                instr_pkg::BR_BEQ  : br_ex_result_o.branch_taken <= a_eq_b;
-                instr_pkg::BR_BNE  : br_ex_result_o.branch_taken <= !a_eq_b;
-                instr_pkg::BR_BLT  : br_ex_result_o.branch_taken <= a_lt_b;
-                instr_pkg::BR_BLTU : br_ex_result_o.branch_taken <= a_lt_b_u;
-                instr_pkg::BR_BGE  : br_ex_result_o.branch_taken <= !a_lt_b;
-                instr_pkg::BR_BGEU : br_ex_result_o.branch_taken <= !a_lt_b_u;
+                signal_pkg::BR_BEQ  : br_ex_result_o.branch_taken <= a_eq_b;
+                signal_pkg::BR_BNE  : br_ex_result_o.branch_taken <= !a_eq_b;
+                signal_pkg::BR_BLT  : br_ex_result_o.branch_taken <= a_lt_b;
+                signal_pkg::BR_BLTU : br_ex_result_o.branch_taken <= a_lt_b_u;
+                signal_pkg::BR_BGE  : br_ex_result_o.branch_taken <= !a_lt_b;
+                signal_pkg::BR_BGEU : br_ex_result_o.branch_taken <= !a_lt_b_u;
                 default begin
                     br_ex_result_o.branch_taken <= 1'b0;
                 end

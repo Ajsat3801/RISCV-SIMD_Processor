@@ -1,7 +1,7 @@
 //import config_pkg::*;
 
 module rs_scalar_1issue #(
-    parameter instr_pkg::chip_select_e CHIP_SELECT = instr_pkg::CS_SALU
+    parameter signal_pkg::chip_select_e CHIP_SELECT = signal_pkg::CS_SALU
 )(
     input  logic clk_i,
     input  logic reset_ni,
@@ -13,7 +13,7 @@ module rs_scalar_1issue #(
     input  logic sc_ex_ready_i,
     output packet_pkg::sc_ex_request_t sc_ex_request_o,
 
-    output instr_pkg::rs_slot_id_t released_rs_slot_id_o,
+    output signal_pkg::rs_slot_id_t released_rs_slot_id_o,
     output logic rs_slot_released_o
 );
 
@@ -22,7 +22,7 @@ module rs_scalar_1issue #(
     
     logic [SINGLE_SLOT_RS_LEN-1:0] eligible, mask, mask_next, winner;
     logic [SINGLE_SLOT_RS_LEN-1:0] mask_upper, upper_canditates, lower_canditates, winner_upper, winner_lower;
-    instr_pkg::rs_slot_id_t choice;
+    signal_pkg::rs_slot_id_t choice;
 
     always_comb begin
 

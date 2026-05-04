@@ -11,7 +11,7 @@ module ex_vector_alu (
 );
 
     genvar i;
-    instr_pkg::vector_data_t valu_operand_a, valu_operand_b, valu_output;
+    signal_pkg::vector_data_t valu_operand_a, valu_operand_b, valu_output;
     logic[config_pkg::VECTOR_SIZE-1:0] valid;
 
 

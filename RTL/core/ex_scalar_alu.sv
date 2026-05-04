@@ -26,21 +26,21 @@ module ex_scalar_alu(
             alu_result.rob_id  <= sc_ex_request_i.rob_id;
 
             unique case (sc_ex_request_i.operation.alu)
-                instr_pkg::ALU_ADD  : alu_result.data <= sc_ex_request_i.operand_a + sc_ex_request_i.operand_b;
-                instr_pkg::ALU_SUB  : alu_result.data <= sc_ex_request_i.operand_a - sc_ex_request_i.operand_b;
-                instr_pkg::ALU_SLL  : alu_result.data <= sc_ex_request_i.operand_a << sc_ex_request_i.operand_b;
-                instr_pkg::ALU_SLT  : begin
+                signal_pkg::ALU_ADD  : alu_result.data <= sc_ex_request_i.operand_a + sc_ex_request_i.operand_b;
+                signal_pkg::ALU_SUB  : alu_result.data <= sc_ex_request_i.operand_a - sc_ex_request_i.operand_b;
+                signal_pkg::ALU_SLL  : alu_result.data <= sc_ex_request_i.operand_a << sc_ex_request_i.operand_b;
+                signal_pkg::ALU_SLT  : begin
                     alu_result.data[0] <= ($signed(sc_ex_request_i.operand_a) < $signed(sc_ex_request_i.operand_b)) ? 1'b1 : 1'b0;
                     alu_result.data[31:1] <= '0;
                 end
-                instr_pkg::ALU_SLTU : begin
+                signal_pkg::ALU_SLTU : begin
                     alu_result.data[0] <= (sc_ex_request_i.operand_a < sc_ex_request_i.operand_b) ? 1'b1 : 1'b0;
                     alu_result.data[31:1] <= '0;
                 end
-                instr_pkg::ALU_XOR  : alu_result.data <= sc_ex_request_i.operand_a ^ sc_ex_request_i.operand_b;
-                instr_pkg::ALU_SRL  : alu_result.data <= sc_ex_request_i.operand_a >> sc_ex_request_i.operand_b;
-                instr_pkg::ALU_OR   : alu_result.data <= sc_ex_request_i.operand_a | sc_ex_request_i.operand_b;
-                instr_pkg::ALU_AND  : alu_result.data <= sc_ex_request_i.operand_a & sc_ex_request_i.operand_b;
+                signal_pkg::ALU_XOR  : alu_result.data <= sc_ex_request_i.operand_a ^ sc_ex_request_i.operand_b;
+                signal_pkg::ALU_SRL  : alu_result.data <= sc_ex_request_i.operand_a >> sc_ex_request_i.operand_b;
+                signal_pkg::ALU_OR   : alu_result.data <= sc_ex_request_i.operand_a | sc_ex_request_i.operand_b;
+                signal_pkg::ALU_AND  : alu_result.data <= sc_ex_request_i.operand_a & sc_ex_request_i.operand_b;
                 default: alu_result.data <= '0;
             endcase
         end

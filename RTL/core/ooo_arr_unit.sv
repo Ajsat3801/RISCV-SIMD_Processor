@@ -31,10 +31,10 @@ module ooo_arr_unit #(
     localparam FIFO_ADDR_SIZE = $clog2(PRF_DEPTH);
     typedef logic[FIFO_ADDR_SIZE] prf_fifo_addr_t;
 
-    instr_pkg::prf_address_t reg_alloc_table  [ARCH_REG_DEPTH-1:0];
-    instr_pkg::prf_address_t commit_table [ARCH_REG_DEPTH-1:0];
-    instr_pkg::prf_address_t free_list[PRF_DEPTH-1:0];
-    instr_pkg::prf_address_t free_list_flushed[PRF_DEPTH-1:0];
+    signal_pkg::prf_address_t reg_alloc_table  [ARCH_REG_DEPTH-1:0];
+    signal_pkg::prf_address_t commit_table [ARCH_REG_DEPTH-1:0];
+    signal_pkg::prf_address_t free_list[PRF_DEPTH-1:0];
+    signal_pkg::prf_address_t free_list_flushed[PRF_DEPTH-1:0];
     logic[PRF_DEPTH-1:0] prf_used;
 
     prf_fifo_addr_t head, tail;

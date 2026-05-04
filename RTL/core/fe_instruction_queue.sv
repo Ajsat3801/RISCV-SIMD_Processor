@@ -7,7 +7,7 @@ module fe_instruction_queue (
     input logic flush_i,
 
     input packet_pkg::decoded_instr_t decoded_instr_i,
-    input instr_pkg::rs_slot_id_t released_rs_slot_id_i [RS_DISPATCH_COUNT-1:0],
+    input signal_pkg::rs_slot_id_t released_rs_slot_id_i [RS_DISPATCH_COUNT-1:0],
     input logic rs_slot_released_i [RS_DISPATCH_COUNT-1:0],
     
     input logic rob_full_i,
@@ -47,7 +47,7 @@ module fe_instruction_queue (
  */
 
     // RS Slot tracking buffer
-    instr_pkg::rs_slot_id_t next_rs_slot[RS_COUNT-1:0];
+    signal_pkg::rs_slot_id_t next_rs_slot[RS_COUNT-1:0];
     logic[RS_COUNT-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
     // Instruction FIFO
@@ -57,11 +57,11 @@ module fe_instruction_queue (
 
     // output flip flops
     packet_pkg::decoded_instr_t alloc_instr_q;
-    instr_pkg::rs_slot_id_t rs_slot_id_q;
+    signal_pkg::rs_slot_id_t rs_slot_id_q;
 
     // intermediate variables
     logic[RS_IDX_W-1:0] rs_index;
-    instr_pkg::chip_select_e cs;
+    signal_pkg::chip_select_e cs;
     logic reset_wb_n;
     int i;
 

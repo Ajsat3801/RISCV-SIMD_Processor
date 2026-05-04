@@ -2,7 +2,7 @@
  * Contains typedefs used to describe instructions
  */
 
-package instr_pkg;
+package signal_pkg;
 
     import config_pkg::*;
 

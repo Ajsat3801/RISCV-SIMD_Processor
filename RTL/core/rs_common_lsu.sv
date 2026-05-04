@@ -15,7 +15,7 @@ module rs_common_lsu (
     
     input  logic vc_ex_ready_i,
 
-    output instr_pkg::rs_slot_id_t released_rs_slot_id_o,
+    output signal_pkg::rs_slot_id_t released_rs_slot_id_o,
     output logic rs_slot_released_o
 );
 
@@ -24,7 +24,7 @@ module rs_common_lsu (
     
     logic [SINGLE_SLOT_RS_LEN-1:0] eligible, mask, mask_next, winner;
     logic [SINGLE_SLOT_RS_LEN-1:0] mask_upper, upper_canditates, lower_canditates, winner_upper, winner_lower;
-    instr_pkg::rs_slot_id_t choice;
+    signal_pkg::rs_slot_id_t choice;
 
 
     packet_pkg::lsu_rs_entry_t built_entry, dispatch_q;
@@ -73,8 +73,8 @@ module rs_common_lsu (
         winner           = '0;
 
         instr_valid =   built_entry.occupied && (
-                        vc_rs_request_i.chip_select == instr_pkg::CS_VLSU ||
-                        sc_rs_request_i.chip_select == instr_pkg::CS_SLSU );
+                        vc_rs_request_i.chip_select == signal_pkg::CS_VLSU ||
+                        sc_rs_request_i.chip_select == signal_pkg::CS_SLSU );
 
         for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
             eligible[i] =   buffer[i].occupied && 

@@ -2,8 +2,8 @@ module lib_scalar_multiplier(
     input logic clk_i,
     input logic reset_ni,
 
-    input instr_pkg::data_t multiplicand_i,
-    input instr_pkg::data_t multiplier_i,
+    input signal_pkg::data_t multiplicand_i,
+    input signal_pkg::data_t multiplier_i,
     input logic unsigned_multiplicand,
     input logic valid_i,
     

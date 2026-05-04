@@ -24,9 +24,9 @@ logic unsigned_mul, unsigned_div;
 logic ex_complete;
 logic sc_ex_ready, sc_ex_ready_next;
 
-instr_pkg::prf_tag_t prf_tag;
-instr_pkg::rob_address_t rob_id;
-instr_pkg::operations_e operation;
+signal_pkg::prf_tag_t prf_tag;
+signal_pkg::rob_address_t rob_id;
+signal_pkg::operations_e operation;
 
 lib_scalar_multiplier u_multiplier (
     .clk_i(clk_i),
@@ -59,42 +59,42 @@ always_comb begin
 
     if(sc_ex_request_i.valid) begin
         unique case (sc_ex_request_i.operation.muldiv) 
-            instr_pkg::MULDIV_MUL : begin
+            signal_pkg::MULDIV_MUL : begin
                 unsigned_mul = 1'b0;
                 mul_valid_i = 1'b1;
                 state_next = MUL;
             end
-            instr_pkg::MULDIV_MULH : begin
+            signal_pkg::MULDIV_MULH : begin
                 unsigned_mul = 1'b0;
                 mul_valid_i = 1'b1;
                 state_next = MUL;
             end
-            instr_pkg::MULDIV_MULHSU  : begin
+            signal_pkg::MULDIV_MULHSU  : begin
                 unsigned_mul = 1'b1;
                 mul_valid_i = 1'b1;
                 state_next = MUL;
             end
-            instr_pkg::MULDIV_MULHU : begin
+            signal_pkg::MULDIV_MULHU : begin
                 unsigned_mul = 1'b1;
                 mul_valid_i = 1'b1;
                 state_next = MUL;
             end
-            instr_pkg::MULDIV_DIV : begin
+            signal_pkg::MULDIV_DIV : begin
                 unsigned_div = 1'b0;
                 div_valid_i = 1'b1;
                 state_next = DIV;
             end
-            instr_pkg::MULDIV_DIVU : begin
+            signal_pkg::MULDIV_DIVU : begin
                 unsigned_div = 1'b1;
                 div_valid_i = 1'b1;
                 state_next = DIV;
             end
-            instr_pkg::MULDIV_REM : begin
+            signal_pkg::MULDIV_REM : begin
                 unsigned_div = 1'b0;
                 div_valid_i = 1'b1;
                 state_next = DIV;
             end
-            instr_pkg::MULDIV_REMU : begin
+            signal_pkg::MULDIV_REMU : begin
                 unsigned_div = 1'b1;
                 div_valid_i = 1'b1;
                 state_next = DIV;
@@ -112,14 +112,14 @@ always_comb begin
     sc_ex_ready_o = 1'b0;
 
     unique case (operation.muldiv) 
-        instr_pkg::MULDIV_MUL    : sc_ex_result_o.data <= mul_result[31:0];
-        instr_pkg::MULDIV_MULH   : sc_ex_result_o.data <= mul_result[63:32];
-        instr_pkg::MULDIV_MULHSU : sc_ex_result_o.data <= mul_result[63:32];
-        instr_pkg::MULDIV_MULHU  : sc_ex_result_o.data <= mul_result[63:32];
-        instr_pkg::MULDIV_DIV    : sc_ex_result_o.data <= div_result[31:0];
-        instr_pkg::MULDIV_DIVU   : sc_ex_result_o.data <= div_result[31:0];
-        instr_pkg::MULDIV_REM    : sc_ex_result_o.data <= div_result[63:32];
-        instr_pkg::MULDIV_REMU   : sc_ex_result_o.data <= div_result[63:32];
+        signal_pkg::MULDIV_MUL    : sc_ex_result_o.data <= mul_result[31:0];
+        signal_pkg::MULDIV_MULH   : sc_ex_result_o.data <= mul_result[63:32];
+        signal_pkg::MULDIV_MULHSU : sc_ex_result_o.data <= mul_result[63:32];
+        signal_pkg::MULDIV_MULHU  : sc_ex_result_o.data <= mul_result[63:32];
+        signal_pkg::MULDIV_DIV    : sc_ex_result_o.data <= div_result[31:0];
+        signal_pkg::MULDIV_DIVU   : sc_ex_result_o.data <= div_result[31:0];
+        signal_pkg::MULDIV_REM    : sc_ex_result_o.data <= div_result[63:32];
+        signal_pkg::MULDIV_REMU   : sc_ex_result_o.data <= div_result[63:32];
         default: sc_ex_result_o.data <= '0;
     endcase
 
@@ -140,7 +140,7 @@ always_ff @(posedge clk_i) begin
     if(!reset_ni || flush_i) begin
         prf_tag <= '0;
         rob_id <= '0;
-        operation.muldiv <= instr_pkg::MULDIV_MUL;
+        operation.muldiv <= signal_pkg::MULDIV_MUL;
         state <= READY;
         sc_ex_ready <= 1'b1;
     end
@@ -155,7 +155,7 @@ always_ff @(posedge clk_i) begin
         if(ex_complete) begin
             prf_tag <= '0;
             rob_id <= '0;
-            operation.muldiv <= instr_pkg::MULDIV_MUL;
+            operation.muldiv <= signal_pkg::MULDIV_MUL;
         end
         state <= state_next;
     end

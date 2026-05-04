@@ -3,7 +3,7 @@
  */
 
 `include "config_pkg.sv"
-`include "instr_pkg.sv"
+`include "signal_pkg.sv"
 `include "packet_pkg.sv"
 
 `include "if_alloc_bus.sv"

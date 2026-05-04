@@ -35,7 +35,7 @@ module phy_regfile_vector (
 );
 
     logic[PRF_DEPTH-1:0] ready;
-    instr_pkg::vector_data_t regfile[PRF_DEPTH-1:0];
+    signal_pkg::vector_data_t regfile[PRF_DEPTH-1:0];
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
@@ -50,10 +50,10 @@ module phy_regfile_vector (
             vc_ex_ready_o[1] <= 1'b1;
             
             vc_request_instr_o.valid   <= 1'b0;
-            vc_request_instr_o.chip_select <= instr_pkg::NONE;
+            vc_request_instr_o.chip_select <= signal_pkg::NONE;
             vc_request_instr_o.rs_slot <= '0;
             vc_request_instr_o.prf_tag <= '0;
-            vc_request_instr_o.operation.valu <= instr_pkg::VALU_ADD;
+            vc_request_instr_o.operation.valu <= signal_pkg::VALU_ADD;
             vc_request_instr_o.operand_a_tag  <= '0;
             vc_request_instr_o.operand_b_tag  <= '0;
             vc_request_instr_o.a_is_vector <= 1'b0;

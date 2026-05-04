@@ -30,7 +30,7 @@ both 0 -> NOP -> output not valid
 
 packet_pkg::rob_entry_t rob_table[ROB_LEN-1:0];
 packet_pkg::rob_entry_t rob_input;
-instr_pkg::rob_address_t head, tail, head_next, tail_next;
+signal_pkg::rob_address_t head, tail, head_next, tail_next;
 logic full, empty;
 logic push_allowed, pop_allowed;
 int i;

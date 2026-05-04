@@ -8,11 +8,11 @@ interface if_retirement_bus;
 
     logic valid;
     logic write_to_reg;
-    instr_pkg::arf_address_t dest_address;
+    signal_pkg::arf_address_t dest_address;
     logic is_branch;
     logic branch_taken;
-    instr_pkg::prf_tag_t prf_tag;
-    instr_pkg::data_t data;
+    signal_pkg::prf_tag_t prf_tag;
+    signal_pkg::data_t data;
 
     modport rob (
         output valid, 

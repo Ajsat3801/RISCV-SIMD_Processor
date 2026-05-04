@@ -5,9 +5,9 @@
 module core_tb;
     logic clk, reset_n;
     logic fetch_valid, sc_pre_load, vc_pre_load;
-    instr_pkg::data_t raw_instr, pc, sc_pre_load_data;
-    instr_pkg::vector_data_t vc_pre_load_data;
-    instr_pkg::prf_tag_t sc_pre_load_addr, vc_pre_load_addr;
+    signal_pkg::data_t raw_instr, pc, sc_pre_load_data;
+    signal_pkg::vector_data_t vc_pre_load_data;
+    signal_pkg::prf_tag_t sc_pre_load_addr, vc_pre_load_addr;
     logic ready;
 
     int cycles;

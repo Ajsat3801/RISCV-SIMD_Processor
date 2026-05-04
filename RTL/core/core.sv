@@ -31,19 +31,19 @@ module core #()(
     if_data_bus.prf sc_preload_i,
     if_data_bus.prf vc_preload_i,
 
-    input  instr_pkg::data_t imem_instr_i,
+    input  signal_pkg::data_t imem_instr_i,
     input  logic imem_valid_i,
-    output instr_pkg::pc_t pc_imem_o,
+    output signal_pkg::pc_t pc_imem_o,
     output logic imem_read_enable_o
 );
 
     logic flush;
-    instr_pkg::data_t fetched_instr;
-    instr_pkg::pc_t pc;
+    signal_pkg::data_t fetched_instr;
+    signal_pkg::pc_t pc;
 
     packet_pkg::decoded_instr_t decoded_instr;
     
-    instr_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
+    signal_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
     logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
 
     logic rob_full, sc_arr_full, vc_arr_full;
@@ -111,14 +111,14 @@ module core #()(
     if_scalar_request_bus u_sc_request_bus();
     if_vector_request_bus u_vc_request_bus();
 
-    if_data_bus #(.T(instr_pkg::data_t)) u_sc_data_bus();
-    if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_data_bus();
+    if_data_bus #(.T(signal_pkg::data_t)) u_sc_data_bus();
+    if_data_bus #(.T(signal_pkg::vector_data_t)) u_vc_data_bus();
     
     if_retirement_bus u_retirement_bus();
     
     // used for pre-loading data into the prf 
-    if_data_bus #(.T(instr_pkg::data_t)) u_sc_prf_input();
-    if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_prf_input();
+    if_data_bus #(.T(signal_pkg::data_t)) u_sc_prf_input();
+    if_data_bus #(.T(signal_pkg::vector_data_t)) u_vc_prf_input();
 
     genvar i;
 
@@ -270,7 +270,7 @@ module core #()(
 //                                SCHEDULING
 // ----------------------------------------------------------------------------
 
-    rs_scalar_2issue #(.CHIP_SELECT(instr_pkg::CS_SALU)) u_scalar_alu_rs (
+    rs_scalar_2issue #(.CHIP_SELECT(signal_pkg::CS_SALU)) u_scalar_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -284,7 +284,7 @@ module core #()(
         .rs_slot_released_o(rs_slot_released_arr[1:0])
     );
 
-    rs_scalar_1issue #(.CHIP_SELECT(instr_pkg::CS_MULDIV)) u_scalar_muldiv_rs (
+    rs_scalar_1issue #(.CHIP_SELECT(signal_pkg::CS_MULDIV)) u_scalar_muldiv_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -311,7 +311,7 @@ module core #()(
         .rs_slot_released_o(rs_slot_released_arr[3])
     );
 
-    rs_scalar_1issue #(.CHIP_SELECT(instr_pkg::CS_BRANCH)) u_branch_rs (
+    rs_scalar_1issue #(.CHIP_SELECT(signal_pkg::CS_BRANCH)) u_branch_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -323,7 +323,7 @@ module core #()(
         .rs_slot_released_o(rs_slot_released_arr[4])
     );
 
-    rs_vector_1issue #(.CHIP_SELECT(instr_pkg::CS_VALU)) u_vector_alu_rs (
+    rs_vector_1issue #(.CHIP_SELECT(signal_pkg::CS_VALU)) u_vector_alu_rs (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
