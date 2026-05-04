@@ -48,7 +48,7 @@ module ex_scalar_alu(
         ex_ready <= 1'b1;
     end
 
-    assign sc_ex_ready_o   = ex_ready;
+    assign sc_ex_ready_o  = ex_ready;
     assign sc_ex_result_o = alu_result;
 
 endmodule

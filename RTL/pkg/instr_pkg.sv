@@ -81,7 +81,7 @@ package instr_pkg;
     typedef logic [VECTOR_SIZE-1:0] [DATA_SIZE-1:0] vector_data_t;
 
     typedef logic [IMEM_WORD_SIZE-1:0] raw_instr_t;
-    typedef logic [(IMEM_ADDR_SIZE+2)-1:0] pc_t;
+    typedef logic [(IMEM_ADDR_SIZE)-1:0] pc_t;
     typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
     
 /*

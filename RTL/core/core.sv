@@ -26,22 +26,20 @@ module core #()(
     input clk_i,
     input reset_ni,
 
-    input instr_pkg::data_t fetched_instr_i,
-    input instr_pkg::data_t pc_i,
-    input logic fetch_valid_i,
+    input logic compute_i,
 
-    input sc_pre_load_i,
-    input instr_pkg::prf_tag_t sc_pre_load_addr_i,
-    input instr_pkg::data_t sc_pre_load_data_i,
+    if_data_bus.prf sc_preload_i,
+    if_data_bus.prf vc_preload_i,
 
-    input vc_pre_load_i,
-    input instr_pkg::prf_tag_t vc_pre_load_addr_i,
-    input instr_pkg::vector_data_t vc_pre_load_data_i,
-
-    output logic ready_o
+    input  instr_pkg::data_t imem_instr_i,
+    input  logic imem_valid_i,
+    output instr_pkg::pc_t pc_imem_o,
+    output logic imem_read_enable_o
 );
 
     logic flush;
+    instr_pkg::data_t fetched_instr;
+    instr_pkg::pc_t pc;
 
     packet_pkg::decoded_instr_t decoded_instr;
     
@@ -49,6 +47,8 @@ module core #()(
     logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
 
     logic rob_full, sc_arr_full, vc_arr_full;
+
+    logic queue_ready, fetch_valid;
     
     // FOR SCALAR : RS -> EX
     // FOR VECTOR : PRF -> EX
@@ -120,9 +120,6 @@ module core #()(
     if_data_bus #(.T(instr_pkg::data_t)) u_sc_prf_input();
     if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_prf_input();
 
-    if_data_bus #(.T(instr_pkg::data_t)) u_sc_preload_in();
-    if_data_bus #(.T(instr_pkg::vector_data_t)) u_vc_preload_in();
-
     genvar i;
 
     generate
@@ -139,18 +136,11 @@ module core #()(
         /*
          * Handling pre-loading of PRF
          */
-        u_sc_preload_in.valid = sc_pre_load_i;
-        u_sc_preload_in.prf_tag = sc_pre_load_addr_i;
-        u_sc_preload_in.data = sc_pre_load_data_i;
 
-        u_vc_preload_in.valid = vc_pre_load_i;
-        u_vc_preload_in.prf_tag = vc_pre_load_addr_i;
-        u_vc_preload_in.data = vc_pre_load_data_i;
-
-        if (sc_pre_load_i) begin
-            u_sc_prf_input.valid =  u_sc_preload_in.valid;
-            u_sc_prf_input.prf_tag =  u_sc_preload_in.prf_tag;
-            u_sc_prf_input.data =  u_sc_preload_in.data;
+        if (sc_pre_load_i.valid) begin
+            u_sc_prf_input.valid =  u_sc_preload_i.valid;
+            u_sc_prf_input.prf_tag =  u_sc_preload_i.prf_tag;
+            u_sc_prf_input.data =  u_sc_preload_i.data;
         end
         else begin
             u_sc_prf_input.valid = u_sc_data_bus.valid;
@@ -158,10 +148,10 @@ module core #()(
             u_sc_prf_input.data = u_sc_data_bus.data;
         end
 
-        if (vc_pre_load_i) begin
-            u_vc_prf_input.valid = u_vc_preload_in.valid;
-            u_vc_prf_input.prf_tag = u_vc_preload_in.prf_tag;
-            u_vc_prf_input.data = u_vc_preload_in.data;
+        if (vc_pre_load_i.valid) begin
+            u_vc_prf_input.valid = u_vc_preload_i.valid;
+            u_vc_prf_input.prf_tag = u_vc_preload_i.prf_tag;
+            u_vc_prf_input.data = u_vc_preload_i.data;
         end
         else begin
             u_vc_prf_input.valid = u_vc_data_bus.valid;
@@ -175,12 +165,27 @@ module core #()(
 //                            IN ORDER FRONT END
 // ----------------------------------------------------------------------------
 
+    fe_fetch u_fetch (
+        .clk_i(clk),
+        .reset_ni(reset_ni),
+        .compute_i(compute_i),
+        .ready_i(queue_ready),
+        .instr_decode_o(fetched_instr),
+        .pc_decode_o(pc),
+        .fetch_valid_o(fetch_valid),
+        .retire_instr_i(u_retirement_bus),
+        .instr_imem_i(imem_instr_i),
+        .imem_valid_i(imem_valid_i),
+        .pc_imem_o(pc_imem_o),
+        .read_enable_o(imem_read_enable_o)
+    );
+
     fe_decode u_decode (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .fetched_instr_i(fetched_instr_i),
-        .pc_i(pc_i),
-        .fetch_valid_i(fetch_valid_i),
+        .fetched_instr_i(fetched_instr),
+        .pc_i(pc),
+        .fetch_valid_i(fetch_valid),
         .decoded_instr_o(decoded_instr)
     );
 
@@ -195,7 +200,7 @@ module core #()(
         .sc_arr_full_i(sc_arr_full),
         .vc_arr_full_i(vc_arr_full),
         .dispatched_instr_o(u_dispatch_bus),
-        .queue_ready_o(ready_o)
+        .queue_ready_o(queue_ready)
     );
 
 // ----------------------------------------------------------------------------

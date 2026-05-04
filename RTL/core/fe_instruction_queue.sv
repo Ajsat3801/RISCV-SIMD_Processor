@@ -146,8 +146,10 @@ module fe_instruction_queue (
         
         tail_next = (tail == INSTRUCTION_QUEUE_LEN) ? 0 :(tail + 1);
         head_next = (head == INSTRUCTION_QUEUE_LEN) ? 0 :(head + 1);
+        tail_next_next = (tail_next == INSTRUCTION_QUEUE_LEN) ? 0 :(tail_next + 1);
 
         full  = (tail_next == head);
+        full_next = (tail_next_next == head);
         empty = head==tail;
 
         cs = instr_fifo[head].chip_select;
@@ -206,6 +208,6 @@ module fe_instruction_queue (
     assign dispatched_instr_o.instr = alloc_instr_q;
     assign dispatched_instr_o.rs_slot_id = rs_slot_id_q;
 
-    assign queue_ready_o = (!full || dequeue);
+    assign queue_ready_o = dequeue || !(full || full_next);
 
 endmodule
