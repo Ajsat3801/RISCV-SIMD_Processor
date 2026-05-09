@@ -1,25 +1,27 @@
-
-module rs_common_lsu (
+/*
+operand a stores address
+operand b stores stride (not implemented, provision for future)
+*/
+module rs_load_store (
     input clk_i,
     input reset_ni,
     input flush_i,
 
-    if_scalar_request_bus.rs sc_rs_request_i,
-    if_vector_request_bus.rs vc_rs_request_i,
+    if_alloc_bus.vc_rs rs_request_i,
 
     if_data_bus.snoop sc_data_bus_i,
     if_data_bus.snoop vc_data_bus_i,
     
-    output packet_pkg::sc_ex_request_t  sc_ex_request_o,
-    output packet_pkg::vc_operand_read_request_t vc_read_request_o,
+    output packet_pkg::read_request_t ls_read_request_o,
+    output packet_pkg::vc_lsu_read_request_t vc_lsu_rd_req_o,
     
-    input  logic vc_ex_ready_i,
+    input  logic lsu_ready_i,
 
     output signal_pkg::rs_slot_id_t released_rs_slot_id_o,
     output logic rs_slot_released_o
 );
 
-    packet_pkg::lsu_rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
+    packet_pkg::rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
     logic instr_valid, dispatch, bypass;
     
     logic [SINGLE_SLOT_RS_LEN-1:0] eligible, mask, mask_next, winner;
@@ -27,43 +29,10 @@ module rs_common_lsu (
     signal_pkg::rs_slot_id_t choice;
 
 
-    packet_pkg::lsu_rs_entry_t built_entry, dispatch_q;
-
-    typedef enum logic {VECTOR_DISPATCHED, NO_DISPATCH} dispatch_state_e;
-    dispatch_state_e dispatch_state;
+    packet_pkg::rs_entry_t dispatch_q;
 
 
     always_comb begin
-
-        built_entry.occupied = sc_rs_request_i.rs_entry.occupied && vc_rs_request_i.valid;
-        built_entry.prf_tag  = vc_rs_request_i.prf_tag;
-        built_entry.rob_id   = vc_rs_request_i.rob_id;
-        
-        built_entry.operation   = vc_rs_request_i.operation;
-        built_entry.a_is_vector = vc_rs_request_i.a_is_vector;
-        built_entry.b_is_vector = vc_rs_request_i.b_is_vector;
-
-        if (!built_entry.a_is_vector) begin
-            built_entry.operand_a       = sc_rs_request_i.rs_entry.operand_a;
-            built_entry.operand_a_tag   = sc_rs_request_i.rs_entry.operand_a_tag;
-            built_entry.operand_a_ready = sc_rs_request_i.rs_entry.operand_a_ready;
-        end
-        else begin
-            built_entry.operand_a       = '0;
-            built_entry.operand_a_tag   = vc_rs_request_i.operand_a_tag;
-            built_entry.operand_a_ready = vc_rs_request_i.operand_a_ready;
-        end
-        
-        if(!built_entry.b_is_vector) begin
-            built_entry.operand_b       = sc_rs_request_i.rs_entry.operand_b;
-            built_entry.operand_b_tag   = sc_rs_request_i.rs_entry.operand_b_tag;
-            built_entry.operand_b_ready = sc_rs_request_i.rs_entry.operand_b_ready;
-        end
-        else begin
-            built_entry.operand_b       = '0;
-            built_entry.operand_b_tag   = vc_rs_request_i.operand_b_tag;
-            built_entry.operand_b_ready = vc_rs_request_i.operand_b_ready;
-        end
 
         mask_upper       = '0;
         upper_canditates = '0;
@@ -72,7 +41,7 @@ module rs_common_lsu (
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid =   built_entry.occupied && (
+        instr_valid =   rs_request_i.occupied && (
                         vc_rs_request_i.chip_select == signal_pkg::CS_VLSU ||
                         sc_rs_request_i.chip_select == signal_pkg::CS_SLSU );
 
@@ -83,13 +52,12 @@ module rs_common_lsu (
         end
         
         bypass =    instr_valid && 
-                    built_entry.operand_a_ready &&
-                    built_entry.operand_b_ready && 
+                    rs_request_i.operand_a_ready &&
+                    rs_request_i.operand_b_ready && 
                     !(|eligible) &&
-                    (dispatch_state == NO_DISPATCH) &&
-                    vc_ex_ready_i;
+                    lsu_ready_i;
 
-        dispatch =  |eligible && (dispatch_state == NO_DISPATCH) && vc_ex_ready_i;
+        dispatch =  |eligible && lsu_ready_i;
 
         if (dispatch) begin
             mask_upper[0] = mask[0];
@@ -121,32 +89,23 @@ module rs_common_lsu (
     end 
 
     always_comb begin
-        if(dispatch_q.prf_tag.vector) begin
-            vc_read_request_o.valid     = dispatch_q.occupied;
-            vc_read_request_o.prf_tag   = dispatch_q.prf_tag;
-            vc_read_request_o.rob_id    = dispatch_q.rob_id;
-            vc_read_request_o.operand_a = dispatch_q.operand_a;
-            
-            vc_read_request_o.operation = dispatch_q.operation;
-            vc_read_request_o.a_is_vector = dispatch_q.a_is_vector;
-            vc_read_request_o.b_is_vector = dispatch_q.b_is_vector;
-            vc_read_request_o.operand_a_tag = dispatch_q.operand_a_tag;
-            vc_read_request_o.operand_b_tag = dispatch_q.operand_b_tag;
 
-            sc_ex_request_o = '0;
-        end
-        else begin
-            /* Scalar dispatch
-            */
-            sc_ex_request_o.valid     = dispatch_q.occupied;
-            sc_ex_request_o.prf_tag   = dispatch_q.prf_tag;
-            sc_ex_request_o.rob_id    = dispatch_q.rob_id;
-            sc_ex_request_o.operand_a = dispatch_q.operand_a;
-            sc_ex_request_o.operand_b = dispatch_q.operand_b;
-            sc_ex_request_o.operation = dispatch_q.operation;
+        ls_read_request_o.valid     = dispatch_q.occupied;
+        ls_read_request_o.prf_tag   = dispatch_q.prf_tag;
+        ls_read_request_o.rob_id    = dispatch_q.rob_id;
+        ls_read_request_o.operation = dispatch_q.operation;
 
-            vc_read_request_o = '0;
-        end
+        ls_read_request_o.a_is_vector = dispatch_q.a_is_vector;
+        ls_read_request_o.b_is_vector = dispatch_q.b_is_vector;
+        ls_read_request_o.operand_a_tag = dispatch_q.operand_a_tag;
+        ls_read_request_o.operand_b_tag = dispatch_q.operand_b_tag;
+
+        lsu_operation = dispatch_q.operation;
+        vc_lsu_rd_req_o.store_data_tag = dispatch_q.operand_b_tag;
+        
+        vc_lsu_rd_req_o.a_is_vector  = dispatch_q.a_is_vector;
+        vc_lsu_rd_req_o.b_is_vector  = dispatch_q.b_is_vector;
+
     end
 
     always_ff @(posedge clk_i) begin
@@ -157,12 +116,10 @@ module rs_common_lsu (
             released_rs_slot_id_o <= '0;
             dispatch_q <= '0;
             mask <= {{SINGLE_SLOT_RS_LEN-1{1'b0}},1'b1};
-            dispatch_state = NO_DISPATCH;
 
         end
         
         else begin
-            if (dispatch_state == VECTOR_DISPATCHED) dispatch_state = NO_DISPATCH;
 
             // snoop data from scalar CDB and update if needed
             if (sc_data_bus_i.valid) begin
@@ -173,7 +130,6 @@ module rs_common_lsu (
                             !buffer[i].a_is_vector && 
                             (sc_data_bus_i.prf_tag == buffer[i].operand_a_tag)
                         ) begin 
-                            buffer[i].operand_a <= sc_data_bus_i.data;
                             buffer[i].operand_a_ready <= 1'b1;
                         end
                         if (
@@ -181,7 +137,6 @@ module rs_common_lsu (
                             !buffer[i].b_is_vector &&
                             (sc_data_bus_i.prf_tag == buffer[i].operand_b_tag)
                         ) begin
-                            buffer[i].operand_b <= sc_data_bus_i.data;
                             buffer[i].operand_b_ready <= 1'b1;
                         end
                     end
@@ -214,22 +169,18 @@ module rs_common_lsu (
             // dequeue instructions
             if(bypass) begin
                 // send slice of RS input to output, removing the tags and ready
-                dispatch_q.occupied  <= built_entry.occupied;
-                dispatch_q.prf_tag   <= built_entry.prf_tag;
-                dispatch_q.rob_id    <= built_entry.rob_id;
-                dispatch_q.operand_a <= built_entry.operand_a;
-                dispatch_q.operand_b <= built_entry.operand_b;
+                dispatch_q.occupied  <= rs_request_i.occupied;
+                dispatch_q.prf_tag   <= rs_request_i.prf_tag;
+                dispatch_q.rob_id    <= rs_request_i.rob_id;
 
-                dispatch_q.operation   <= built_entry.operation;
-                dispatch_q.a_is_vector <= built_entry.a_is_vector;
-                dispatch_q.b_is_vector <= built_entry.b_is_vector;
+                dispatch_q.operation   <= rs_request_i.operation;
+                dispatch_q.a_is_vector <= rs_request_i.a_is_vector;
+                dispatch_q.b_is_vector <= rs_request_i.b_is_vector;
 
-                dispatch_q.operand_a_tag   <= built_entry.operand_a_tag;
-                dispatch_q.operand_b_tag   <= built_entry.operand_b_tag;
-                dispatch_q.operand_a_ready <= built_entry.operand_a_ready;
-                dispatch_q.operand_b_ready <= built_entry.operand_b_ready;
-
-                if(built_entry.prf_tag.vector) dispatch_state <= VECTOR_DISPATCHED;
+                dispatch_q.operand_a_tag   <= rs_request_i.operand_a_tag;
+                dispatch_q.operand_b_tag   <= rs_request_i.operand_b_tag;
+                dispatch_q.operand_a_ready <= rs_request_i.operand_a_ready;
+                dispatch_q.operand_b_ready <= rs_request_i.operand_b_ready;
             end
             
             else if(dispatch) begin
@@ -237,8 +188,6 @@ module rs_common_lsu (
                 dispatch_q.occupied  <= buffer[choice].occupied;
                 dispatch_q.prf_tag   <= buffer[choice].prf_tag;
                 dispatch_q.rob_id    <= buffer[choice].rob_id;
-                dispatch_q.operand_a <= buffer[choice].operand_a;
-                dispatch_q.operand_b <= buffer[choice].operand_b;
 
                 dispatch_q.operation   <= buffer[choice].operation;
                 dispatch_q.a_is_vector <= buffer[choice].a_is_vector;
@@ -251,8 +200,6 @@ module rs_common_lsu (
                 
                 // clearing buffer entry and sending released value
                 buffer[choice] <= '0;
-
-                if(buffer[choice].prf_tag.vector) dispatch_state <= VECTOR_DISPATCHED;
             end
             else dispatch_q <= '0;
             
@@ -260,7 +207,7 @@ module rs_common_lsu (
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[vc_rs_request_i.rs_slot] <= built_entry;
+            if (instr_valid && !bypass) buffer[vc_rs_request_i.rs_slot] <= rs_request_i;
 
         end
     end

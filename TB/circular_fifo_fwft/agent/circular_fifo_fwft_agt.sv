@@ -1,13 +1,13 @@
 
-class lib_circular_fifo_fwft_agt extends uvm_agent;
+class lib_fifo_fwft_1push_agt extends uvm_agent;
 
-    lib_circular_fifo_fwft_sqr sqr;
-    lib_circular_fifo_fwft_drv drv;
-    lib_circular_fifo_fwft_mon mon;
+    lib_fifo_fwft_1push_sqr sqr;
+    lib_fifo_fwft_1push_drv drv;
+    lib_fifo_fwft_1push_mon mon;
 
-    virtual lib_circular_fifo_fwft_if vif;
+    virtual lib_fifo_fwft_1push_if vif;
 
-    `uvm_component_utils(lib_circular_fifo_fwft_agt)
+    `uvm_component_utils(lib_fifo_fwft_1push_agt)
 
     function new(string name, uvm_component parent);
         super.new(name,parent);
@@ -17,17 +17,17 @@ class lib_circular_fifo_fwft_agt extends uvm_agent;
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        mon = lib_circular_fifo_fwft_mon::type_id::create("mon",this);
+        mon = lib_fifo_fwft_1push_mon::type_id::create("mon",this);
 
         if(get_is_active() == UVM_ACTIVE) begin // UVM_ACTIVE = send inputs to DUT, UVM_PASSIVE = only Monitor
-            sqr = lib_circular_fifo_fwft_sqr::type_id::create("sqr", this);
-            drv = lib_circular_fifo_fwft_drv::type_id::create("drv", this);
+            sqr = lib_fifo_fwft_1push_sqr::type_id::create("sqr", this);
+            drv = lib_fifo_fwft_1push_drv::type_id::create("drv", this);
         end
 
-        if(!uvm_config_db #(virtual lib_circular_fifo_fwft_if)::get(this, "", "vif", vif)) begin
+        if(!uvm_config_db #(virtual lib_fifo_fwft_1push_if)::get(this, "", "vif", vif)) begin
             `uvm_fatal("AGT", "Could not get vif from config_db")
         end
-      uvm_config_db #(virtual lib_circular_fifo_fwft_if)::set(this,"*","vif", vif);
+      uvm_config_db #(virtual lib_fifo_fwft_1push_if)::set(this,"*","vif", vif);
 
     endfunction
 

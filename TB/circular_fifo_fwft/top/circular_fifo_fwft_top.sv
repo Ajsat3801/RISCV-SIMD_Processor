@@ -1,13 +1,13 @@
 
-import lib_circular_fifo_fwft_tb_config_pkg::*;
+import lib_fifo_fwft_1push_tb_config_pkg::*;
 
 module top;
 
     logic clk;
 
-    lib_circular_fifo_fwft_if intf(clk);
+    lib_fifo_fwft_1push_if intf(clk);
 
-    lib_circular_fifo_fwft #(
+    lib_fifo_fwft_1push #(
         .BUFFER_SIZE(BUFFER_SIZE),
         .T(T)
     ) dut (
@@ -27,13 +27,13 @@ module top;
     end
 
     initial begin
-        uvm_config_db #(virtual lib_circular_fifo_fwft_if)::set(null,"*", "vif", intf);
+        uvm_config_db #(virtual lib_fifo_fwft_1push_if)::set(null,"*", "vif", intf);
 
         $dumpfile("dump.vcd");
         $dumpvars(0,top);
 
-        run_test("lib_circular_fifo_fwft_test_random50");
-        //run_test("lib_circular_fifo_fwft_test_fill_10_drain");
+        run_test("lib_fifo_fwft_1push_test_random50");
+        //run_test("lib_fifo_fwft_1push_test_fill_10_drain");
     end
   
 endmodule

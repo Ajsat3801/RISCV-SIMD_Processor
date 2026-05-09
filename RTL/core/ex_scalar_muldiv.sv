@@ -112,15 +112,15 @@ always_comb begin
     sc_ex_ready_o = 1'b0;
 
     unique case (operation.muldiv) 
-        signal_pkg::MULDIV_MUL    : sc_ex_result_o.data <= mul_result[31:0];
-        signal_pkg::MULDIV_MULH   : sc_ex_result_o.data <= mul_result[63:32];
-        signal_pkg::MULDIV_MULHSU : sc_ex_result_o.data <= mul_result[63:32];
-        signal_pkg::MULDIV_MULHU  : sc_ex_result_o.data <= mul_result[63:32];
-        signal_pkg::MULDIV_DIV    : sc_ex_result_o.data <= div_result[31:0];
-        signal_pkg::MULDIV_DIVU   : sc_ex_result_o.data <= div_result[31:0];
-        signal_pkg::MULDIV_REM    : sc_ex_result_o.data <= div_result[63:32];
-        signal_pkg::MULDIV_REMU   : sc_ex_result_o.data <= div_result[63:32];
-        default: sc_ex_result_o.data <= '0;
+        signal_pkg::MULDIV_MUL    : sc_ex_result_o.data = mul_result[31:0];
+        signal_pkg::MULDIV_MULH   : sc_ex_result_o.data = mul_result[63:32];
+        signal_pkg::MULDIV_MULHSU : sc_ex_result_o.data = mul_result[63:32];
+        signal_pkg::MULDIV_MULHU  : sc_ex_result_o.data = mul_result[63:32];
+        signal_pkg::MULDIV_DIV    : sc_ex_result_o.data = div_result[31:0];
+        signal_pkg::MULDIV_DIVU   : sc_ex_result_o.data = div_result[31:0];
+        signal_pkg::MULDIV_REM    : sc_ex_result_o.data = div_result[63:32];
+        signal_pkg::MULDIV_REMU   : sc_ex_result_o.data = div_result[63:32];
+        default: sc_ex_result_o.data = '0;
     endcase
 
     ex_complete = ((state == MUL) && mul_valid_o) || ((state == DIV) && div_valid_o);

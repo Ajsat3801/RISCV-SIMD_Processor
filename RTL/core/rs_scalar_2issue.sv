@@ -7,20 +7,20 @@ module rs_scalar_2issue #(
     input  logic reset_ni,
     input  logic flush_i,
     
-    if_scalar_request_bus.rs sc_rs_request_i,
+    if_alloc_bus.sc_rs sc_rs_request_i,
     if_data_bus.snoop sc_data_bus_i,
 
     input  logic sc_ex0_ready_i,
     input  logic sc_ex1_ready_i,
 
-    output packet_pkg::sc_ex_request_t sc_ex0_request_o,
-    output packet_pkg::sc_ex_request_t sc_ex1_request_o,
+    output packet_pkg::read_request_t sc_rd_req0_o,
+    output packet_pkg::read_request_t sc_rd_req1_o,
 
     output signal_pkg::rs_slot_id_t released_rs_slot_id_o[1:0],
     output logic rs_slot_released_o[1:0]
 );
 
-    packet_pkg::sc_rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
+    packet_pkg::rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
     signal_pkg::rs_slot_id_t choice1, choice2;
 
     logic bypass_to_slot1, bypass_to_slot2;
@@ -116,8 +116,8 @@ module rs_scalar_2issue #(
             released_rs_slot_id_o[0] <= '0;
             released_rs_slot_id_o[1] <= '0;
 
-            sc_ex0_request_o <= '0;
-            sc_ex1_request_o <= '0;
+            sc_rd_req0_o <= '0;
+            sc_rd_req1_o <= '0;
 
             mask <= {{DUAL_SLOT_RS_LEN-1{1'b0}}, 1'b1};
 
@@ -128,11 +128,9 @@ module rs_scalar_2issue #(
             if (sc_data_bus_i.valid) begin
                 for (int i=0; i<DUAL_SLOT_RS_LEN; i++) begin
                     if (buffer[i].occupied && sc_data_bus_i.prf_tag == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
-                        buffer[i].operand_a <= sc_data_bus_i.data;
                         buffer[i].operand_a_ready <= 1'b1;
                     end
                     if(buffer[i].occupied && sc_data_bus_i.prf_tag == buffer[i].operand_b_tag && !buffer[i].operand_b_ready) begin
-                        buffer[i].operand_b <= sc_data_bus_i.data;
                         buffer[i].operand_b_ready <= 1'b1;
                     end
                 end
@@ -140,55 +138,63 @@ module rs_scalar_2issue #(
 
             // dispatch instructions
             if(winner1_to_slot1) begin
-                sc_ex0_request_o.valid <= 1'b1;
-                sc_ex0_request_o.prf_tag   <= buffer[choice1].prf_tag;
-                sc_ex0_request_o.rob_id    <= buffer[choice1].rob_id;
-                sc_ex0_request_o.operand_a <= buffer[choice1].operand_a;
-                sc_ex0_request_o.operand_b <= buffer[choice1].operand_b;
-                sc_ex0_request_o.operation <= buffer[choice1].operation;
-
+                sc_rd_req0_o.valid     <= 1'b1;
+                sc_rd_req0_o.prf_tag   <= buffer[choice1].prf_tag;
+                sc_rd_req0_o.rob_id    <= buffer[choice1].rob_id;
+                sc_rd_req0_o.operation <= buffer[choice1].operation;
+                sc_rd_req0_o.operand_a_tag <= buffer[choice1].operand_a_tag;
+                sc_rd_req0_o.operand_b_tag <= buffer[choice1].operand_b_tag;
+                sc_rd_req0_o.imm       <= buffer[choice1].imm;
+                sc_rd_req0_o.read_src2 <= buffer[choice1].read_src2;
+                
                 released_rs_slot_id_o[0] <= choice1;
                 rs_slot_released_o[0] <= 1'b1;
 
                 buffer[choice1] <= '0;
             end
             else if(bypass_to_slot1) begin
-                sc_ex0_request_o.valid <= 1'b1;
-                sc_ex0_request_o.prf_tag   <= sc_rs_request_i.rs_entry.prf_tag;
-                sc_ex0_request_o.rob_id    <= sc_rs_request_i.rs_entry.rob_id;
-                sc_ex0_request_o.operand_a <= sc_rs_request_i.rs_entry.operand_a;
-                sc_ex0_request_o.operand_b <= sc_rs_request_i.rs_entry.operand_b;
-                sc_ex0_request_o.operation <= sc_rs_request_i.rs_entry.operation;
-
+                sc_rd_req0_o.valid     <= 1'b1;
+                sc_rd_req0_o.prf_tag   <= sc_rs_request_i.rs_entry.prf_tag;
+                sc_rd_req0_o.rob_id    <= sc_rs_request_i.rs_entry.rob_id;
+                sc_rd_req0_o.operation <= sc_rs_request_i.rs_entry.operation;
+                sc_rd_req0_o.operand_a_tag <= sc_rs_request_i.rs_entry.operand_a_tag;
+                sc_rd_req0_o.operand_b_tag <= sc_rs_request_i.rs_entry.operand_b_tag;
+                sc_rd_req0_o.imm       <= sc_rs_request_i.rs_entry.imm;
+                sc_rd_req0_o.read_src2 <= sc_rs_request_i.rs_entry.read_src2;
+                
                 released_rs_slot_id_o[0] <= sc_rs_request_i.rs_slot;
                 rs_slot_released_o[0] <= 1'b1;
             end
             else begin// default
-                sc_ex0_request_o <= '0;
+                sc_rd_req0_o <= '0;
                 rs_slot_released_o[0] <= 1'b0;
                 released_rs_slot_id_o[0] <= '0;
             end
 
             if(winner1_to_slot2) begin
-                sc_ex1_request_o.valid <= 1'b1;
-                sc_ex1_request_o.prf_tag   <= buffer[choice2].prf_tag;
-                sc_ex1_request_o.rob_id    <= buffer[choice2].rob_id;
-                sc_ex1_request_o.operand_a <= buffer[choice2].operand_a;
-                sc_ex1_request_o.operand_b <= buffer[choice2].operand_b;
-                sc_ex1_request_o.operation <= buffer[choice2].operation;
+                sc_rd_req1_o.valid     <= 1'b1;
+                sc_rd_req1_o.prf_tag   <= buffer[choice1].prf_tag;
+                sc_rd_req1_o.rob_id    <= buffer[choice1].rob_id;
+                sc_rd_req1_o.operation <= buffer[choice1].operation;
+                sc_rd_req1_o.operand_a_tag <= buffer[choice1].operand_a_tag;
+                sc_rd_req1_o.operand_b_tag <= buffer[choice1].operand_b_tag;
+                sc_rd_req1_o.imm       <= buffer[choice1].imm;
+                sc_rd_req1_o.read_src2 <= buffer[choice1].read_src2;
 
-                released_rs_slot_id_o[1] <= choice2;
+                released_rs_slot_id_o[1] <= choice1;
                 rs_slot_released_o[1] <= 1'b1;
 
-                buffer[choice2] <= '0;
+                buffer[choice1] <= '0;
             end
             else if(winner2_to_slot2) begin
-                sc_ex1_request_o.valid <= 1'b1;
-                sc_ex1_request_o.prf_tag   <= buffer[choice2].prf_tag;
-                sc_ex1_request_o.rob_id    <= buffer[choice2].rob_id;
-                sc_ex1_request_o.operand_a <= buffer[choice2].operand_a;
-                sc_ex1_request_o.operand_b <= buffer[choice2].operand_b;
-                sc_ex1_request_o.operation <= buffer[choice2].operation;
+                sc_rd_req1_o.valid     <= 1'b1;
+                sc_rd_req1_o.prf_tag   <= buffer[choice2].prf_tag;
+                sc_rd_req1_o.rob_id    <= buffer[choice2].rob_id;
+                sc_rd_req1_o.operation <= buffer[choice2].operation;
+                sc_rd_req1_o.operand_a_tag <= buffer[choice2].operand_a_tag;
+                sc_rd_req1_o.operand_b_tag <= buffer[choice2].operand_b_tag;
+                sc_rd_req1_o.imm       <= buffer[choice2].imm;
+                sc_rd_req1_o.read_src2 <= buffer[choice2].read_src2;
 
                 released_rs_slot_id_o[1] <= choice2;
                 rs_slot_released_o[1] <= 1'b1;
@@ -196,18 +202,20 @@ module rs_scalar_2issue #(
                 buffer[choice2] <= '0;
             end
             else if(bypass_to_slot2) begin
-                sc_ex1_request_o.valid <= 1'b1;
-                sc_ex1_request_o.prf_tag   <= sc_rs_request_i.rs_entry.prf_tag;
-                sc_ex1_request_o.rob_id    <= sc_rs_request_i.rs_entry.rob_id;
-                sc_ex1_request_o.operand_a <= sc_rs_request_i.rs_entry.operand_a;
-                sc_ex1_request_o.operand_b <= sc_rs_request_i.rs_entry.operand_b;
-                sc_ex1_request_o.operation <= sc_rs_request_i.rs_entry.operation;
+                sc_rd_req1_o.valid     <= 1'b1;
+                sc_rd_req1_o.prf_tag   <= sc_rs_request_i.rs_entry.prf_tag;
+                sc_rd_req1_o.rob_id    <= sc_rs_request_i.rs_entry.rob_id;
+                sc_rd_req1_o.operation     <= sc_rs_request_i.rs_entry.operation;
+                sc_rd_req1_o.operand_a_tag <= sc_rs_request_i.rs_entry.operand_a_tag;
+                sc_rd_req1_o.operand_b_tag <= sc_rs_request_i.rs_entry.operand_b_tag;
+                sc_rd_req1_o.imm       <= sc_rs_request_i.rs_entry.imm;
+                sc_rd_req1_o.read_src2 <= sc_rs_request_i.rs_entry.read_src2;
 
                 released_rs_slot_id_o[1] <= sc_rs_request_i.rs_slot;
                 rs_slot_released_o[1] <= 1'b1;
             end
             else begin// default
-                sc_ex1_request_o <= '0;
+                sc_rd_req1_o <= '0;
                 rs_slot_released_o[1] <= 1'b0;
                 released_rs_slot_id_o[1] <= '0;
             end

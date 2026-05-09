@@ -75,14 +75,14 @@ package signal_pkg;
     // Aliases for various standard signals
 
     typedef logic [DATA_SIZE-1:0] data_t;
+    typedef logic [VECTOR_SIZE-1:0] [DATA_SIZE-1:0] vector_data_t;
+
     typedef logic [REG_ADDR_W-1:0] arf_address_t;
     typedef logic [RS_ADDR_W-1:0]  rs_slot_id_t;
     
-    typedef logic [VECTOR_SIZE-1:0] [DATA_SIZE-1:0] vector_data_t;
-
-    typedef logic [IMEM_WORD_SIZE-1:0] raw_instr_t;
-    typedef logic [(IMEM_ADDR_SIZE)-1:0] pc_t;
     typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
+    typedef logic [(DMEM_ADDR_SIZE)-1:0] dmem_address_t;
+    typedef logic [(IMEM_ADDR_SIZE)-1:0] pc_t;
     
 /*
  * tag of an instruction used for snoop etc

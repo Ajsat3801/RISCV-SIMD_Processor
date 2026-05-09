@@ -1,181 +1,246 @@
-module ooo_arr_unit #(
-    parameter logic IS_VECTOR = 1'b0
-)(
-    input clk_i,
-    input reset_ni,
-    input flush_i,
+/*  ALLOCATION RENAME RETIRE UNIT
+ *
+ *  Two channels are maintained: 0 (scalar, index 0) and 1 (vector, index 1).
+ *  The RATs and commit tables are kept as separate named arrays per channel.
+ *  All free-list infrastructure is unified into [2]-indexed arrays.
+ *
+ *  Free list is a circular FIFO.  head advances on allocation (speculative),
+ *  tail advances on retirement (permanent).  head_committed is a shadow of
+ *  head that only advances on retirement, tracking the last confirmed state.
+ *  On flush, head is restored to head_committed — no scanning required and
+ *  no prf_used bitmap is needed.
+ *
+ *  Inputs
+ *    dispatched_instr_i  — instruction from dispatch needing rename
+ *    retire_instr_i      — instruction being retired from ROB
+ *    sc_wb_instr_i       — scalar writeback (marks PRF ready)
+ *    vc_wb_instr_i       — vector writeback (marks PRF ready)
+ *  Outputs
+ *    alloc_instr_o       — renamed instruction to RS / ROB
+ *    precalc_*           — pre-calculated result for scalar ops (lui, auipc, branches, jal)
+ *    arr_full_o          — stall: free list empty on either channel
+ */
+
+//import config_pkg::*;
+module ooo_arr_unit (
+    input  logic clk_i,
+    input  logic reset_ni,
+    input  logic flush_i,
 
     if_dispatch_bus.arr dispatched_instr_i,
     if_retirement_bus.arr retire_instr_i,
+    if_data_bus.snoop sc_wb_instr_i,
+    if_data_bus.snoop vc_wb_instr_i,
     if_alloc_bus.arr alloc_instr_o,
 
     output logic arr_full_o
 );
 
-/*  ALLOCATION RENAME RETIRE UNIT
- *  Function/Behavior:
- *  ->  Maintains a list of free PRF addresses that can be assigned
- *  ->  On alloc: assign PRF space for destination arch register for each operation
- *  ->  On Retire: the PRF address is set as the destination for the arch register in commit table
- *  Parameters
- *  ->  IS_VECTOR: single bit that says whether the ARR is for scalar or vector operations
- *  Inputs
- *  ->  clk, reset_n, flush
- *  ->  instruction that needs to be allocated
- *  ->  instruction that needs to be retired
- *  Outputs
- *  ->  allocated instruction with PRF address
- *  ->  flag to indicate if arr has allocation possible
- */
+    // {epoch[FIFO_WIDTH], ptr[FIFO_WIDTH-1:0]}
+    localparam int FIFO_WIDTH = $clog2(PRF_DEPTH); 
+    typedef logic [FIFO_WIDTH:0] fifo_pointer_t;  
 
-    localparam FIFO_ADDR_SIZE = $clog2(PRF_DEPTH);
-    typedef logic[FIFO_ADDR_SIZE] prf_fifo_addr_t;
+    signal_pkg::prf_address_t sc_free_list[PRF_DEPTH];
+    signal_pkg::prf_address_t vc_free_list[PRF_DEPTH];
 
-    signal_pkg::prf_address_t reg_alloc_table  [ARCH_REG_DEPTH-1:0];
-    signal_pkg::prf_address_t commit_table [ARCH_REG_DEPTH-1:0];
-    signal_pkg::prf_address_t free_list[PRF_DEPTH-1:0];
-    signal_pkg::prf_address_t free_list_flushed[PRF_DEPTH-1:0];
-    logic[PRF_DEPTH-1:0] prf_used;
+    fifo_pointer_t sc_head, vc_head;
+    fifo_pointer_t sc_tail, vc_tail; 
+    fifo_pointer_t sc_head_committed, vc_tail_committed;
 
-    prf_fifo_addr_t head, tail;
-    prf_fifo_addr_t head_next, tail_next;
-    prf_fifo_addr_t tail_flushed;
+    logic[PRF_DEPTH-1:0] sc_ready, vc_ready;
 
-    logic head_epoch, tail_epoch;
-    logic head_epoch_next, tail_epoch_next;
-    logic tail_epoch_flushed;
+    signal_pkg::prf_address_t sc_reg_alloc_table [ARCH_REG_DEPTH];
+    signal_pkg::prf_address_t vc_reg_alloc_table [ARCH_REG_DEPTH];
 
-    logic full, empty;
-    logic retirement_valid, allocation_valid, allocation_op_valid;
+    signal_pkg::prf_address_t sc_commit_table [ARCH_REG_DEPTH];
+    signal_pkg::prf_address_t vc_commit_table [ARCH_REG_DEPTH];
 
-    int i;
+    logic sc_alloc_valid, vc_alloc_valid;
+    logic sc_retire_valid, vc_retire_valid;
+    signal_pkg::prf_tag_t sc_prf_id, vc_prf_id;
+
+    signal_pkg::prf_address_t sc_operand_a_tag, sc_operand_b_tag;
+    signal_pkg::prf_address_t vc_operand_a_tag, vc_operand_b_tag;
 
     always_comb begin
 
-        // head and tail pointers for free list
-        {head_epoch_next, head_next} = {head_epoch, head} + 1'b1;
-        {tail_epoch_next, tail_next} = {tail_epoch, tail} + 1'b1;
-        
-        full  = (head == tail) && (head_epoch != tail_epoch);
-        empty = (head == tail) && (head_epoch == tail_epoch);
+        // Empty when both epoch-packed pointers are identical
+        arr_full_o = (sc_head == sc_tail) || (vc_head == vc_tail);
 
-        /* BUILDING FLUSHED STATE
-         * - create a temporary free list that iterates through prf_used map and 
-         *   adds an address to the free list if the prf_used is 0
-         * - head is assigned to 0 and tail is updated to the tail of the temp list
-         * - reg_alloc_table becomes the current state of the retire table (done
-         *   in sequential block)
-         */
-        tail_epoch_flushed = 0;
-        tail_flushed = 0;
-        
-        for (int i=0; i<PRF_DEPTH; i++) begin
+        // Allocation valid
+        //   1) dispatch bus is valid
+        //   2) instruction writes to a destination register
+        //   3) destination is not x0
+        //   4) chip_select[2] selects the channel (0 = scalar, 1 = vector)
 
-            if (!prf_used[i]) begin
-                free_list_flushed[tail_flushed] = i;
-                {tail_epoch_flushed, tail_flushed} = {tail_epoch_flushed, tail_flushed} + 1'b1;
-            end
+        sc_alloc_valid = dispatched_instr_i.valid
+                      && dispatched_instr_i.instr.write_to_reg
+                      && (dispatched_instr_i.instr.dest_address != '0)
+                      && (dispatched_instr_i.instr.chip_select[2] == 1'b0);
 
-        end
+        vc_alloc_valid = dispatched_instr_i.valid
+                      && dispatched_instr_i.instr.write_to_reg
+                      && (dispatched_instr_i.instr.dest_address != '0)
+                      && (dispatched_instr_i.instr.chip_select[2] == 1'b1);
 
-        /*  CONDITIONS FOR RETIREMENT TO BE VALID
-         *  1)  retirment signal is valid
-         *  2)  instruction to be retired writes to a register
-         *  3)  destination is same type as parameter
-         *  4)  destination address of the instruction is not 0
-         */
-        retirement_valid =  retire_instr_i.valid &&
-                            retire_instr_i.write_to_reg &&
-                            (retire_instr_i.dest_address != '0) && 
-                            (retire_instr_i.prf_tag.vector == IS_VECTOR);
+        // Retirement valid
+        //   1) retire bus is valid
+        //   2) instruction writes to a register
+        //   3) destination is not x0 / v0
+        //   4) prf_tag.vector selects the channel
 
-        /*  CONDITIONS FOR ALLOCATION TO BE VALID
-         *  1)  allocation signal valid
-         *  2)  chip select[3] is 0, i.e. destination is a scalar register
-         *  3)  instructions writes to a register
-         *  4)  destination register of the instruction is not 0
-         */
-        allocation_valid =  dispatched_instr_i.valid &&
-                            (dispatched_instr_i.instr.dest_address != '0) &&
-                            (dispatched_instr_i.instr.chip_select[2] == IS_VECTOR) &&
-                            dispatched_instr_i.instr.write_to_reg;
+        sc_retire_valid = retire_instr_i.valid
+                       && retire_instr_i.write_to_reg
+                       && (retire_instr_i.dest_address != '0)
+                       && (retire_instr_i.prf_tag.vector == 1'b0);
 
-        arr_full_o = empty;
+        vc_retire_valid = retire_instr_i.valid
+                       && retire_instr_i.write_to_reg
+                       && (retire_instr_i.dest_address != '0)
+                       && (retire_instr_i.prf_tag.vector == 1'b1);
+
+        // Next PRF to be assigned sits at the head of each channel's free list
+        sc_prf_id = '{vector: 1'b0, tag: sc_free_list[sc_head[FIFO_WIDTH-1:0]]};
+        vc_prf_id = '{vector: 1'b1, tag: vc_free_list[vc_head[FIFO_WIDTH-1:0]]};
+
+        // RAT lookups for both channels (needed to resolve .vx mixed operands)
+        sc_operand_a_tag = sc_reg_alloc_table[dispatched_instr_i.instr.src1_address];
+        sc_operand_b_tag = sc_reg_alloc_table[dispatched_instr_i.instr.src2_address];
+        vc_operand_a_tag = vc_reg_alloc_table[dispatched_instr_i.instr.src1_address];
+        vc_operand_b_tag = vc_reg_alloc_table[dispatched_instr_i.instr.src2_address];
 
     end
 
     always_ff @(posedge clk_i) begin
-        if (!reset_ni) begin
-            /* RESET
-             * Arch reg gets allocated to corresponding physical reg
-             * Both commit and speculation tables are written
-             * prf_used is set to 1 for 0 to arch reg and 0 for rest
-             */
-            for(int i=0; i<ARCH_REG_DEPTH; i++) begin
-                reg_alloc_table[i] <= i;
-                commit_table[i]    <= i;
-                prf_used[i] <= 1'b1;
-            end
-            for(int i=ARCH_REG_DEPTH; i<PRF_DEPTH; i++) begin
-                prf_used[i] <= 1'b0;
-                free_list[i-ARCH_REG_DEPTH] <= i; 
-            end
-            head_epoch <= 1'b0;
-            tail_epoch <= 1'b0;
-            head <= '0;
-            tail <= PRF_DEPTH-ARCH_REG_DEPTH;
 
-        end
+        // RESET
+        //   arch reg i maps to PRF i for both channels.
+        //   Free list is loaded with PRF[ARCH_REG_DEPTH .. PRF_DEPTH-1].
+        //   All PRFs start ready (reset values are architecturally valid).
+
+        if (!reset_ni) begin
+
+            for (int i=0; i<ARCH_REG_DEPTH; i++) begin
+                sc_reg_alloc_table[i] <= signal_pkg::prf_address_t'(i);
+                vc_reg_alloc_table[i] <= signal_pkg::prf_address_t'(i);
+                sc_commit_table[i]    <= signal_pkg::prf_address_t'(i);
+                vc_commit_table[i]    <= signal_pkg::prf_address_t'(i);
+            end
+
+            for (int i=ARCH_REG_DEPTH; i<PRF_DEPTH; i++) begin
+                sc_free_list[i-ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
+                vc_free_list[i-ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
+            end
+
+            sc_head <= '0;
+            vc_head <= '0;
+
+            sc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
+            vc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
+
+            sc_ready <= '1;
+            vc_ready <= '1;
+
+        // FLUSH
+        //   Restore RATs from commit tables.
+        //   Snap head back to head_committed — all speculatively allocated
+        //   PRFs are between head_committed and head in the free list array
+        //   and are instantly reclaimed by moving the pointer.
+        //   tail is untouched; retirements are permanent.
+
+        end 
         else if (flush_i) begin
-            // refer combinational block for explanation
-            reg_alloc_table <= commit_table;
-            free_list <= free_list_flushed;
-            head <= '0;
-            head_epoch <= '0;
-            {tail_epoch, tail} <= {tail_epoch_flushed, tail_flushed};
-            
-        end
+
+            for (int i=0; i<ARCH_REG_DEPTH; i++) begin
+                sc_reg_alloc_table[i] <= sc_commit_table[i];
+                vc_reg_alloc_table[i] <= vc_commit_table[i];
+            end
+
+            sc_head <= head_committed[0];
+            vc_head <= head_committed[1];
+
+        end 
         else begin
 
-            /* INSTRUCTION RETIREMENT
-             * 1)   ROB sends the destination address and the prf tag of the instruction
-             *      to be retired
-             * 2)   The current prf tag of the value in destination addresss is freed i.e.
-             *      its pushed into the free list & prf_used is set to 0.
-             * 3)   the commit table is updated with the new prf tag & prf_used is set to 1
-             */
-            if (retirement_valid) begin
-                prf_used[commit_table[retire_instr_i.dest_address]] <= 1'b0;
-                
-                free_list[tail] <= commit_table[retire_instr_i.dest_address];
-                tail <= tail_next;
+            // WRITEBACK: mark PRF ready on execution result
+            if (sc_wb_instr_i.valid) sc_ready[sc_wb_instr_i.prf_tag.tag] <= 1'b1;
+            if (vc_wb_instr_i.valid) vc_ready[vc_wb_instr_i.prf_tag.tag] <= 1'b1;
 
-                commit_table[retire_instr_i.dest_address] <= retire_instr_i.prf_tag.tag;
-                prf_used[retire_instr_i.prf_tag.tag] <= 1'b1;
+            // RETIREMENT
+            //   1) The PRF currently in the commit table for dest_address is
+            //      now superseded — push it onto the free list tail.
+            //   2) Update the commit table to the newly retired PRF tag.
+            //   3) Advance head_committed to confirm this allocation.
+
+            if (sc_retire_valid) begin
+                sc_free_list[sc_tail[FIFO_WIDTH-1:0]] <= sc_commit_table[retire_instr_i.dest_address];
+                sc_tail <= sc_tail + 1'b1;
+                sc_commit_table[retire_instr_i.dest_address] <= retire_instr_i.prf_tag.tag;
+                sc_head_committed <= sc_head_committed + 1'b1;
             end
 
-            /* INSTRUCTION ALLOCATION
-             * - if allocation is valid (see comb block for conditions) assign a PRF
-             *   for the instruction from the free list and add to reg_alloc_table
-             * - Other instruction data sent directly without gating (to handle .vx
-             *   instructions
-             */
-            alloc_instr_o.valid   <= dispatched_instr_i.valid && (dispatched_instr_i.instr.chip_select[2] == IS_VECTOR);
-            alloc_instr_o.rs_slot <= dispatched_instr_i.rs_slot_id;
-            alloc_instr_o.instr   <= dispatched_instr_i.instr;
-            alloc_instr_o.a_is_vector <= dispatched_instr_i.instr.src1_vector;
-            alloc_instr_o.b_is_vector <= dispatched_instr_i.instr.src2_vector;
-            
-            if (allocation_valid) begin
-                alloc_instr_o.prf_tag <= {IS_VECTOR, free_list[head]};
-
-                reg_alloc_table[dispatched_instr_i.instr.dest_address] <= free_list[head];
-                head <= head_next;
+            if (vc_retire_valid) begin
+                vc_free_list[vc_tail[FIFO_WIDTH-1:0]] <= vc_commit_table[retire_instr_i.dest_address];
+                vc_tail <= vc_tail + 1'b1;
+                vc_commit_table[retire_instr_i.dest_address] <= retire_instr_i.prf_tag.tag;
+                vc_head_committed <= vc_head_committed + 1'b1;
             end
-            else alloc_instr_o.prf_tag  <= '0;
-            
-            alloc_instr_o.operand_a_tag <= reg_alloc_table[dispatched_instr_i.instr.src1_address];
-            alloc_instr_o.operand_b_tag <= reg_alloc_table[dispatched_instr_i.instr.src2_address];
+
+             // ALLOCATION
+            // Pass-through fields are written unconditionally (ungated on
+            // sc_alloc_valid) so that .vx instructions — which have a scalar
+            // destination but may carry vector source operands — still see
+            // correct operand tags on the scalar alloc bus.
+            //
+            // Operand tags and ready bits select between 0 and 1 RAT/ready
+            // based on src1_vector / src2_vector flags.
+
+            if (sc_alloc_valid) begin
+                sc_reg_alloc_table[dispatched_instr_i.instr.dest_address] <= sc_prf_id.tag;
+                sc_ready[sc_prf_id.tag]  <= !dispatched_instr_i.instr.pre_calc;
+                sc_head <= sc_head + 1'b1; 
+            end
+
+            if (vc_alloc_valid) begin
+                vc_reg_alloc_table[dispatched_instr_i.instr.dest_address] <= vc_prf_id.tag;
+                vc_ready[vc_prf_id.tag]  <= !dispatched_instr_i.instr.pre_calc;
+                vc_head <= vc_head + 1'b1; 
+            end
+
+            // Alloc output
+            alloc_instr_o.sc_valid   <= sc_alloc_valid && !dispatched_instr_i.instr.pre_calc; 
+            alloc_instr_o.vc_valid   <= vc_alloc_valid && !dispatched_instr_i.instr.pre_calc;
+            alloc_instr_o.rs_slot_id <= dispatched_instr_i.rs_slot_id;
+            alloc_instr_o.instr      <= dispatched_instr_i.instr;
+            alloc_instr_o.operand_a_is_vector <= dispatched_instr_i.instr.src1_vector;
+            alloc_instr_o.operand_b_is_vector <= dispatched_instr_i.instr.src2_vector;
+
+            if(dispatched_instr_i.instr.src1_vector) begin
+                alloc_instr_o.operand_a_tag   <= '{vector: 1'b1, tag: vc_operand_a_tag};
+                alloc_instr_o.operand_a_ready <= vc_ready[vc_operand_a_tag];
+            end
+            else begin
+                alloc_instr_o.operand_a_tag   <= '{vector: 1'b0, tag: sc_operand_a_tag};
+                alloc_instr_o.operand_a_ready <= sc_ready[sc_operand_a_tag];
+            end
+
+            if(dispatched_instr_i.instr.src2_vector) begin
+                alloc_instr_o.operand_b_tag   <= '{vector: 1'b1, tag: vc_operand_b_tag};
+                alloc_instr_o.operand_b_ready <= vc_ready[vc_operand_b_tag];
+            end
+            else begin
+                alloc_instr_o.operand_b_tag   <= '{vector: 1'b0, tag: sc_operand_b_tag};
+                alloc_instr_o.operand_b_ready <= sc_ready[sc_operand_b_tag];
+            end
+
+            case(1) 
+                sc_alloc_valid: alloc_instr_o.prf_tag <= sc_prf_id;
+                vc_alloc_valid: alloc_instr_o.prf_tag <= vc_prf_id;
+                default: alloc_instr_o.prf_tag <= '0;
+            endcase
+
+            alloc_instr_o.precalc_valid   <= sc_alloc_valid && dispatched_instr_i.instr.pre_calc;
+            alloc_instr_o.precalc_prf_tag <= (sc_alloc_valid) ? sc_prf_id : '0;
 
         end
     end

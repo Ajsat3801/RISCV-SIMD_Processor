@@ -11,11 +11,10 @@ module fe_instruction_queue (
     input logic rs_slot_released_i [RS_DISPATCH_COUNT-1:0],
     
     input logic rob_full_i,
-    input logic sc_arr_full_i,
-    input logic vc_arr_full_i,
+    input logic arr_full_i,
 
     if_dispatch_bus.queue dispatched_instr_o,
-    output queue_ready_o
+    output logic queue_ready_o
 );
 
 /* INSTRUCTION QUEUE
@@ -154,9 +153,7 @@ module fe_instruction_queue (
 
         cs = instr_fifo[head].chip_select;
 
-        ready = !rob_full_i &&
-                !(sc_arr_full_i && (!cs[2] || cs==3'b100)) &&
-                !(vc_arr_full_i && (cs[2] && !(cs==3'b100)));
+        ready = !rob_full_i && !arr_full_i;
 
         if (!empty && instr_fifo[head].valid ) begin
             if (cs != 0 && cs != 3'b110) begin

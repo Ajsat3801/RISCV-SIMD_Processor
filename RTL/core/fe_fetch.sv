@@ -6,13 +6,13 @@ module fe_fetch(
     input  logic compute_i,
     
     input  logic ready_i,
-    output signal_pkg::raw_instr_t instr_decode_o,
+    output signal_pkg::data_t instr_decode_o,
     output signal_pkg::pc_t pc_decode_o,
     output logic fetch_valid_o,
 
     if_retirement_bus.branch retire_instr_i,
 
-    input  signal_pkg::raw_instr_t instr_imem_i,
+    input  signal_pkg::data_t instr_imem_i,
     input  logic imem_valid_i,
     output signal_pkg::pc_t pc_imem_o,
     output logic read_enable_o

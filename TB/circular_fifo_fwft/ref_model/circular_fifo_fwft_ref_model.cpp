@@ -7,12 +7,12 @@
 typedef std::vector<uint32_t> T;
 
 // Each instance of our FIFO model
-class lib_circular_fifo_fwft_ref_model {
+class lib_fifo_fwft_1push_ref_model {
     private:
         std::deque<T> buffer;
         int size;
     public:
-        lib_circular_fifo_fwft_ref_model(int size){
+        lib_fifo_fwft_1push_ref_model(int size){
             this->size = size;
         }
         void push(T data) {
@@ -33,13 +33,13 @@ class lib_circular_fifo_fwft_ref_model {
         }
 };
 
-lib_circular_fifo_fwft_ref_model* ref_model;
+lib_fifo_fwft_1push_ref_model* ref_model;
 
-extern "C" void lib_circular_fifo_fwft_model_create(int size){
-    ref_model = new lib_circular_fifo_fwft_ref_model(size);
+extern "C" void lib_fifo_fwft_1push_model_create(int size){
+    ref_model = new lib_fifo_fwft_1push_ref_model(size);
 }
 
-extern "C" void lib_circular_fifo_fwft_model_run (
+extern "C" void lib_fifo_fwft_1push_model_run (
     const svBitVecVal* data,
     svBitVecVal* data_out, 
     svBit push,

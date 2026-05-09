@@ -6,34 +6,65 @@
 
 interface if_alloc_bus;
     
-    logic valid;
-    signal_pkg::rs_slot_id_t rs_slot;
+    logic sc_valid, vc_valid, precalc_valid;
+    signal_pkg::rs_slot_id_t rs_slot_id;
+    signal_pkg::rob_address_t rob_id;
     packet_pkg::decoded_instr_t instr;
     signal_pkg::prf_tag_t prf_tag;
-    signal_pkg::prf_tag_t operand_a_tag;
-    signal_pkg::prf_tag_t operand_b_tag;
-    logic a_is_vector, b_is_vector;
+    signal_pkg::prf_tag_t operand_a_tag, operand_b_tag;
+    signal_pkg::prf_tag_t precalc_prf_tag;
+
+    logic operand_a_is_vector, operand_b_is_vector;
+    logic operand_a_ready, operand_b_ready;
+    signal_pkg::operations_e operation;
+    
+    rs_entry_t sc_rs_entry, vc_rs_entry;
+    assign sc_rs_entry = rs_entry_t'{   sc_valid, prf_tag, rob_id, instr.operation,
+                                        operand_a_tag, operand_b_tag,
+                                        instr.imm, instr.read_src2, 
+                                        operand_a_ready, operand_b_ready, 
+                                        operand_a_is_vector, operand_b_is_vector };
+    assign vc_rs_entry = rs_entry_t'{   vc_valid, prf_tag, rob_id, instr.operation,
+                                        operand_a_tag, operand_b_tag,
+                                        instr.imm, instr.read_src2, 
+                                        operand_a_ready, operand_b_ready, 
+                                        operand_a_is_vector, operand_b_is_vector };
+    assign precalc_data = { instr.src1_address, instr.src2_address, instr.imm, instr.extend};
 
     modport arr (
-        output valid,
+        output sc_valid, vc_valid,
+        output rs_slot_id,
         output instr,
-        output rs_slot, prf_tag,
+        output prf_tag,
         output operand_a_tag, operand_b_tag,
-        output a_is_vector, b_is_vector
+        output operand_a_ready, operand_b_ready,
+        output operand_a_is_vector, operand_b_is_vector,
+        output precalc_valid, precalc_prf_tag
     );
 
     modport rob (
         input valid,
         input instr,
-        input prf_tag
+        input prf_tag,
+        output rob_id
     );
 
-    modport prf (
-        input valid,
-        input instr,
-        input rs_slot, prf_tag,
-        input operand_a_tag, operand_b_tag,
-        input a_is_vector, b_is_vector
+    modport sc_rs (
+        input chip_select,
+        input sc_rs_entry,
+        input rs_slot
     );
 
+    modport vc_rs (
+        input chip_select,
+        input vc_rs_entry,
+        input rs_slot
+    );
+
+    modport precalc (
+        input precalc_valid,
+        input precalc_data,
+        input precalc_prf_tag
+    );
+    
 endinterface

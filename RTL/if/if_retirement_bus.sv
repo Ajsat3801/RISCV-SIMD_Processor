@@ -7,17 +7,19 @@
 interface if_retirement_bus;
 
     logic valid;
+    signal_pkg::prf_tag_t prf_tag;
+    signal_pkg::rob_address_t rob_id;
+    signal_pkg::data_t data;
     logic write_to_reg;
     signal_pkg::arf_address_t dest_address;
     logic is_branch;
     logic branch_taken;
-    signal_pkg::prf_tag_t prf_tag;
-    signal_pkg::data_t data;
 
     modport rob (
         output valid, 
-        output write_to_reg, prf_tag,
-        output dest_address, data, 
+        output prf_tag, rob_id,
+        output data,
+        output write_to_reg, dest_address,
         output is_branch, branch_taken
     );
 
@@ -35,7 +37,7 @@ interface if_retirement_bus;
 
     modport lsu (
         input valid,
-        input prf_tag
+        input rob_id
     );
 
 endinterface

@@ -1,10 +1,10 @@
 
-class lib_circular_fifo_fwft_env extends uvm_env;
+class lib_fifo_fwft_1push_env extends uvm_env;
 
-    `uvm_component_param_utils(lib_circular_fifo_fwft_env)
+    `uvm_component_param_utils(lib_fifo_fwft_1push_env)
 
-    lib_circular_fifo_fwft_agt agt;
-    lib_circular_fifo_fwft_scb scb;
+    lib_fifo_fwft_1push_agt agt;
+    lib_fifo_fwft_1push_scb scb;
 
     function new(string name, uvm_component parent);
         super.new(name,parent);
@@ -12,8 +12,8 @@ class lib_circular_fifo_fwft_env extends uvm_env;
 
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        agt = lib_circular_fifo_fwft_agt::type_id::create("agt",this);
-        scb = lib_circular_fifo_fwft_scb::type_id::create("scb", this);
+        agt = lib_fifo_fwft_1push_agt::type_id::create("agt",this);
+        scb = lib_fifo_fwft_1push_scb::type_id::create("scb", this);
     endfunction
 
     virtual function void connect_phase(uvm_phase phase);

@@ -1,6 +1,6 @@
-class lib_circular_fifo_fwft_sqr extends uvm_sequencer #(lib_circular_fifo_fwft_tr);
+class lib_fifo_fwft_1push_sqr extends uvm_sequencer #(lib_fifo_fwft_1push_tr);
 
-    `uvm_component_param_utils(lib_circular_fifo_fwft_sqr)
+    `uvm_component_param_utils(lib_fifo_fwft_1push_sqr)
 
     function new(string name, uvm_component parent);
         super.new(name,parent);

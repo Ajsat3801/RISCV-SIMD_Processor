@@ -1,5 +1,5 @@
 /* 
-exact same logic as lib_circular_fifo_fwft. only difference is reset
+exact same logic as lib_fifo_fwft_1push. only difference is reset
 fills the buffer from 0 to buffer_size
 */
 import config_pkg::*;

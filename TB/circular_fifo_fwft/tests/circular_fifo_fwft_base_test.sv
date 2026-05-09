@@ -1,19 +1,19 @@
 
-class lib_circular_fifo_fwft_base_test extends uvm_test;
+class lib_fifo_fwft_1push_base_test extends uvm_test;
 
-    `uvm_component_utils(lib_circular_fifo_fwft_base_test)
+    `uvm_component_utils(lib_fifo_fwft_1push_base_test)
 
-  	lib_circular_fifo_fwft_env env;
-  	virtual lib_circular_fifo_fwft_if vif;
+  	lib_fifo_fwft_1push_env env;
+  	virtual lib_fifo_fwft_1push_if vif;
 
-  	function new(string name ="lib_circular_fifo_fwft_base_test", uvm_component parent = null);
+  	function new(string name ="lib_fifo_fwft_1push_base_test", uvm_component parent = null);
         super.new(name,parent);
     endfunction
 
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        env = lib_circular_fifo_fwft_env::type_id::create("env",this);
-        if (!uvm_config_db #(virtual lib_circular_fifo_fwft_if)::get(this,"","vif",vif)) begin 
+        env = lib_fifo_fwft_1push_env::type_id::create("env",this);
+        if (!uvm_config_db #(virtual lib_fifo_fwft_1push_if)::get(this,"","vif",vif)) begin 
             `uvm_fatal("TEST", "Failed to get vif from uvm_config_db")
         end
     endfunction

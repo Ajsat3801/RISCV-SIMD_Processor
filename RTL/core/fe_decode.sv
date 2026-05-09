@@ -116,7 +116,8 @@ module fe_decode(
                 decoded_instr_d.operation   = {fetched_instr_i[5],fetched_instr_i[14:12]};
                 decoded_instr_d.imm = {fetched_instr_i[31:25], fetched_instr_i[11:7]};
                 decoded_instr_d.write_to_reg = 1'b0;
-                decoded_instr_d.read_src2    = 1'b1;
+                decoded_instr_d.read_src2    = 1'b0;
+                // NOTE: src2 actually read, but we send operand b as imm in stores
             end
             7'b1101111: begin 
                 // Jump instructions (only jal supported for now)

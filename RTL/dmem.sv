@@ -10,7 +10,6 @@
  *  Inputs:
  *  ->  clock
  *  ->  read enable and write enable
- *  ->  is_vector flag (1 means vector, 0 means scalar)
  *  ->  read/write address
  *  ->  data in
  *  Outputs:
@@ -32,15 +31,16 @@
  */
 
 module dmem (
-    input logic clk_i,
-    input logic reset_ni,
-    input logic read_enable_i,
-    input logic write_enable_i,
-    input logic is_vector_i,
-    input logic[9:0] mem_addr_i,
-    input logic[127:0] data_i,
+    input  logic clk_i,
+    input  logic reset_ni,
+
+    input  logic valid_i,
+    input  logic[3:0] write_enable_i,
+    input  logic[7:0] mem_addr_i,
+    input  logic[127:0] data_i,
+    
     output logic[127:0] data_o,
-    output logic valid_o
+    output logic valid_o,
 );
     logic[32:0] read[3:0];
     logic[3:0]  write_enable;
@@ -50,7 +50,7 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[0]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i[9:2]}),
+        .addr0({1'b0, mem_addr_i}),
         .din0({1'b0, data_i[31:0]}),
         .dout0(read[0])
     );
@@ -60,7 +60,7 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[1]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i[9:2]}),
+        .addr0({1'b0, mem_addr_i}),
         .din0({1'b0, data_i[63:32]}),
         .dout0(read[1])
     );
@@ -70,7 +70,7 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[2]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i[9:2]}),
+        .addr0({1'b0, mem_addr_i}),
         .din0({1'b0, data_i[95:64]}),
         .dout0(read[2])
     );
@@ -80,32 +80,17 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[3]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i[9:2]}),
+        .addr0({1'b0, mem_addr_i}),
         .din0({1'b0, data_i[127:96]}),
         .dout0(read[3])
     );
 
-    always_comb begin
-        write_enable = '1;
-
-        if (write_enable_i && !read_enable_i) begin
-            if(is_vector_i) write_enable = '0;
-            else write_enable[mem_addr_i[1:0]] = 1'b0;
+    genvar i;
+    generate
+        for(i=0; i<4; i++) begin
+            write_enable[i] = ~write_enable_i[i];
+            data_o[(32*i)+31:32*i] = read[i][31:0];
         end
-    end
-
-    always_ff @(posedge clk_i) begin
-        if(!reset_ni) begin
-            valid_o <= 1'b0;
-        end
-        else begin
-            valid_o <= (read_enable_i) ? 1'b1 : 1'b0;
-        end
-    end
-
-    assign data_o[31:0]   = read[0][31:0];
-    assign data_o[63:32]  = read[1][31:0];
-    assign data_o[95:64]  = read[2][31:0];
-    assign data_o[127:96] = read[3][31:0];
+    endgenerate
 
 endmodule

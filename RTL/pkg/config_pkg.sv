@@ -22,7 +22,8 @@ package config_pkg;
     parameter int unsigned DATA_SIZE = 32;
     parameter int unsigned VECTOR_SIZE = 4;
     parameter int unsigned ARCH_REG_DEPTH = 32;
-    parameter int unsigned PRF_DEPTH = 48;
+    parameter int unsigned PRF_DEPTH = 64;
+    parameter int unsigned STORE_BUFFER_SIZE = 4;
 
     // Memory config
     parameter int unsigned IMEM_WORD_SIZE = 32;
@@ -49,6 +50,7 @@ package config_pkg;
     localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
     localparam int unsigned RS_DISPATCH_COUNT = 2*DUAL_SLOT_RS_COUNT + SINGLE_SLOT_RS_COUNT;
     localparam int unsigned IMEM_ADDR_SIZE = $clog2(IMEM_NUM_WORDS);
+    localparam int unsigned DMEM_ADDR_SIZE = $clog2(DMEM_NUM_WORDS*DMEM_NUM_BANKS);
 
 endpackage
 

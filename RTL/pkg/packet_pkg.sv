@@ -1,9 +1,9 @@
 
 package packet_pkg;
 
-// ----------------------------------------------------------------------------
-// DECODED INSTRUCTION
-// ---------------------------------------------------------------------------- 
+// ------------------------------------------------------------------------------------------------
+//                                  DECODED INSTRUCTION PACKET
+// ------------------------------------------------------------------------------------------------ 
 /* 
  * -> see signal_pkg typedefs for chip_select & operations definitions
  * -> addresses are of architectural regs, not physical. 
@@ -41,20 +41,19 @@ package packet_pkg;
         
     } decoded_instr_t;
 
-// ------------------
-// Request packets
-// ------------------
+// ------------------------------------------------------------------------------------------------
+//                                         REQUEST PACKETS
+// ------------------------------------------------------------------------------------------------
     
     typedef struct packed {
         logic valid;
         
         signal_pkg::prf_tag_t prf_tag;
         signal_pkg::rob_address_t rob_id;
+        signal_pkg::operations_e operation;
 
         signal_pkg::data_t operand_a;
         signal_pkg::data_t operand_b;
-
-        signal_pkg::operations_e operation;
 
     } sc_ex_request_t;
 
@@ -72,29 +71,43 @@ package packet_pkg;
         logic a_is_vector;
         logic b_is_vector;
 
-    } vc_ex_request_t;
+    } vc_alu_ex_request_t;
 
     typedef struct packed {
         logic valid;
         
         signal_pkg::prf_tag_t prf_tag;
         signal_pkg::rob_address_t rob_id;
-
-        signal_pkg::data_t operand_a;
         
         signal_pkg::operations_e operation;
-
-        logic a_is_vector;
-        logic b_is_vector;
 
         signal_pkg::prf_tag_t operand_a_tag;
         signal_pkg::prf_tag_t operand_b_tag;
 
-    } vc_operand_read_request_t;
+        logic[11:0] imm;
+        logic read_src2;
 
-// -----------------
-// EX Results
-// --------------
+        logic a_is_vector;
+        logic b_is_vector;
+
+    } read_request_t;
+
+    typedef struct packed {
+        signal_pkg::prf_tag_t store_data_tag,
+        logic a_is_vector;
+        logic b_is_vector;
+    } vc_lsu_read_request_t;
+
+    typedef struct packed {
+        signal_pkg::vector_data_t store_data,
+        logic a_is_vector,
+        logic b_is_vector
+    } vc_lsu_ex_request_t;
+
+// ------------------------------------------------------------------------------------------------
+//                                   FUNCTIONAL UNIT RESULTS
+// ------------------------------------------------------------------------------------------------
+    
     typedef struct packed {
         logic valid;
 
@@ -122,9 +135,9 @@ package packet_pkg;
 
     } vc_ex_result_t;
 
-// -----------------
-// Buffer entries
-// -----------------
+// ------------------------------------------------------------------------------------------------
+//                                        BUFFER ENTRIES
+// ------------------------------------------------------------------------------------------------
 
     typedef struct packed {
         logic occupied;
@@ -132,62 +145,22 @@ package packet_pkg;
         signal_pkg::prf_tag_t prf_tag;
         signal_pkg::rob_address_t rob_id;
         
-        signal_pkg::data_t operand_a;
-        signal_pkg::data_t operand_b; 
-        
         signal_pkg::operations_e operation;
 
         signal_pkg::prf_tag_t operand_a_tag;
         signal_pkg::prf_tag_t operand_b_tag;
 
-        logic operand_a_ready;
-        logic operand_b_ready;
+        logic[11:0] imm;
+        logic read_src2;
 
-    } sc_rs_entry_t;
-
-    typedef struct packed {
-        logic occupied;
-        
-        signal_pkg::prf_tag_t prf_tag;
-        signal_pkg::rob_address_t rob_id;
-
-        signal_pkg::data_t operand_a;
-        
-        signal_pkg::operations_e operation;
-
-        logic a_is_vector;
-        logic b_is_vector;
-
-        signal_pkg::prf_tag_t operand_a_tag;
-        signal_pkg::prf_tag_t operand_b_tag;
+        logic operand_a_is_vector;
+        logic operand_b_is_vector;
 
         logic operand_a_ready;
         logic operand_b_ready;
 
-    } vc_rs_entry_t;
-
-    typedef struct packed {
-        logic occupied;
-        
-        signal_pkg::prf_tag_t prf_tag;
-        signal_pkg::rob_address_t rob_id;
-
-        signal_pkg::data_t operand_a;
-        signal_pkg::data_t operand_b;
-        
-        signal_pkg::operations_e operation;
-
-        logic a_is_vector;
-        logic b_is_vector;
-
-        signal_pkg::prf_tag_t operand_a_tag;
-        signal_pkg::prf_tag_t operand_b_tag;
-
-        logic operand_a_ready;
-        logic operand_b_ready;
-
-    } lsu_rs_entry_t;
-
+    } rs_entry_t;
+    
     typedef struct packed {
         logic ready;
         logic write_to_reg;
@@ -201,6 +174,20 @@ package packet_pkg;
         logic branch_taken;
         
     } rob_entry_t;
+
+    typedef struct packed {
+        logic valid;
+        logic is_store;
+        logic is_vector;
+
+        signal_pkg::prf_tag_t prf_tag;
+        signal_pkg::rob_address_t rob_id;
+        
+        signal_pkg::dmem_address_t mem_addr;
+
+        signal_pkg::vector_data_t data;
+
+    } load_store_entry_t;
 
 endpackage
 

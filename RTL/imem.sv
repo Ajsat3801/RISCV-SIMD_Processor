@@ -37,7 +37,7 @@ module imem (
     logic[7:0] address;
     logic[31:0] read;
 
-    sky130_sram_1kbyte_1rw_32x256_32 u_imem0(
+    sky130_sram_1kbyte_1rw_32x256_32 u_imem(
         .clk0(clk_i),
         .csb0(1'b0),
         .web0(write_enable_i),

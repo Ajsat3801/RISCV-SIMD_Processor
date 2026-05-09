@@ -13,7 +13,7 @@
 `include "if_scalar_request_bus.sv"
 `include "if_retirement_bus.sv"
 
-`include "lib_circular_fifo_fwft.sv"
+`include "lib_fifo_fwft_1push.sv"
 `include "lib_rs_slot_freeq_1push.sv"
 `include "lib_rs_slot_freeq_2push.sv"
 `include "lib_vector_alu_lane.sv"
@@ -25,18 +25,18 @@
 `include "ooo_arr_unit.sv"
 `include "ooo_reorder_buffer.sv"
 
-`include "phy_regfile_scalar.sv"
-`include "phy_regfile_vector.sv"
+`include "data_sc_regfile_3sc.sv"
+`include "data_vc_regfile_valu_ls.sv"
 
 `include "rs_scalar_1issue.sv"
 `include "rs_scalar_2issue.sv"
 `include "rs_vector_1issue.sv"
-`include "rs_common_lsu.sv"
+`include "rs_load_store.sv"
 
 `include "ex_scalar_alu.sv"
 `include "ex_branch.sv"
 `include "ex_scalar_muldiv.sv"
-`include "ex_common_lsu.sv"
+`include "ex_load_store.sv"
 `include "ex_vector_alu.sv"
 
 `include "wb_scalar.sv"

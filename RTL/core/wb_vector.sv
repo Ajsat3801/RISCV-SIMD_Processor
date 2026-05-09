@@ -28,7 +28,7 @@ module wb_vector (
 
     // circular FIFOs with FWFT, so we know what the head of the queue is immediately
 
-    lib_circular_fifo_fwft #(
+    lib_fifo_fwft_1push #(
         .BUFFER_SIZE(4), 
         .T(packet_pkg::vc_ex_result_t) 
     ) valu_fifo (
@@ -43,7 +43,7 @@ module wb_vector (
         .next_full_o(next_full[0])
     );
 
-    lib_circular_fifo_fwft #(
+    lib_fifo_fwft_1push #(
         .BUFFER_SIZE(4),
         .T(packet_pkg::vc_ex_result_t)
     ) lsu_fifo (

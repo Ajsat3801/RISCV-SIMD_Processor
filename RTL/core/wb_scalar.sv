@@ -34,7 +34,7 @@ module wb_scalar (
     logic reset_wb_n;
     // circular FIFOs with FWFT, so we know what the head of the queue is immediately
 
-    lib_circular_fifo_fwft #(
+    lib_fifo_fwft_1push #(
         .BUFFER_SIZE(4), 
         .T(packet_pkg::sc_ex_result_t) 
     ) alu0_fifo (
@@ -49,7 +49,7 @@ module wb_scalar (
         .next_full_o(next_full[0])
     );
 
-    lib_circular_fifo_fwft #(
+    lib_fifo_fwft_1push #(
         .BUFFER_SIZE(4),
         .T(packet_pkg::sc_ex_result_t)
     ) alu1_fifo (
@@ -64,7 +64,7 @@ module wb_scalar (
         .next_full_o(next_full[1])
     );
 
-    lib_circular_fifo_fwft #(
+    lib_fifo_fwft_1push #(
         .BUFFER_SIZE(2),
         .T(packet_pkg::sc_ex_result_t)
     ) muldiv_fifo (
@@ -79,7 +79,7 @@ module wb_scalar (
         .next_full_o(next_full[2])
     );
 
-    lib_circular_fifo_fwft #(
+    lib_fifo_fwft_1push #(
         .BUFFER_SIZE(4),
         .T(packet_pkg::sc_ex_result_t)
     ) lsu_fifo (
