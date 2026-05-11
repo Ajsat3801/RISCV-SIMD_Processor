@@ -25,14 +25,14 @@ module data_sc_regfile_3sc (
     if_data_bus.prf sc_wb_instr_i,
 
     // Read operands from RS and send to functional unit
-    input signal_pkg::read_request_t sc_rd_req0_i,
-    output signal_pkg::sc_ex_request_t sc_ex_req0_o,
+    input  packet_pkg::read_request_t sc_rd_req0_i,
+    output packet_pkg::sc_ex_request_t sc_ex_req0_o,
 
-    input signal_pkg::read_request_t sc_rd_req1_i,
-    output signal_pkg::sc_ex_request_t sc_ex_req1_o,
+    input  packet_pkg::read_request_t sc_rd_req1_i,
+    output packet_pkg::sc_ex_request_t sc_ex_req1_o,
 
-    input signal_pkg::read_request_t sc_rd_req2_i,
-    output signal_pkg::sc_ex_request_t sc_ex_req2_o,
+    input  packet_pkg::read_request_t sc_rd_req2_i,
+    output packet_pkg::sc_ex_request_t sc_ex_req2_o
 );
 
     signal_pkg::data_t regfile[PRF_DEPTH-1:0];
@@ -64,7 +64,7 @@ module data_sc_regfile_3sc (
              */
 
             if(precalc_i.precalc_valid) begin
-                regfile[precalc_i.precalc_prf_tag] <= pre_calc_i.precalc_data;
+                regfile[precalc_i.precalc_prf_tag] <= precalc_i.precalc_data;
             end
 
             if (sc_wb_instr_i.valid) begin
@@ -102,7 +102,7 @@ module data_sc_regfile_3sc (
 
             sc_ex_req2_o.operand_a <= operand_a2;
             sc_ex_req2_o.operand_b <= (sc_rd_req2_i.read_src2) ? 
-                operand_b2 : {{20{sc_rd_req2_i.imm[11]}},sc_rd_req2_i.imm}
+                operand_b2 : {{20{sc_rd_req2_i.imm[11]}},sc_rd_req2_i.imm};
             
         end
     end

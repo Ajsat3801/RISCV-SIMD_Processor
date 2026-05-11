@@ -17,6 +17,7 @@ module wb_scalar (
 
     // EX units
     input packet_pkg::sc_ex_result_t ex_result_i[SCALAR_EX_COUNT-1:0],
+    input packet_pkg::sc_ex_result_t lsu_result_i,
     output logic wb_ready_o[SCALAR_EX_COUNT-1:0],
 
     if_data_bus.writeback data_bus_o
@@ -79,14 +80,16 @@ module wb_scalar (
         .next_full_o(next_full[2])
     );
 
-    lib_fifo_fwft_1push #(
+    lib_fifo_fwft_2push #(
         .BUFFER_SIZE(4),
         .T(packet_pkg::sc_ex_result_t)
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push_i(ex_result_i[3].valid),
-        .push_data_i(ex_result_i[3]),
+        .push0_i(ex_result_i[3].valid),
+        .push0_data_i(ex_result_i[3]),
+        .push1_i(lsu_result_i[3].valid),
+        .push1_data_i(lsu_result_i[3]),
         .pop_i(dequeue_next[3]),
         .data_o(fifo_heads[3]),
         .empty_o(empty[3]),
@@ -147,6 +150,8 @@ module wb_scalar (
             mask_next = mask;
             dequeue_next = '0;
         end
+
+        wb_ready_o = ~(full | next_full);
         
     end
 
@@ -162,12 +167,5 @@ module wb_scalar (
             dequeue <= dequeue_next;
         end
     end
-
-
-generate
-    for (genvar i=0; i<SCALAR_EX_COUNT; i++) begin
-        assign wb_ready_o[i] = ~(full[i] | next_full[i]);
-    end
-endgenerate
 
 endmodule

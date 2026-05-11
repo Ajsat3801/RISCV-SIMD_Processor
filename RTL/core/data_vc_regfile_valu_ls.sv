@@ -26,7 +26,7 @@ module data_vc_regfile_valu_ls (
 
     // sending operands and instruction data to ex
     output packet_pkg::vc_alu_ex_request_t vc_alu_ex_req_o,
-    output packet_pkg::vc_lsu_ex_request_t vc_lsu_ex_req_o,
+    output packet_pkg::vc_lsu_ex_request_t vc_lsu_ex_req_o
 );
 
     signal_pkg::vector_data_t regfile[PRF_DEPTH-1:0];
@@ -35,7 +35,7 @@ module data_vc_regfile_valu_ls (
     always_comb begin
         operand_a0 = regfile[vc_alu_rd_req_i.operand_a_tag.tag];
         operand_b0 = regfile[vc_alu_rd_req_i.operand_b_tag.tag];
-        operand_sd = regfile[lsu_store_data_tag];
+        operand_sd = regfile[vc_lsu_rd_req_i.store_data_tag];
     end
 
     always_ff @(posedge clk_i) begin
@@ -51,8 +51,8 @@ module data_vc_regfile_valu_ls (
             end
 
             // read VALU operands
-            vc_alu_ex_req_o <= '{  valid, prf_tag, rob_id, operation, 
-                                    a_is_vector, b_is_vector,
+            vc_alu_ex_req_o <= '{   vc_alu_rd_req_i.valid, vc_alu_rd_req_i.prf_tag, vc_alu_rd_req_i.rob_id, vc_alu_rd_req_i.operation, 
+                                    vc_alu_rd_req_i.a_is_vector, vc_alu_rd_req_i.b_is_vector,
                                     operand_a0, operand_b0
                                 };
 

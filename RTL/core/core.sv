@@ -52,6 +52,7 @@ module core #()(
     signal_pkg::pc_t pc;
 
     packet_pkg::decoded_instr_t decoded_instr, dispatched_instr;
+    signal_pkg::rs_slot_id_t dispatched_instr_rs_slot_id;
     
     signal_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
     logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
@@ -69,7 +70,7 @@ module core #()(
     packet_pkg::read_request_t vc_alu_rd_req;
     
     packet_pkg::vc_lsu_read_request_t vc_lsu_rd_req;
-    packet_pkg::prf_tag_t vc_alu_rd_req_tag;
+    signal_pkg::prf_tag_t vc_alu_rd_req_tag;
     
     // PRF -> EX signals
     packet_pkg::sc_ex_request_t sc_ex_req[SCALAR_EX_COUNT-1:0];
@@ -87,6 +88,8 @@ module core #()(
     packet_pkg::sc_ex_result_t sc_ex_result[SCALAR_EX_COUNT-1:0];
     packet_pkg::br_result_t br_ex_result;
     packet_pkg::vc_ex_result_t vc_ex_result[VECTOR_EX_COUNT-1:0];
+    packet_pkg::sc_ex_result_t sc_lsu_result;
+    packet_pkg::vc_ex_result_t vc_lsu_result;
 
     packet_pkg::load_store_entry_t lsu_output;
     packet_pkg::store_retire_t store_retire;
@@ -136,7 +139,8 @@ module core #()(
     
     if_retirement_bus u_retirement_bus();
 
-    
+    if_data_bus #(.T(signal_pkg::data_t)) u_sc_prf_input();
+    if_data_bus #(.T(signal_pkg::vector_data_t)) u_vc_prf_input();
 
     genvar i;
 
@@ -150,7 +154,7 @@ module core #()(
         end
     endgenerate
 
-    assign lsu_ready = sc_rs_ex_ready[3] && vc_rs_ec_ready[1];
+    assign lsu_ready = sc_rs_ex_ready[3] && vc_rs_ex_ready[1];
 
     always_comb begin
         /*
@@ -158,20 +162,20 @@ module core #()(
          */
 
         if (sc_pre_load_valid_i) begin
-            u_sc_prf_input.valid =  u_sc_preload_valid_i;
-            u_sc_prf_input.prf_tag =  u_sc_preload_addr_i;
-            u_sc_prf_input.data =  u_sc_preload_data_i;
+            u_sc_prf_input.valid   =  sc_preload_valid_i;
+            u_sc_prf_input.prf_tag =  sc_preload_addr_i;
+            u_sc_prf_input.data    =  sc_preload_data_i;
         end
         else begin
-            u_sc_prf_input.valid = u_sc_data_bus.valid;
+            u_sc_prf_input.valid   = u_sc_data_bus.valid;
             u_sc_prf_input.prf_tag = u_sc_data_bus.prf_tag;
-            u_sc_prf_input.data = u_sc_data_bus.data;
+            u_sc_prf_input.data    = u_sc_data_bus.data;
         end
 
         if (vc_pre_load_valid_i) begin
-            u_vc_prf_input.valid = u_vc_preload_i.valid;
-            u_vc_prf_input.prf_tag = u_vc_preload_addr_i;
-            u_vc_prf_input.data = u_vc_preload_data_i;
+            u_vc_prf_input.valid   = vc_preload_valid_i;
+            u_vc_prf_input.prf_tag = vc_preload_addr_i;
+            u_vc_prf_input.data    = vc_preload_data_i;
         end
         else begin
             u_vc_prf_input.valid = u_vc_data_bus.valid;
@@ -186,7 +190,7 @@ module core #()(
 // ----------------------------------------------------------------------------
 
     fe_fetch u_fetch (
-        .clk_i(clk),
+        .clk_i(clk_i),
         .reset_ni(reset_ni),
         .compute_i(compute_i),
         .ready_i(queue_ready),
@@ -219,6 +223,7 @@ module core #()(
         .rob_full_i(rob_full),
         .arr_full_i(arr_full),
         .dispatched_instr_o(dispatched_instr),
+        .rs_slot_id_o(dispatched_instr_rs_slot_id),
         .queue_ready_o(queue_ready)
     );
 
@@ -231,6 +236,7 @@ module core #()(
         .reset_ni(reset_ni),
         .flush_i(flush),
         .dispatched_instr_i(dispatched_instr),
+        .rs_slot_id_i(dispatched_instr_rs_slot_id),
         .retire_instr_i(u_retirement_bus),
         .sc_wb_instr_i(u_sc_data_bus),
         .vc_wb_instr_i(u_vc_data_bus),
@@ -348,7 +354,7 @@ module core #()(
         .sc_rd_req1_i(sc_rd_req[1]),
         .sc_ex_req1_o(sc_ex_req[1]),
         .sc_rd_req2_i(sc_rd_req[2]),
-        .sc_ex_req2_o(sc_ex_req[2]),
+        .sc_ex_req2_o(sc_ex_req[2])
     ); 
 
     data_sc_regfile_br_valu_ls u_scalar_prf_replica1 (
@@ -363,7 +369,7 @@ module core #()(
         .ls_rd_req_i(sc_rd_req[3]),
         .ls_ex_req_o(sc_ex_req[3]),
         .ls_store_data_o(sc_ls_store_data)
-    )    
+    );  
 
     data_vc_regfile_valu_ls u_vector_prf (
         .clk_i(clk_i),
@@ -421,10 +427,11 @@ module core #()(
         .flush_i(flush),
         .lsu_request_i(sc_ex_request[3]),
         .sc_store_data_i(sc_ls_store_data),
-        .vc_store_data_i(vc_ls_store_data),
-        .vc_lsu_ex_request_i(vc_lsu_ex_req)
+        .vc_lsu_ex_request_i(vc_lsu_ex_req),
         .retire_instr_i(u_retirement_bus),
         .lsu_output_o(lsu_output),
+        .sc_fwd_load_o(sc_lsu_result),
+        .vc_fwd_load_o(vc_lsu_result),
         .store_retire_o(store_retire),
         .sc_ex_ready_o(sc_ex_ready[3]),
         .vc_ex_ready_o(vc_ex_ready[1])
@@ -435,7 +442,7 @@ module core #()(
         .reset_ni(reset_ni),
         .flush_i(flush),
         .vc_ex_request_i(vc_ex_request[0]),
-        .sc_operand_i(vc_alu_sc_operand)
+        .sc_operand_i(vc_alu_sc_operand),
         .vc_ex_result_o(vc_ex_result[0]),
         .vc_ex_ready_o(vc_ex_ready[0])
     );
@@ -450,6 +457,7 @@ module core #()(
         .reset_ni(reset_ni),
         .flush_i(flush),
         .ex_result_i(sc_ex_result),
+        .lsu_result_i(sc_lsu_result),
         .wb_ready_o(sc_wb_ready),
         .data_bus_o(u_sc_data_bus)
     );
@@ -459,6 +467,7 @@ module core #()(
         .reset_ni(reset_ni),
         .flush_i(flush),
         .ex_result_i(vc_ex_result),
+        .lsu_result_i(vc_lsu_result)
         .wb_ready_o(vc_wb_ready),
         .data_bus_o(u_vc_data_bus)
     );

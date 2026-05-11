@@ -27,7 +27,8 @@ module ooo_arr_unit (
     input  logic reset_ni,
     input  logic flush_i,
 
-    if_dispatch_bus.arr dispatched_instr_i,
+    input packet_pkg::decoded_instr_t dispatched_instr_i,
+    input signal_pkg::rs_slot_id_t rs_slot_id_i,
     if_retirement_bus.arr retire_instr_i,
     if_data_bus.snoop sc_wb_instr_i,
     if_data_bus.snoop vc_wb_instr_i,
@@ -45,7 +46,8 @@ module ooo_arr_unit (
 
     fifo_pointer_t sc_head, vc_head;
     fifo_pointer_t sc_tail, vc_tail; 
-    fifo_pointer_t sc_head_committed, vc_tail_committed;
+    fifo_pointer_t sc_head_committed, sc_tail_committed;
+    fifo_pointer_t vc_head_committed, vc_tail_committed;
 
     logic[PRF_DEPTH-1:0] sc_ready, vc_ready;
 
@@ -74,14 +76,14 @@ module ooo_arr_unit (
         //   4) chip_select[2] selects the channel (0 = scalar, 1 = vector)
 
         sc_alloc_valid = dispatched_instr_i.valid
-                      && dispatched_instr_i.instr.write_to_reg
-                      && (dispatched_instr_i.instr.dest_address != '0)
-                      && (dispatched_instr_i.instr.chip_select[2] == 1'b0);
+                      && dispatched_instr_i.write_to_reg
+                      && (dispatched_instr_i.dest_address != '0)
+                      && (dispatched_instr_i.chip_select[2] == 1'b0);
 
         vc_alloc_valid = dispatched_instr_i.valid
-                      && dispatched_instr_i.instr.write_to_reg
-                      && (dispatched_instr_i.instr.dest_address != '0)
-                      && (dispatched_instr_i.instr.chip_select[2] == 1'b1);
+                      && dispatched_instr_i.write_to_reg
+                      && (dispatched_instr_i.dest_address != '0)
+                      && (dispatched_instr_i.chip_select[2] == 1'b1);
 
         // Retirement valid
         //   1) retire bus is valid
@@ -104,10 +106,10 @@ module ooo_arr_unit (
         vc_prf_id = '{vector: 1'b1, tag: vc_free_list[vc_head[FIFO_WIDTH-1:0]]};
 
         // RAT lookups for both channels (needed to resolve .vx mixed operands)
-        sc_operand_a_tag = sc_reg_alloc_table[dispatched_instr_i.instr.src1_address];
-        sc_operand_b_tag = sc_reg_alloc_table[dispatched_instr_i.instr.src2_address];
-        vc_operand_a_tag = vc_reg_alloc_table[dispatched_instr_i.instr.src1_address];
-        vc_operand_b_tag = vc_reg_alloc_table[dispatched_instr_i.instr.src2_address];
+        sc_operand_a_tag = sc_reg_alloc_table[dispatched_instr_i.src1_address];
+        sc_operand_b_tag = sc_reg_alloc_table[dispatched_instr_i.src2_address];
+        vc_operand_a_tag = vc_reg_alloc_table[dispatched_instr_i.src1_address];
+        vc_operand_b_tag = vc_reg_alloc_table[dispatched_instr_i.src2_address];
 
     end
 
@@ -156,8 +158,8 @@ module ooo_arr_unit (
                 vc_reg_alloc_table[i] <= vc_commit_table[i];
             end
 
-            sc_head <= head_committed[0];
-            vc_head <= head_committed[1];
+            sc_head <= sc_head_committed;
+            vc_head <= vc_head_committed;
 
         end 
         else begin
@@ -196,26 +198,26 @@ module ooo_arr_unit (
             // based on src1_vector / src2_vector flags.
 
             if (sc_alloc_valid) begin
-                sc_reg_alloc_table[dispatched_instr_i.instr.dest_address] <= sc_prf_id.tag;
-                sc_ready[sc_prf_id.tag]  <= !dispatched_instr_i.instr.pre_calc;
+                sc_reg_alloc_table[dispatched_instr_i.dest_address] <= sc_prf_id.tag;
+                sc_ready[sc_prf_id.tag]  <= !dispatched_instr_i.pre_calc;
                 sc_head <= sc_head + 1'b1; 
             end
 
             if (vc_alloc_valid) begin
-                vc_reg_alloc_table[dispatched_instr_i.instr.dest_address] <= vc_prf_id.tag;
-                vc_ready[vc_prf_id.tag]  <= !dispatched_instr_i.instr.pre_calc;
+                vc_reg_alloc_table[dispatched_instr_i.dest_address] <= vc_prf_id.tag;
+                vc_ready[vc_prf_id.tag]  <= !dispatched_instr_i.pre_calc;
                 vc_head <= vc_head + 1'b1; 
             end
 
             // Alloc output
-            alloc_instr_o.sc_valid   <= sc_alloc_valid && !dispatched_instr_i.instr.pre_calc; 
-            alloc_instr_o.vc_valid   <= vc_alloc_valid && !dispatched_instr_i.instr.pre_calc;
-            alloc_instr_o.rs_slot_id <= dispatched_instr_i.rs_slot_id;
-            alloc_instr_o.instr      <= dispatched_instr_i.instr;
-            alloc_instr_o.operand_a_is_vector <= dispatched_instr_i.instr.src1_vector;
-            alloc_instr_o.operand_b_is_vector <= dispatched_instr_i.instr.src2_vector;
+            alloc_instr_o.sc_valid   <= sc_alloc_valid && !dispatched_instr_i.pre_calc; 
+            alloc_instr_o.vc_valid   <= vc_alloc_valid && !dispatched_instr_i.pre_calc;
+            alloc_instr_o.rs_slot_id <= rs_slot_id_i;
+            alloc_instr_o.instr      <= dispatched_instr_i;
+            alloc_instr_o.a_is_vector <= dispatched_instr_i.src1_vector;
+            alloc_instr_o.b_is_vector <= dispatched_instr_i.src2_vector;
 
-            if(dispatched_instr_i.instr.src1_vector) begin
+            if(dispatched_instr_i.src1_vector) begin
                 alloc_instr_o.operand_a_tag   <= '{vector: 1'b1, tag: vc_operand_a_tag};
                 alloc_instr_o.operand_a_ready <= vc_ready[vc_operand_a_tag];
             end
@@ -224,7 +226,7 @@ module ooo_arr_unit (
                 alloc_instr_o.operand_a_ready <= sc_ready[sc_operand_a_tag];
             end
 
-            if(dispatched_instr_i.instr.src2_vector) begin
+            if(dispatched_instr_i.src2_vector) begin
                 alloc_instr_o.operand_b_tag   <= '{vector: 1'b1, tag: vc_operand_b_tag};
                 alloc_instr_o.operand_b_ready <= vc_ready[vc_operand_b_tag];
             end
@@ -239,7 +241,7 @@ module ooo_arr_unit (
                 default: alloc_instr_o.prf_tag <= '0;
             endcase
 
-            alloc_instr_o.precalc_valid   <= sc_alloc_valid && dispatched_instr_i.instr.pre_calc;
+            alloc_instr_o.precalc_valid   <= sc_alloc_valid && dispatched_instr_i.pre_calc;
             alloc_instr_o.precalc_prf_tag <= (sc_alloc_valid) ? sc_prf_id : '0;
 
         end

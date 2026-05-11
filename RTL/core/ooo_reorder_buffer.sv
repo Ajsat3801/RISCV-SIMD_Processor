@@ -70,7 +70,7 @@ always_comb begin
     // sends signal to instruction queue when 1 slot or no slots are remaining
     rob_full_o = (head.address == tail_next.address) && (head.epoch != tail_next.epoch) || full;
     
-    allocated_instr_io.rob_id = tail;
+    alloc_instr_io.rob_id = tail;
     
 end
 
@@ -80,8 +80,6 @@ always_ff @(posedge clk_i) begin
         for (i=0; i<ROB_LEN; i++) rob_table[i] <= '0;
         head <= '0;
         tail <= '0;
-        sc_request_o.rob_valid <= 1'b0;
-        sc_request_o.rob_id    <= '0;
 
     end
     else begin
@@ -94,7 +92,7 @@ always_ff @(posedge clk_i) begin
         
         // Snooping
         // store retirement signal snooping
-        if(store_retire.valid) rob_table[store_retire.rob_id.address].ready <= 1'b1;
+        if(store_retire_i.valid) rob_table[store_retire_i.rob_id.address].ready <= 1'b1;
 
         // branch snooping
         if(branch_result_i.valid && rob_table[branch_result_i.rob_id.address].is_branch) begin

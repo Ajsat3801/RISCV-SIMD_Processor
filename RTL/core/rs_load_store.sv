@@ -41,9 +41,9 @@ module rs_load_store (
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid =   rs_request_i.occupied && (
-                        vc_rs_request_i.chip_select == signal_pkg::CS_VLSU ||
-                        sc_rs_request_i.chip_select == signal_pkg::CS_SLSU );
+        instr_valid =   rs_request_i.vc_rs_entry.occupied && (
+                        rs_request_i.chip_select == signal_pkg::CS_VLSU ||
+                        rs_request_i.chip_select == signal_pkg::CS_SLSU );
 
         for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
             eligible[i] =   buffer[i].occupied && 
@@ -52,8 +52,8 @@ module rs_load_store (
         end
         
         bypass =    instr_valid && 
-                    rs_request_i.operand_a_ready &&
-                    rs_request_i.operand_b_ready && 
+                    rs_request_i.vc_rs_entry.operand_a_ready &&
+                    rs_request_i.vc_rs_entry.operand_b_ready && 
                     !(|eligible) &&
                     lsu_ready_i;
 
@@ -84,7 +84,7 @@ module rs_load_store (
         end
         else begin
             mask_next = mask;
-            choice = (bypass) ? vc_rs_request_i.rs_slot : '0;
+            choice = (bypass) ? rs_request_i.rs_slot_id : '0;
         end
     end 
 
@@ -100,7 +100,6 @@ module rs_load_store (
         ls_read_request_o.operand_a_tag = dispatch_q.operand_a_tag;
         ls_read_request_o.operand_b_tag = dispatch_q.operand_b_tag;
 
-        lsu_operation = dispatch_q.operation;
         vc_lsu_rd_req_o.store_data_tag = dispatch_q.operand_b_tag;
         
         vc_lsu_rd_req_o.a_is_vector  = dispatch_q.a_is_vector;
@@ -169,18 +168,18 @@ module rs_load_store (
             // dequeue instructions
             if(bypass) begin
                 // send slice of RS input to output, removing the tags and ready
-                dispatch_q.occupied  <= rs_request_i.occupied;
-                dispatch_q.prf_tag   <= rs_request_i.prf_tag;
-                dispatch_q.rob_id    <= rs_request_i.rob_id;
+                dispatch_q.occupied  <= rs_request_i.vc_rs_entry.occupied;
+                dispatch_q.prf_tag   <= rs_request_i.vc_rs_entry.prf_tag;
+                dispatch_q.rob_id    <= rs_request_i.vc_rs_entry.rob_id;
 
-                dispatch_q.operation   <= rs_request_i.operation;
-                dispatch_q.a_is_vector <= rs_request_i.a_is_vector;
-                dispatch_q.b_is_vector <= rs_request_i.b_is_vector;
+                dispatch_q.operation   <= rs_request_i.vc_rs_entry.operation;
+                dispatch_q.a_is_vector <= rs_request_i.vc_rs_entry.a_is_vector;
+                dispatch_q.b_is_vector <= rs_request_i.vc_rs_entry.b_is_vector;
 
-                dispatch_q.operand_a_tag   <= rs_request_i.operand_a_tag;
-                dispatch_q.operand_b_tag   <= rs_request_i.operand_b_tag;
-                dispatch_q.operand_a_ready <= rs_request_i.operand_a_ready;
-                dispatch_q.operand_b_ready <= rs_request_i.operand_b_ready;
+                dispatch_q.operand_a_tag   <= rs_request_i.vc_rs_entry.operand_a_tag;
+                dispatch_q.operand_b_tag   <= rs_request_i.vc_rs_entry.operand_b_tag;
+                dispatch_q.operand_a_ready <= rs_request_i.vc_rs_entry.operand_a_ready;
+                dispatch_q.operand_b_ready <= rs_request_i.vc_rs_entry.operand_b_ready;
             end
             
             else if(dispatch) begin
@@ -207,7 +206,7 @@ module rs_load_store (
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[vc_rs_request_i.rs_slot] <= rs_request_i;
+            if (instr_valid && !bypass) buffer[rs_request_i.rs_slot_id] <= rs_request_i;
 
         end
     end

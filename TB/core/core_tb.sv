@@ -15,7 +15,7 @@ module core_tb;
 
     signal_pkg::data_t instr_array[0:4];
 
-    core dut(
+    core_test dut(
         .clk_i(clk),
         .reset_ni(reset_n),
         .fetched_instr_i(raw_instr),
@@ -100,14 +100,21 @@ module core_tb;
     endtask
 
     task automatic display_commit_states_sc();
-        $display("[FINAL] R1:%h R2:%h R3:%h R4:%h R5:%h R6:%h R7:%h",
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[1]],
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[2]],
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[3]],
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[4]],
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[5]],
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[6]],
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[7]]
+        $display("[FINAL] R1:%h %h R2:%h %h R3:%h %h R4:%h %h R5:%h %h R6:%h %h R7:%h %h",
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[1]],
+            dut.u_scalar_prf_replica1.regfile[dut.u_alloc_rename_retire.sc_commit_table[1]],
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[2]],
+            dut.u_scalar_prf_replica1.regfile[dut.u_alloc_rename_retire.sc_commit_table[2]],
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[3]],
+            dut.u_scalar_prf_replica1.regfile[dut.u_alloc_rename_retire.sc_commit_table[3]],
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[4]],
+            dut.u_scalar_prf_replica1.regfile[dut.u_alloc_rename_retire.sc_commit_table[4]],
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[5]],
+            dut.u_scalar_prf_replica1.regfile[dut.u_alloc_rename_retire.sc_commit_table[5]],
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[6]],
+            dut.u_scalar_prf_replica1.regfile[dut.u_alloc_rename_retire.sc_commit_table[6]],
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[7]],
+            dut.u_scalar_prf_replica1.regfile[dut.u_alloc_rename_retire.sc_commit_table[7]]
         );
     endtask
 
@@ -116,11 +123,11 @@ module core_tb;
                 dut.u_decode.fetch_valid_i,
                 dut.u_decode.decoded_instr_o.valid, 
                 dut.u_instr_q.dispatched_instr_o.valid,
-                dut.u_scalar_arr.alloc_instr_o.valid,
-                dut.u_scalar_arr.alloc_instr_o.instr.dest_address,
-                dut.u_sc_request_bus.rs_entry.occupied,
-                dut.u_scalar_alu_rs.sc_ex0_request_o.valid, dut.u_scalar_alu_rs.sc_ex1_request_o.valid,
-                dut.u_scalar_muldiv_rs.sc_ex_request_o.valid,
+                dut.u_alloc_rename_retire.alloc_instr_o.sc_valid,
+                dut.u_alloc_rename_retire.alloc_instr_o.instr.dest_address,
+                dut.u_alloc_bus.sc_rs_entry.occupied,
+                dut.u_scalar_alu_rs.sc_rd_req0_o.valid, dut.u_scalar_alu_rs.sc_rd_req1_o.valid,
+                dut.u_scalar_muldiv_rs.sc_rd_req_o.valid,
                 dut.u_scalar_alu0.sc_ex_result_o.valid, dut.u_scalar_alu1.sc_ex_result_o.valid,
                 dut.u_scalar_muldiv.sc_ex_result_o.valid,
                 dut.u_scalar_writeback.data_bus_o.valid,
@@ -144,31 +151,16 @@ module core_tb;
     endtask
 
     always @(posedge clk) begin;
-        prev_dest_address <= dut.u_scalar_arr.retire_instr_i.dest_address;
-        prev_prf_tag      <= dut.u_scalar_arr.retire_instr_i.prf_tag;
-        prev_retire       <= dut.u_scalar_arr.retire_instr_i.valid && !dut.u_scalar_arr.retire_instr_i.prf_tag.vector;
+        prev_dest_address <= dut.u_alloc_rename_retire.retire_instr_i.dest_address;
+        prev_prf_tag      <= dut.u_alloc_rename_retire.retire_instr_i.prf_tag;
+        prev_retire       <= dut.u_alloc_rename_retire.retire_instr_i.valid && !dut.u_alloc_rename_retire.retire_instr_i.prf_tag.vector;
 
         if(prev_retire) begin
         $display("[sc Retire at cycle %0d (%0t ns)] \tR%0d \ttag:%0d \tval:%h",
             (cycles-1), ($time()-20),
             prev_dest_address,
             prev_prf_tag,
-            dut.u_scalar_prf.regfile[dut.u_scalar_arr.commit_table[prev_dest_address]]
-        );
-        end
-    end
-
-    always @(posedge clk) begin;
-        vc_prev_dest_address <= dut.u_vector_arr.retire_instr_i.dest_address;
-        vc_prev_prf_tag      <= dut.u_vector_arr.retire_instr_i.prf_tag;
-        vc_prev_retire       <= dut.u_vector_arr.retire_instr_i.valid && dut.u_vector_arr.retire_instr_i.prf_tag.vector;
-
-        if(vc_prev_retire) begin
-        $display("[vc Retire at cycle %0d (%0t ns)] \tR%0d \ttag:%0d \tval:%h",
-            (cycles-1), ($time()-20),
-            vc_prev_dest_address,
-            vc_prev_prf_tag,
-            dut.u_vector_prf.regfile[dut.u_vector_arr.commit_table[vc_prev_dest_address]]
+            dut.u_scalar_prf_replica0.regfile[dut.u_alloc_rename_retire.sc_commit_table[prev_dest_address]]
         );
         end
     end

@@ -16,11 +16,11 @@ module lib_fifo_fwft_2push #(
     input logic clk_i,
     input logic reset_ni,
     
-    input logic push1_i,
-    input T push_data1_i,
+    input logic push0_i,
+    input T push0_data_i,
 
-    input logic push2_i,
-    input T push_data2_i,
+    input logic push1_i,
+    input T push1_data_i,
 
     input logic pop_i,
     

@@ -13,6 +13,7 @@ module wb_vector (
 
     // EX units
     input packet_pkg::vc_ex_result_t ex_result_i[VECTOR_EX_COUNT-1:0],
+    input packet_pkg::vc_ex_result_t lsu_result_i,
     output logic wb_ready_o[VECTOR_EX_COUNT-1:0],
 
     if_data_bus.writeback data_bus_o
@@ -43,14 +44,16 @@ module wb_vector (
         .next_full_o(next_full[0])
     );
 
-    lib_fifo_fwft_1push #(
+    lib_fifo_fwft_2push #(
         .BUFFER_SIZE(4),
         .T(packet_pkg::vc_ex_result_t)
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push_i(ex_result_i[1].valid),
-        .push_data_i(ex_result_i[1]),
+        .push0_i(ex_result_i[1].valid),
+        .push0_data_i(ex_result_i[1]),
+        .push1_i(lsu_result_i.valid),
+        .push1_data_i(lsu_result_i[1]),
         .pop_i(dequeue[1]),
         .data_o(fifo_heads[1]),
         .empty_o(empty[1]),
@@ -87,12 +90,8 @@ module wb_vector (
             data_bus_o.rob_id  <= '0;
             data_bus_o.data    <= '0;
         end
-    end
 
-    generate
-        for (genvar i=0; i<VECTOR_EX_COUNT; i++) begin
-            assign wb_ready_o[i] = ~(full[i] | next_full[i]);
-        end
-    endgenerate
+        wb_ready_o = ~(full | next_full);
+    end
 
 endmodule

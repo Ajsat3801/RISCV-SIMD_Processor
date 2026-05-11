@@ -35,7 +35,7 @@ module rs_vector_1issue #(
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid = rs_request_i.rs_entry.occupied && rs_request_i.chip_select == CHIP_SELECT;
+        instr_valid = rs_request_i.vc_rs_entry.occupied && rs_request_i.chip_select == CHIP_SELECT;
 
         for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
             eligible[i] =   buffer[i].occupied && 
@@ -44,8 +44,8 @@ module rs_vector_1issue #(
         end
         
         bypass =    instr_valid && 
-                    rs_request_i.rs_entry.operand_a_ready &&
-                    rs_request_i.rs_entry.operand_b_ready && 
+                    rs_request_i.vc_rs_entry.operand_a_ready &&
+                    rs_request_i.vc_rs_entry.operand_b_ready && 
                     !(|eligible) &&
                     vc_ex_ready_i;
 
@@ -76,7 +76,7 @@ module rs_vector_1issue #(
         end
         else begin
             mask_next = mask;
-            choice = (bypass) ? rs_request_i.rs_slot : '0;
+            choice = (bypass) ? rs_request_i.rs_slot_id : '0;
         end
     end 
 
@@ -102,7 +102,6 @@ module rs_vector_1issue #(
                             !buffer[i].a_is_vector && 
                             (sc_data_bus_i.prf_tag == buffer[i].operand_a_tag)
                         ) begin 
-                            buffer[i].operand_a <= sc_data_bus_i.data;
                             buffer[i].operand_a_ready <= 1'b1;
                         end
                     end
@@ -135,18 +134,17 @@ module rs_vector_1issue #(
             // dequeue instructions
             if(bypass) begin
                 // send slice of RS input to output, removing the tags and ready
-                vc_read_request_o.valid     <= rs_request_i.rs_entry.occupied;
-                vc_read_request_o.prf_tag   <= rs_request_i.rs_entry.prf_tag;
-                vc_read_request_o.rob_id    <= rs_request_i.rs_entry.rob_id;
-                vc_read_request_o.operand_a <= rs_request_i.rs_entry.operand_a;
-                vc_read_request_o.operation <= rs_request_i.rs_entry.operation;
+                vc_read_request_o.valid     <= rs_request_i.vc_rs_entry.occupied;
+                vc_read_request_o.prf_tag   <= rs_request_i.vc_rs_entry.prf_tag;
+                vc_read_request_o.rob_id    <= rs_request_i.vc_rs_entry.rob_id;
+                vc_read_request_o.operation <= rs_request_i.vc_rs_entry.operation;
 
-                vc_read_request_o.a_is_vector <= rs_request_i.rs_entry.a_is_vector;
-                vc_read_request_o.b_is_vector <= rs_request_i.rs_entry.b_is_vector;
-                vc_read_request_o.operand_a_tag <= rs_request_i.rs_entry.operand_a_tag;
-                vc_read_request_o.operand_b_tag <= rs_request_i.rs_entry.operand_b_tag;
+                vc_read_request_o.a_is_vector <= rs_request_i.vc_rs_entry.a_is_vector;
+                vc_read_request_o.b_is_vector <= rs_request_i.vc_rs_entry.b_is_vector;
+                vc_read_request_o.operand_a_tag <= rs_request_i.vc_rs_entry.operand_a_tag;
+                vc_read_request_o.operand_b_tag <= rs_request_i.vc_rs_entry.operand_b_tag;
 
-                sc_read_request_tag_o <= rs_request_i.rs_entry.operand_a_tag;
+                sc_read_request_tag_o <= rs_request_i.vc_rs_entry.operand_a_tag;
             end
             
             else if(dispatch) begin
@@ -154,7 +152,6 @@ module rs_vector_1issue #(
                 vc_read_request_o.valid     <= buffer[choice].occupied;
                 vc_read_request_o.prf_tag   <= buffer[choice].prf_tag;
                 vc_read_request_o.rob_id    <= buffer[choice].rob_id;
-                vc_read_request_o.operand_a <= buffer[choice].operand_a;
                 vc_read_request_o.operation <= buffer[choice].operation;
                 vc_read_request_o.a_is_vector <= buffer[choice].a_is_vector;
                 vc_read_request_o.b_is_vector <= buffer[choice].b_is_vector;
@@ -175,7 +172,7 @@ module rs_vector_1issue #(
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[rs_request_i.rs_slot] <= rs_request_i.rs_entry;
+            if (instr_valid && !bypass) buffer[rs_request_i.rs_slot_id] <= rs_request_i.vc_rs_entry;
 
         end
     end

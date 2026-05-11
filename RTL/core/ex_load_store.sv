@@ -4,13 +4,15 @@
         input logic reset_ni,
         input logic flush_i,
 
-        input  signal_pkg::sc_ex_request_t lsu_request_i,
+        input  packet_pkg::sc_ex_request_t lsu_request_i,
         input  signal_pkg::data_t sc_store_data_i,
-        input  signal_pkg::vc_lsu_ex_request_t vc_lsu_ex_request_i,
+        input  packet_pkg::vc_lsu_ex_request_t vc_lsu_ex_request_i,
 
         if_retirement_bus.lsu retire_instr_i,
 
         output packet_pkg::load_store_entry_t lsu_output_o,
+        output packet_pkg::sc_ex_result_t sc_fwd_load_o,
+        output packet_pkg::vc_ex_result_t vc_fwd_load_o,
         output packet_pkg::store_retire_t store_retire_o,
 
         output logic sc_ex_ready_o,
@@ -18,7 +20,7 @@
     );
 
     packet_pkg::load_store_entry_t store_buffer[config_pkg::STORE_BUFFER_SIZE-1:0];
-    packet_pkg::load_store_entry_t in, store_out, holding_reg;
+    packet_pkg::load_store_entry_t in, store_out, hold_reg;
     logic[config_pkg::STORE_BUFFER_SIZE-1:0] available;
     logic hold;
 
@@ -30,8 +32,8 @@
         in.valid     =  lsu_request_i.valid;
         in.is_store  =  (lsu_request_i.operation.lsu  == signal_pkg::LSU_SW) ||
                         (lsu_request_i.operation.vlsu == signal_pkg::VLSU_VSE32);
-        in.is_vector =  vc_lsu_ex_request_i.a_is_vector || vc_lsu_ex_request_i.b_is_vector;
-
+        in.is_vector =  lsu_request_i.prf_tag.vector;
+        in.prf_tag   =  lsu_request_i.prf_tag;
         in.rob_id    =  lsu_request_i.rob_id;
         in.mem_addr  =  lsu_request_i.operand_a + lsu_request_i.operand_b;
         
@@ -45,21 +47,28 @@
         // can retire only 1 instruction at a time so only 1 valid comparison possible. 
         out_idx = '0;
         in_idx  = '0;
+        fwd_idx = '0;
+        fwd_load = 1'b1;
 
         for(int i=0; i<STORE_BUFFER_SIZE; i++) begin
             if(!store_buffer[i].valid) in_idx = i;
             if(store_buffer[i].rob_id == retire_instr_i.rob_id) out_idx = i;
+            if(store_buffer[i].prf_tag == lsu_request_i.prf_tag) begin
+                fwd_idx = i;
+                fwd_load = 1'b1;
+            end
         end
 
         // intermediate logic variables
         send_store = retire_instr_i.valid && store_out.valid;
         send_hold  = hold && !send_store;
         send_in    = in.valid && !in.is_store && !hold && !send_store;
-
+        forward_load = in.valid && !in.is_store && fwd_load;
+        
     end
 
-    always_ff @(posedge clk) begin
-        if(!reset_n || flush_i) begin
+    always_ff @(posedge clk_i) begin
+        if(!reset_ni || flush_i) begin
             for(int i=0; i<STORE_BUFFER_SIZE; i++) begin
                 store_buffer[i] <= '0;
                 available[i]    <= '1;
@@ -99,6 +108,16 @@
                 default : lsu_output_o <= '0;
             endcase
         end
+        sc_fwd_load_o <= '{ forward_load && !in.is_vector, 
+                            lsu_request_i.prf_tag, 
+                            lsu_request_i.rob_id,
+                            store_buffer[fwd_idx].data[lsu_request_i.prf_tag[1:0]]
+                        };
+        vc_fwd_load_o <= '{ forward_load &&  in.is_vector,
+                            lsu_request_i.prf_tag, 
+                            lsu_request_i.rob_id,
+                            store_buffer[fwd_idx].data
+                        };
     end
 
     assign sc_ex_ready_o = |available && !hold;

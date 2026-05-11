@@ -1,22 +1,3 @@
-//import config_pkg::*;
-
-module fe_instruction_queue (
-
-    input logic clk_i,
-    input logic reset_ni,
-    input logic flush_i,
-
-    input packet_pkg::decoded_instr_t decoded_instr_i,
-    input signal_pkg::rs_slot_id_t released_rs_slot_id_i [RS_DISPATCH_COUNT-1:0],
-    input logic rs_slot_released_i [RS_DISPATCH_COUNT-1:0],
-    
-    input logic rob_full_i,
-    input logic arr_full_i,
-
-    if_dispatch_bus.queue dispatched_instr_o,
-    output logic queue_ready_o
-);
-
 /* INSTRUCTION QUEUE
  * Functions 
  *   -> Maintains queue of instructions that are ready to dispatch
@@ -45,18 +26,36 @@ module fe_instruction_queue (
  *   -> Implement bypass and remove 1 cycle lag when queue is empty
  */
 
+//import config_pkg::*;
+
+module fe_instruction_queue (
+
+    input logic clk_i,
+    input logic reset_ni,
+    input logic flush_i,
+
+    input packet_pkg::decoded_instr_t decoded_instr_i,
+    input signal_pkg::rs_slot_id_t released_rs_slot_id_i [RS_DISPATCH_COUNT-1:0],
+    input logic rs_slot_released_i [RS_DISPATCH_COUNT-1:0],
+    
+    input logic rob_full_i,
+    input logic arr_full_i,
+
+    output packet_pkg::decoded_instr_t dispatched_instr_o,
+    output signal_pkg::rs_slot_id_t rs_slot_id_o,
+    output logic queue_ready_o
+);
+
+
+
     // RS Slot tracking buffer
     signal_pkg::rs_slot_id_t next_rs_slot[RS_COUNT-1:0];
     logic[RS_COUNT-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
     // Instruction FIFO
     packet_pkg::decoded_instr_t instr_fifo[INSTRUCTION_QUEUE_LEN:0]; // N+1 entry buffer
-    logic[INSTRUCTION_QUEUE_PTR_LEN-1:0] head, tail, head_next, tail_next;
-    logic full, empty, enqueue, dequeue, ready;
-
-    // output flip flops
-    packet_pkg::decoded_instr_t alloc_instr_q;
-    signal_pkg::rs_slot_id_t rs_slot_id_q;
+    logic[INSTRUCTION_QUEUE_PTR_LEN-1:0] head, tail, head_next, tail_next, tail_next_next;
+    logic full, empty, enqueue, dequeue, ready, full_next;
 
     // intermediate variables
     logic[RS_IDX_W-1:0] rs_index;
@@ -178,21 +177,21 @@ module fe_instruction_queue (
 
             for (i=0; i<INSTRUCTION_QUEUE_LEN; i++) instr_fifo[i] = '0;
 
-            alloc_instr_q <= '0;
-            rs_slot_id_q  <= '0;
+            dispatched_instr_o <= '0;
+            rs_slot_id_o  <= '0;
             head <= '0;
             tail <= '0;
         end
 
         else begin
             if (dequeue) begin
-                alloc_instr_q <= instr_fifo[head];
-                rs_slot_id_q  <= next_rs_slot[rs_index];
+                dispatched_instr_o <= instr_fifo[head];
+                rs_slot_id_o  <= next_rs_slot[rs_index];
                 head <= head_next;
             end
             else begin 
-                alloc_instr_q <= '0;
-                rs_slot_id_q  <= '0;
+                dispatched_instr_o <= '0;
+                rs_slot_id_o  <= '0;
             end
             if (enqueue) begin
                 instr_fifo[tail] <= decoded_instr_i;
@@ -200,11 +199,5 @@ module fe_instruction_queue (
             end
         end
     end
-
-    assign dispatched_instr_o.valid = alloc_instr_q.valid;
-    assign dispatched_instr_o.instr = alloc_instr_q;
-    assign dispatched_instr_o.rs_slot_id = rs_slot_id_q;
-
-    assign queue_ready_o = dequeue || !(full || full_next);
-
+    
 endmodule

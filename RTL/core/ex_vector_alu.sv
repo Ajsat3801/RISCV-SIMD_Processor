@@ -5,7 +5,7 @@ module ex_vector_alu (
     input  logic flush_i,
     
     input  packet_pkg::vc_alu_ex_request_t vc_ex_request_i,
-    input  packet_pkg::data_t sc_operand_i,
+    input  signal_pkg::data_t sc_operand_i,
     
     output packet_pkg::vc_ex_result_t vc_ex_result_o,
     output logic vc_ex_ready_o
@@ -15,9 +15,9 @@ module ex_vector_alu (
     signal_pkg::vector_data_t valu_operand_a, valu_operand_b, valu_output;
     logic[config_pkg::VECTOR_SIZE-1:0] valid;
 
-    generate
+    generate 
 
-        for(i=0; i<config_pkg::VECTOR_SIZE; i++) begin
+        for(i=0; i<config_pkg::VECTOR_SIZE; i++) begin : gen_vector_lanes
             lib_vector_alu_lane alu_instance (
                 .operation(vc_ex_request_i.operation),
                 .operand_a(valu_operand_a[i]),

@@ -1,7 +1,8 @@
 *.docx
 *.xlsx
 .claudeignore
-.vscode/*s
+.vscode/*
 doc/block_diagram_old.drawio.svg
 doc/block_diagramv2.drawio.svg
 macros/*
+rtl/core/core_test.sv

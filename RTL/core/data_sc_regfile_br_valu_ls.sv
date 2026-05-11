@@ -13,7 +13,7 @@
         ready bit set
  */
 
-module phy_regfile_2sc1ls (
+module data_sc_regfile_br_valu_ls (
     input logic clk_i,
     input logic reset_ni,
 
@@ -24,14 +24,14 @@ module phy_regfile_2sc1ls (
     if_data_bus.prf sc_wb_instr_i,
 
     // Read operands from RS and send to functional unit
-    input signal_pkg::read_request_t sc_br_rd_req_i,
-    output signal_pkg::sc_ex_request_t sc_br_ex_req_o,
+    input  packet_pkg::read_request_t sc_br_rd_req_i,
+    output packet_pkg::sc_ex_request_t sc_br_ex_req_o,
 
-    input signal_pkg::prf_tag_t vc_alu_rd_req_tag_i
-    output signal_pkg::data vc_alu_sc_operand_o,
+    input  signal_pkg::prf_tag_t vc_alu_rd_req_tag_i,
+    output signal_pkg::data_t vc_alu_sc_operand_o,
 
-    input signal_pkg::read_request_t ls_rd_req_i,
-    output signal_pkg::sc_ex_request_t ls_ex_req_o,
+    input  packet_pkg::read_request_t ls_rd_req_i,
+    output packet_pkg::sc_ex_request_t ls_ex_req_o,
     output signal_pkg::data_t ls_store_data_o
 );
 
@@ -63,7 +63,7 @@ module phy_regfile_2sc1ls (
              */
 
             if(precalc_i.precalc_valid) begin
-                regfile[precalc_i.precalc_prf_tag] <= pre_calc_i.precalc_data;
+                regfile[precalc_i.precalc_prf_tag] <= precalc_i.precalc_data;
             end
 
             if (sc_wb_instr_i.valid) begin
@@ -94,9 +94,6 @@ module phy_regfile_2sc1ls (
             ls_ex_req_o.prf_tag   <= ls_rd_req_i.prf_tag;
             ls_ex_req_o.rob_id    <= ls_rd_req_i.rob_id;
             ls_ex_req_o.operation <= ls_rd_req_i.operation;
-
-            ls_ex_req_o.a_is_vector <= ls_rd_req_i.a_is_vector;
-            ls_ex_req_o.b_is_vector <= ls_rd_req_i.b_is_vector;
 
             ls_ex_req_o.operand_a <= operand_a1;
             ls_ex_req_o.operand_b <= {{20{ls_rd_req_i.imm[11]}},ls_rd_req_i.imm}; 
