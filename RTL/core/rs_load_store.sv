@@ -206,7 +206,7 @@ module rs_load_store (
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[rs_request_i.rs_slot_id] <= rs_request_i;
+            if (instr_valid && !bypass) buffer[rs_request_i.rs_slot_id] <= rs_request_i.vc_rs_entry;
 
         end
     end

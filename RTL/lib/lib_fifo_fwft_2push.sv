@@ -26,7 +26,8 @@ module lib_fifo_fwft_2push #(
     
     output T data_o,
     output logic empty_o,
-    output logic full_o
+    output logic full_o,
+    output logic next_full_o
 );
 
     localparam ADDR_SIZE = $clog2(BUFFER_SIZE+1);
@@ -43,11 +44,11 @@ module lib_fifo_fwft_2push #(
         head_next = (head == BUFFER_SIZE) ? '0 :(head + 1);
 
         full_o = (tail_next == head);
-        one_slot_rem = (tail_next_next == head);
+        next_full_o = (tail_next_next == head);
         empty_o = head==tail;
 
-        bypass1 = pop_i && push1_i && empty_o;
-        bypass2 = pop_i && !push1_i && push2_i && empty_o;
+        bypass1 = pop_i && push0_i && empty_o;
+        bypass2 = pop_i && !push0_i && push1_i && empty_o;
         pop_queue = pop_i && !empty_o && !bypass1 && !bypass2;
 
         /*
@@ -55,16 +56,16 @@ module lib_fifo_fwft_2push #(
         * 1) you have 2 or more slots remaining
         * 2) you have one slot remaining + 1 pop (unlikely case)
         */
-        two_enqueue = push1_i && push2_i && !full_o && (!one_slot_rem || (one_slot_rem && pop_queue));
+        two_enqueue = push0_i && push1_i && !full_o && (!one_slot_rem || (one_slot_rem && pop_queue));
         /*
         * scenarios where 1 push allowed
         * 1) you have 1 slot remaining
         * 2) you have no slots + 1 pop (unlikely case)
         */
-        one_enqueue = !two_enqueue && (push1_i || push2_i) && (!full_o || (full_o && pop_queue));
+        one_enqueue = !two_enqueue && (push0_i || push1_i) && (!full_o || (full_o && pop_queue));
 
-        if(bypass1) data_o = push_data1_i;
-        else if(bypass2) data_o  = push_data2_i;
+        if(bypass1) data_o = push0_data_i;
+        else if(bypass2) data_o  = push1_data_i;
         else if(!empty_o) data_o = main_fifo[head];
         else data_o = '0;
 
@@ -83,22 +84,22 @@ module lib_fifo_fwft_2push #(
             
             if(two_enqueue) begin
                 if(!bypass1) begin
-                    main_fifo[tail] <= push_data1_i;
-                    main_fifo[tail_next] <= push_data2_i;
+                    main_fifo[tail] <= push0_data_i;
+                    main_fifo[tail_next] <= push1_data_i;
                     tail <= tail_next_next;
                 end
                 else begin
-                    main_fifo[tail] <= push_data2_i;
+                    main_fifo[tail] <= push1_data_i;
                     tail <= tail_next;
                 end
             end
             
-            if(one_enqueue && push1_i && !bypass1) begin
-                main_fifo[tail] <= push_data1_i;
+            if(one_enqueue && push0_i && !bypass1) begin
+                main_fifo[tail] <= push0_data_i;
                 tail <= tail_next;
             end
-            else if(one_enqueue && push2_i && !bypass2) begin
-                main_fifo[tail] <= push_data2_i;
+            else if(one_enqueue && push1_i && !bypass2) begin
+                main_fifo[tail] <= push1_data_i;
                 tail <= tail_next;
             end
         end

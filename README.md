@@ -14,7 +14,54 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 * Branching bypasses writeback arbitation directly into ROB. Unconditional branches are processed in decoder and written directly in ROB
 
 
+
+### Microarchitecture
+
+#### Overview
+
+![Microarchitecture](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/block_diagram.drawio.svg)
+
+#### Pipeline Execution Paths
+
+<div align="left">
+  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/sc_alu_ops.drawio.svg" width="90%" alt="Arithmetic and Logic ops flow">
+  <p align="center">
+    <em>Pipeline Execution Path for Arithmetic & Logic Operations</em>
+  </p>
+</div>
+
+<div align="left">
+  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/load_ops.drawio.svg" width="100%" alt="loads flow">
+  <p align="center">
+    <em>Pipeline Execution Path for Load Operations</em>
+  </p>
+</div>
+
+<div align="left">
+  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/store_ops.drawio.svg" width="90%" alt="stores flow">
+  <p align="center">
+    <em>Pipeline Execution Path for Store Operations</em>
+  </p>
+</div>
+
+<div align="left">
+  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/branch_ops.drawio.svg" width="90%" alt="branches flow">
+  <p align="center">
+    <em>Pipeline Execution Path for Conditional Branch Operations</em>
+  </p>
+</div>
+
+<div align="left">
+  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/ui_ops.drawio.svg" width="70%" alt="jumps and ui flow">
+  <p align="center">
+    <em>Pipeline Execution Path for Unconditional Branch and Upper Immediate Operations</em>
+  </p>
+</div>
+
+
 ### Supported Instructions
+
+#### RV32I instructions
 
 | Instruction                                          | Processing Unit     |
 |------------------------------------------------------|---------------------|
@@ -22,33 +69,28 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 | ADDI, SLLI, SRLI, ANDI, ORI, XORI, SLTI, SLTIU       | Scalar ALU          |
 | BEQ, BNE, BLT, BGE, BLTU, BGEU                       | Branch Unit         |
 | JAL, LUI, AUIPC                                      | Procesed in decoder |
-| MUL, DIV                                             | Scalar MULDIV       |
+| LW, SW                                               | LSU                 |
+
+#### RV32M instructions
+
+| Instruction                                          | Processing Unit     |
+|------------------------------------------------------|---------------------|
+| MUL, MULH, MULHSU, MULHU                             | Scalar MULDIV       |
+| DIV, DIVU, REM, REMU                                 | Scalar MULDIV       |
+
+#### RV32V (Vector Extension) instructions
+
+| Instruction                                          | Processing Unit     |
+|------------------------------------------------------|---------------------|
 | vadd.vv, vsub.vv, vand.vv, vor.vv, vxor.vv           | Vector ALU          | 
 | vadd.vx, vsub.vx, vand.vx, vor.vx, vxor.vx, vrsub.vx | Vector ALU          |
-| **PENDING**                                          |                     | 
-| LW, SW                                               | LSU                 |
 | vle32.v, vse32.v                                     | LSU                 |
 
 ### Decoded instruction format
 
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/decoding.png 
+![Instruction decoding format](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/decoding.png 
 "Decoded instruction format")
 
-### Microarchitecture
-
-#### Overview
-
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/block_diagram.drawio.svg)
-
-#### Stages for each type of instruction
-
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/sc_alu_ops.drawio.svg "Flow for scalar ALU and multiply divide operations")  
-
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/vc_alu_ops.drawio.svg "Flow for vector alu operations")
-
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/branch_ops.drawio.svg "Flow for conditional branch operations")
-
-![Alt text](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/ui_ops.drawio.svg "Flow for unconditional branches and upper immediate operations")
 
 ## Verification
 

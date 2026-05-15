@@ -1,12 +1,17 @@
-/* FUNCTIONAL UNIT FOR BRANCH RESOLUTION
+/* ------------------------------------------------------------------------------------------------
+ *                               FUNCTIONAL UNIT FOR BRANCH RESOLUTION
+ * ------------------------------------------------------------------------------------------------
  *  Functions/Behavior:
  *  ->  checks for branch condition and returns flag to indicate branch taken or not
+ *
  *  Inputs
  *  ->  clock, reset_n and flush
  *  ->  branch request packet (see packet_pkg::sc_ex_request_t for detailed info)
+ *
  *  Outputs
  *  ->  branch result packet (see packet_pkg for detailed info)
  *  ->  ready
+ *
  *  Notes
  *  ->  result of branch resolution goes directly to the ROB bypassing writeback
  *  ->  flush and reset_n gives 0 as the output, no other functionality
@@ -14,8 +19,10 @@
  *  ->  flush and ready have functionality in multi-cycle FUs. added here for uniformity
  *  ->  prf_tag from branch packet is dont care. creating a separate packet for branches with prf
         tag removed scalar RS 1 issue model cannot be used for scheduling, so retained.
+ *
  *  Potential Optimizations for future
  *  ->  Remove PRF tag from branch request packet
+ * ------------------------------------------------------------------------------------------------
  */
 module ex_branch(
     input logic clk_i,

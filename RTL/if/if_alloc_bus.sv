@@ -20,16 +20,19 @@ interface if_alloc_bus;
     signal_pkg::operations_e operation;
     
     packet_pkg::rs_entry_t sc_rs_entry, vc_rs_entry;
-    assign sc_rs_entry = packet_pkg::rs_entry_t'{   sc_valid, prf_tag, rob_id, instr.operation,
-                                        operand_a_tag, operand_b_tag,
+    assign sc_rs_entry = packet_pkg::rs_entry_t'{ sc_valid,
+                                        prf_tag, rob_id, 
+                                        instr.operation, operand_a_tag, operand_b_tag,
                                         instr.imm, instr.read_src2, 
-                                        operand_a_ready, operand_b_ready, 
-                                        a_is_vector, b_is_vector };
+                                        a_is_vector, b_is_vector,
+                                        operand_a_ready, operand_b_ready
+                                        };
     assign vc_rs_entry = packet_pkg::rs_entry_t'{   vc_valid, prf_tag, rob_id, instr.operation,
                                         operand_a_tag, operand_b_tag,
                                         instr.imm, instr.read_src2, 
-                                        operand_a_ready, operand_b_ready, 
-                                        a_is_vector, b_is_vector };
+                                        a_is_vector, b_is_vector,
+                                        operand_a_ready, operand_b_ready
+                                        };
     assign precalc_data = { instr.src1_address, instr.src2_address, instr.imm, instr.extend};
     assign chip_select = instr.chip_select;
     assign valid = sc_valid || vc_valid;

@@ -24,8 +24,8 @@
     logic[config_pkg::STORE_BUFFER_SIZE-1:0] available;
     logic hold;
 
-    logic[$clog2(config_pkg::STORE_BUFFER_SIZE)-1:0] in_idx, out_idx;
-    logic send_store, send_hold, send_in;
+    logic[$clog2(config_pkg::STORE_BUFFER_SIZE)-1:0] in_idx, out_idx, fwd_idx;
+    logic send_store, send_hold, send_in, fwd_load, forward_load;
 
     always_comb begin
         // Combine scalar and vector inputs into a single packet

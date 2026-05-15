@@ -11,6 +11,7 @@
 `include "if_retirement_bus.sv"
 
 `include "lib_fifo_fwft_1push.sv"
+`include "lib_fifo_fwft_2push.sv"
 `include "lib_rs_slot_freeq_1push.sv"
 `include "lib_rs_slot_freeq_2push.sv"
 `include "lib_scalar_multiplier.sv"

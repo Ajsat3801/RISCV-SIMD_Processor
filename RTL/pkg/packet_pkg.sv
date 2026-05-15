@@ -63,10 +63,10 @@ package packet_pkg;
         signal_pkg::prf_tag_t prf_tag;
         signal_pkg::rob_address_t rob_id;
 
+        signal_pkg::operations_e operation;
+
         signal_pkg::vector_data_t operand_a;
         signal_pkg::vector_data_t operand_b;
-
-        signal_pkg::operations_e operation;
 
         logic a_is_vector;
         logic b_is_vector;

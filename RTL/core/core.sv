@@ -1,25 +1,32 @@
-/* CORE MODULE
+/* ------------------------------------------------------------------------------------------------
+ *                                           CORE MODULE
+ * ------------------------------------------------------------------------------------------------
+ *
  *  Functions/Behavior:
  *  ->  Integrates the whole pipeline
  *  ->  Pre-loading of scalar and vector PRF supported
+ *
  *  Inputs:
  *  ->  outputs of fetch module (raw 32bit instruction, current PC and valid)
  *  ->  pre_load variables (flag, address, pre load data)
+ *
  *  Outputs
  *  ->  ready for next instruction (input of fetch module)
+ *
  *  Notes
  *  ->  Fetch is remaining, current inputs and outputs of core are those of fetch
  *  ->  Index of each FU:   scalar: 0-> alu0, 1->alu1, 2->muldiv, 3->lsu
                             vector: 0-> valu, 1->lsu
+ *
  *  Potential Optimizations for physical constraints
  *  ->  separate RS for branching and separate branch packet
  *  ->  smaller RS for branches
  *  ->  send only required info in allocation bus instead of full decoded instruction
+ * ------------------------------------------------------------------------------------------------
  */
 
-/* import statements for OpenROAD, already included in EDA playground
-import config_pkg::*;
-*/
+// import statements for OpenROAD, already included in EDA playground
+//import config_pkg::*;
 
 module core #()(
     input  clk_i,
@@ -60,9 +67,6 @@ module core #()(
     logic rob_full, arr_full;
 
     logic queue_ready, fetch_valid;
-
-    //Index of each FU:   scalar: 0-> alu0, 1->alu1, 2->muldiv, 3->lsu
-    //                    vector: 0-> valu, 1->lsu
 
     // signals from reservation stations to prf 
     packet_pkg::read_request_t sc_rd_req[SCALAR_EX_COUNT-1:0];
@@ -389,7 +393,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_ex_request_i(sc_ex_request[0]),
+        .sc_ex_request_i(sc_ex_req[0]),
         .sc_ex_result_o(sc_ex_result[0]),
         .sc_ex_ready_o(sc_ex_ready[0])
     );
@@ -398,7 +402,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_ex_request_i(sc_ex_request[1]),
+        .sc_ex_request_i(sc_ex_req[1]),
         .sc_ex_result_o(sc_ex_result[1]),
         .sc_ex_ready_o(sc_ex_ready[1])
     );
@@ -407,7 +411,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_ex_request_i(sc_ex_request[2]),
+        .sc_ex_request_i(sc_ex_req[2]),
         .sc_ex_result_o(sc_ex_result[2]),
         .sc_ex_ready_o(sc_ex_ready[2])
     ); 
@@ -416,7 +420,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .br_ex_request_i(br_ex_request),
+        .br_ex_request_i(br_ex_req),
         .br_ex_result_o(br_ex_result),
         .br_ex_ready_o(br_ex_ready)
     );
@@ -425,7 +429,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .lsu_request_i(sc_ex_request[3]),
+        .lsu_request_i(sc_ex_req[3]),
         .sc_store_data_i(sc_ls_store_data),
         .vc_lsu_ex_request_i(vc_lsu_ex_req),
         .retire_instr_i(u_retirement_bus),
@@ -441,7 +445,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .vc_ex_request_i(vc_ex_request[0]),
+        .vc_ex_request_i(vc_alu_ex_req),
         .sc_operand_i(vc_alu_sc_operand),
         .vc_ex_result_o(vc_ex_result[0]),
         .vc_ex_ready_o(vc_ex_ready[0])
@@ -467,7 +471,7 @@ module core #()(
         .reset_ni(reset_ni),
         .flush_i(flush),
         .ex_result_i(vc_ex_result),
-        .lsu_result_i(vc_lsu_result)
+        .lsu_result_i(vc_lsu_result),
         .wb_ready_o(vc_wb_ready),
         .data_bus_o(u_vc_data_bus)
     );

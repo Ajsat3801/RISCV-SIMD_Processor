@@ -127,11 +127,15 @@ module ooo_arr_unit (
                 vc_reg_alloc_table[i] <= signal_pkg::prf_address_t'(i);
                 sc_commit_table[i]    <= signal_pkg::prf_address_t'(i);
                 vc_commit_table[i]    <= signal_pkg::prf_address_t'(i);
+                sc_ready[i] <= 1'b1;
+                vc_ready[i] <= 1'b1;
             end
 
             for (int i=ARCH_REG_DEPTH; i<PRF_DEPTH; i++) begin
                 sc_free_list[i-ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
                 vc_free_list[i-ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
+                sc_ready[i] <= 1'b0;
+                vc_ready[i] <= 1'b0;
             end
 
             sc_head <= '0;
@@ -139,9 +143,6 @@ module ooo_arr_unit (
 
             sc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
             vc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
-
-            sc_ready <= '1;
-            vc_ready <= '1;
 
         // FLUSH
         //   Restore RATs from commit tables.
@@ -199,13 +200,13 @@ module ooo_arr_unit (
 
             if (sc_alloc_valid) begin
                 sc_reg_alloc_table[dispatched_instr_i.dest_address] <= sc_prf_id.tag;
-                sc_ready[sc_prf_id.tag]  <= !dispatched_instr_i.pre_calc;
+                sc_ready[sc_prf_id.tag]  <= dispatched_instr_i.pre_calc;
                 sc_head <= sc_head + 1'b1; 
             end
 
             if (vc_alloc_valid) begin
                 vc_reg_alloc_table[dispatched_instr_i.dest_address] <= vc_prf_id.tag;
-                vc_ready[vc_prf_id.tag]  <= !dispatched_instr_i.pre_calc;
+                vc_ready[vc_prf_id.tag]  <= dispatched_instr_i.pre_calc;
                 vc_head <= vc_head + 1'b1; 
             end
 

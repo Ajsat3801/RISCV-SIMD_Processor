@@ -1,9 +1,27 @@
-
-
-/*
-import signal_pkg::*;
-import config_pkg::*;
+/* ------------------------------------------------------------------------------------------------
+ *                                       INSTRUCTION DECODER
+ * ------------------------------------------------------------------------------------------------
+ *  Functions/Behavior
+ *  ->  Decodes the fetched instructions into data & control signals
+ *  ->  Jump/Branch destination PC and *UI instruction outputs are pre-calculated
+ *  ->  Refer decoded_instr_t struct inside signal_pkg for detailed explanation
+ *
+ *  Inputs
+ *  ->  clk, reset_n
+ *  ->  raw 32bit instruction
+ *  ->  PC of current instruction
+ *  ->  input instruction valid
+ *
+ *  Outputs
+ *  ->  decoded instruction sent to instruction queue
+ *
+ *  Notes:
+ *  ->  output valid is inside decoded instruction struct
+ *  ->  no flush requires as the module doesnt store current state of processor
+ * ------------------------------------------------------------------------------------------------
 */
+
+//import config_pkg::*;
 
 module fe_decode(
     input logic clk_i,
@@ -15,23 +33,6 @@ module fe_decode(
 
     output packet_pkg::decoded_instr_t decoded_instr_o
 );
-
-/*  INSTRUCTION DECODER
- *  Functions/Behavior
- *  ->  Decodes the fetched instructions into data & control signals
- *  ->  Jump/Branch destination PC and *UI instruction outputs are pre-calculated
- *  ->  Refer decoded_instr_t struct inside signal_pkg for detailed explanation
- *  Inputs
- *  ->  clk, reset_n
- *  ->  raw 32bit instruction
- *  ->  PC of current instruction
- *  ->  input instruction valid
- *  Outputs
- *  ->  decoded instruction sent to instruction queue
- *  Notes:
- *  ->  output valid is inside decoded instruction struct
- *  ->  no flush requires as the module doesnt store current state of processor
-*/
 
     packet_pkg::decoded_instr_t decoded_instr_d;
     logic [6:0]  opcode;

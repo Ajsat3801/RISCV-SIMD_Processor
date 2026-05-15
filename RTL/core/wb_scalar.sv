@@ -88,8 +88,8 @@ module wb_scalar (
         .reset_ni(reset_wb_n),
         .push0_i(ex_result_i[3].valid),
         .push0_data_i(ex_result_i[3]),
-        .push1_i(lsu_result_i[3].valid),
-        .push1_data_i(lsu_result_i[3]),
+        .push1_i(lsu_result_i.valid),
+        .push1_data_i(lsu_result_i),
         .pop_i(dequeue_next[3]),
         .data_o(fifo_heads[3]),
         .empty_o(empty[3]),
@@ -151,7 +151,10 @@ module wb_scalar (
             dequeue_next = '0;
         end
 
-        wb_ready_o = ~(full | next_full);
+        wb_ready_o[0] = ~(full[0] | next_full[0]);
+        wb_ready_o[1] = ~(full[1] | next_full[1]);
+        wb_ready_o[2] = ~(full[2] | next_full[2]);
+        wb_ready_o[3] = ~(full[3] | next_full[3]);
         
     end
 

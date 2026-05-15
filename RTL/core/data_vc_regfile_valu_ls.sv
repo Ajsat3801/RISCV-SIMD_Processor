@@ -30,7 +30,7 @@ module data_vc_regfile_valu_ls (
 );
 
     signal_pkg::vector_data_t regfile[PRF_DEPTH-1:0];
-    signal_pkg::data_t operand_a0, operand_b0, operand_sd;
+    signal_pkg::vector_data_t operand_a0, operand_b0, operand_sd;
 
     always_comb begin
         operand_a0 = regfile[vc_alu_rd_req_i.operand_a_tag.tag];
@@ -51,9 +51,9 @@ module data_vc_regfile_valu_ls (
             end
 
             // read VALU operands
-            vc_alu_ex_req_o <= '{   vc_alu_rd_req_i.valid, vc_alu_rd_req_i.prf_tag, vc_alu_rd_req_i.rob_id, vc_alu_rd_req_i.operation, 
-                                    vc_alu_rd_req_i.a_is_vector, vc_alu_rd_req_i.b_is_vector,
-                                    operand_a0, operand_b0
+            vc_alu_ex_req_o <= '{   vc_alu_rd_req_i.valid, vc_alu_rd_req_i.prf_tag, vc_alu_rd_req_i.rob_id, 
+                                    vc_alu_rd_req_i.operation, operand_a0, operand_b0,
+                                    vc_alu_rd_req_i.a_is_vector, vc_alu_rd_req_i.b_is_vector
                                 };
 
             // read LSU operands
