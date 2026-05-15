@@ -107,7 +107,20 @@ package packet_pkg;
     typedef struct packed {
         signal_pkg::rob_address_t rob_id;
         logic valid;
-    } store_retire_t;
+    } store_retire_request_t;
+
+    typedef struct packed {
+        logic [3:0]   write_enable;
+        logic [7:0]   address;
+        logic [127:0] data;
+    } dmem_request_t;
+
+    typedef struct packed {
+        logic read_enable;
+        logic write_enable;
+        logic [7:0] address;
+        logic [31:0] data;
+    } imem_request_t;
 
 // ------------------------------------------------------------------------------------------------
 //                                   FUNCTIONAL UNIT RESULTS
@@ -193,6 +206,8 @@ package packet_pkg;
         signal_pkg::vector_data_t data;
 
     } load_store_entry_t;
+
+    
 
 endpackage
 

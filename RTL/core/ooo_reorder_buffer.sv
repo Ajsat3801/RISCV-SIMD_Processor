@@ -9,7 +9,7 @@ module ooo_reorder_buffer (
     if_data_bus.snoop vc_data_bus_i,
 
     input packet_pkg::br_result_t branch_result_i,
-    input packet_pkg::store_retire_t store_retire_i,
+    input packet_pkg::store_retire_request_t store_retire_req_i,
 
     if_retirement_bus.rob retire_instr_o,
 
@@ -92,7 +92,7 @@ always_ff @(posedge clk_i) begin
         
         // Snooping
         // store retirement signal snooping
-        if(store_retire_i.valid) rob_table[store_retire_i.rob_id.address].ready <= 1'b1;
+        if(store_retire_req_i.valid) rob_table[store_retire_req_i.rob_id.address].ready <= 1'b1;
 
         // branch snooping
         if(branch_result_i.valid && rob_table[branch_result_i.rob_id.address].is_branch) begin

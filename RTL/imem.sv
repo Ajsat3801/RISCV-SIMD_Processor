@@ -21,39 +21,33 @@
  *  ->  both read enable and write enable inputs present to prevent propogation of dont cares from
         SRAMs when there is no read or write
  *  ->  if both read enable and write enable inputs are 1 (illegal case), we do a write
+ *  ->  Reset does not propogate to IMEM, Macros power up to X. 
  */
 
 module imem (
     input  logic clk_i,
-    input  logic read_enable_i,
-    input  logic write_enable_i,
-    input  logic[7:0] pre_load_address_i,
-    input  logic[7:0] address_i,
-    input  logic[31:0] data_i,
-    output logic[31:0] data_o,
-    output logic[1:0] valid_o
+
+    input  packet_pkg::imem_request_t imem_request_i,
+
+    output logic[31:0] data_o
 
 );
-    logic[7:0] address;
     logic[31:0] read;
 
     sky130_sram_1kbyte_1rw_32x256_32 u_imem(
         .clk0(clk_i),
         .csb0(1'b0),
-        .web0(write_enable_i),
+        .web0(~imem_request_i.write_enable),
         .spare_wen0(1'b0),
-        .addr0({1'b0, address}),
-        .din0({1'b0, data_i[31:0]}),
+        .addr0({1'b0, imem_request_i.address}),
+        .din0({1'b0, imem_request_i.data[31:0]}),
         .dout0(read)
     );
 
-    always_comb begin
-        address = (write_enable_i) ? pre_load_address_i : address_i;
-        data_o = read[31:0];
-    end
+    assign data_o = read[31:0];
 
     always_ff @(posedge clk_i) begin
-        valid_o <= read_enable_i;
+        valid_o <= imem_request_i.read_enable;
     end
 
 

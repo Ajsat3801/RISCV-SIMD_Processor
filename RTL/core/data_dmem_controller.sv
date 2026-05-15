@@ -11,10 +11,7 @@
  *  ->  Value of data to be loaded from data memory (128 bits)
  *
  *  Outputs:
- *  ->  signals to data memory
- *      ->  write enable for each bank
- *      ->  memory address
- *      ->  data to be stored (128 bits)
+ *  ->  signals to data memory (refer dmem_request_t in packet_pkg)
  *  ->  signal to scalar writeback for loads
  *  ->  signal to vector writeback for loads
  *
@@ -31,13 +28,10 @@ module data_dmem_controller (
     input  logic clk_i,
     input  logic reset_ni,
 
-    input  logic [127:0] dmem_data_i,
-
     input  packet_pkg::load_store_entry_t lsu_output,
 
-    output logic [3:0] write_enable_o,
-    output logic [7:0] mem_addr_o,
-    output logic [127:0] dmem_data_o,
+    input  logic [127:0] dmem_data_i,
+    output packet_pkg::dmem_request_t dmem_req_o,
 
     output packet_pkg::sc_ex_result_t sc_wb_o,
     output packet_pkg::vc_ex_result_t vc_wb_o
@@ -59,14 +53,14 @@ module data_dmem_controller (
         
         dmem_data = dmem_data_i;
 
-        dmem_data_o = lsu_output.data;
-        mem_addr_o = lsu_output.mem_addr[9:2];
+        dmem_req_o.data = lsu_output.data;
+        dmem_req_o.address = lsu_output.mem_addr[9:2];
 
-        if(!lsu_output.valid || !lsu_output.is_store) write_enable_o = '0;
-        else if(lsu_output.is_vector) write_enable_o = '1;
+        if(!lsu_output.valid || !lsu_output.is_store) dmem_req_o.write_enable = '0;
+        else if(lsu_output.is_vector) dmem_req_o.write_enable = '1;
         else begin
-            write_enable_o =  '0;
-            write_enable_o[lsu_output.mem_addr[1:0]] = 1'b1;
+            dmem_req_o.write_enable =  '0;
+            dmem_req_o.write_enable[lsu_output.mem_addr[1:0]] = 1'b1;
         end
 
         

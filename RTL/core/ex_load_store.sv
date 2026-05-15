@@ -13,7 +13,7 @@
         output packet_pkg::load_store_entry_t lsu_output_o,
         output packet_pkg::sc_ex_result_t sc_fwd_load_o,
         output packet_pkg::vc_ex_result_t vc_fwd_load_o,
-        output packet_pkg::store_retire_t store_retire_o,
+        output packet_pkg::store_retire_request_t store_retire_req_o,
 
         output logic sc_ex_ready_o,
         output logic vc_ex_ready_o
@@ -80,12 +80,12 @@
             if(in.valid && in.is_store) begin
                 store_buffer[in_idx]  <= in;
                 available[in_idx]     <= 1'b0;
-                store_retire_o.valid  <= 1'b1;
-                store_retire_o.rob_id <= in.rob_id;
+                store_retire_req_o.valid  <= 1'b1;
+                store_retire_req_o.rob_id <= in.rob_id;
             end
             else begin
-                store_retire_o.valid  <= 1'b0;
-                store_retire_o.rob_id <= '0;
+                store_retire_req_o.valid  <= 1'b0;
+                store_retire_req_o.rob_id <= '0;
             end
             unique case(1)
                 send_store: begin

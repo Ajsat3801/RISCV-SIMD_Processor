@@ -32,15 +32,10 @@
 
 module dmem (
     input  logic clk_i,
-    input  logic reset_ni,
 
-    input  logic valid_i,
-    input  logic[3:0] write_enable_i,
-    input  logic[7:0] mem_addr_i,
-    input  logic[127:0] data_i,
+    input  signal_pkg::dmem_request_t dmem_request_i,
     
     output logic[127:0] data_o,
-    output logic valid_o,
 );
     logic[32:0] read[3:0];
     logic[3:0]  write_enable;
@@ -50,8 +45,8 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[0]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i}),
-        .din0({1'b0, data_i[31:0]}),
+        .addr0({1'b0, dmem_request_i.address}),
+        .din0({1'b0, dmem_request_i.data[31:0]}),
         .dout0(read[0])
     );
 
@@ -60,8 +55,8 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[1]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i}),
-        .din0({1'b0, data_i[63:32]}),
+        .addr0({1'b0, dmem_request_i.address}),
+        .din0({1'b0, dmem_request_i.data[63:32]}),
         .dout0(read[1])
     );
 
@@ -70,8 +65,8 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[2]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i}),
-        .din0({1'b0, data_i[95:64]}),
+        .addr0({1'b0, dmem_request_i.address}),
+        .din0({1'b0, dmem_request_i.data[95:64]}),
         .dout0(read[2])
     );
 
@@ -80,15 +75,15 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[3]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, mem_addr_i}),
-        .din0({1'b0, data_i[127:96]}),
+        .addr0({1'b0, dmem_request_i.address}),
+        .din0({1'b0, dmem_request_i.data[127:96]}),
         .dout0(read[3])
     );
 
     genvar i;
     generate
         for(i=0; i<4; i++) begin
-            write_enable[i] = ~write_enable_i[i];
+            write_enable[i] = ~dmem_request_i.write_enable[i];
             data_o[(32*i)+31:32*i] = read[i][31:0];
         end
     endgenerate

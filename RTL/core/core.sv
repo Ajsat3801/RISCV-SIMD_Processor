@@ -29,28 +29,24 @@
 //import config_pkg::*;
 
 module core #()(
-    input  clk_i,
-    input  reset_ni,
+    input  logic clk_i,
+    input  logic reset_ni,
 
     input  logic compute_i,
 
     input  logic sc_preload_valid_i,
     input  signal_pkg::data_t sc_preload_data_i,
-    input  signal_pkg::prf_address_t sc_preload_addr_i, 
+    input  signal_pkg::prf_tag_t sc_preload_addr_i, 
 
     input  logic vc_preload_valid_i,
-    input  signal_pkg::data_t vc_preload_data_i,
-    input  signal_pkg::prf_address_t vc_preload_addr_i, 
+    input  signal_pkg::vector_data_t vc_preload_data_i,
+    input  signal_pkg::prf_tag_t vc_preload_addr_i, 
 
     input  signal_pkg::data_t imem_instr_i,
-    input  logic imem_valid_i,
-    output signal_pkg::pc_t imem_pc_o,
-    output logic imem_read_enable_o,
+    output packet_pkg::imem_request_t imem_request_o,
 
-    input  logic [127:0] dmem_data_i,
-    output logic [3:0] write_enable_o,
-    output logic [7:0] mem_addr_o,
-    output logic [127:0] dmem_data_o
+    input  logic [127:0] dmem_data_i
+    output packet_pkg::dmem_request_t dmem_request_o
 
 );
 
@@ -96,19 +92,16 @@ module core #()(
     packet_pkg::vc_ex_result_t vc_lsu_result;
 
     packet_pkg::load_store_entry_t lsu_output;
-    packet_pkg::store_retire_t store_retire;
+    packet_pkg::store_retire_request_t store_retire_req;
 
     // ready signals from FUs
     // SCALAR: EX -> RS
     // VECTOR: EX -> PRF
 
-    logic sc_ex_ready[SCALAR_EX_COUNT-2:0];
+    logic sc_ex_ready[SCALAR_EX_COUNT-1:0];
     logic br_ex_ready;
-    logic vc_ex_ready[VECTOR_EX_COUNT-2:0];
+    logic vc_ex_ready[VECTOR_EX_COUNT-1:0];
     logic lsu_ready;
-
-    // ready signals from vector PRF to RS
-    logic vc_ex_ready_prf[VECTOR_EX_COUNT-1:0];
 
     // ready signals from WB
     // WB -> RS
@@ -165,7 +158,7 @@ module core #()(
          * Handling pre-loading of PRF
          */
 
-        if (sc_pre_load_valid_i) begin
+        if (sc_preload_valid_i) begin
             u_sc_prf_input.valid   =  sc_preload_valid_i;
             u_sc_prf_input.prf_tag =  sc_preload_addr_i;
             u_sc_prf_input.data    =  sc_preload_data_i;
@@ -176,7 +169,7 @@ module core #()(
             u_sc_prf_input.data    = u_sc_data_bus.data;
         end
 
-        if (vc_pre_load_valid_i) begin
+        if (vc_preload_valid_i) begin
             u_vc_prf_input.valid   = vc_preload_valid_i;
             u_vc_prf_input.prf_tag = vc_preload_addr_i;
             u_vc_prf_input.data    = vc_preload_data_i;
@@ -198,14 +191,12 @@ module core #()(
         .reset_ni(reset_ni),
         .compute_i(compute_i),
         .ready_i(queue_ready),
-        .instr_decode_o(fetched_instr),
-        .pc_decode_o(pc),
-        .fetch_valid_o(fetch_valid),
         .retire_instr_i(u_retirement_bus),
+        .fetched_instr_o(fetched_instr),
+        .fetched_pc_o(pc),
+        .fetch_valid_o(fetch_valid),
         .instr_imem_i(imem_instr_i),
-        .imem_valid_i(imem_valid_i),
-        .pc_imem_o(imem_pc_o),
-        .read_enable_o(imem_read_enable_o)
+        .imem_req_o(imem_request_o),
     );
 
     fe_decode u_decode (
@@ -255,7 +246,7 @@ module core #()(
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
         .branch_result_i(br_ex_result),
-        .store_retire_i(store_retire),
+        .store_retire_req_i(store_retire_req),
         .retire_instr_o(u_retirement_bus),
         .rob_full_o(rob_full),
         .flush_o(flush)
@@ -298,7 +289,7 @@ module core #()(
         .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
-        .ls_read_request_o(sc_rd_request[3]),
+        .ls_read_request_o(sc_rd_req[3]),
         .vc_lsu_rd_req_o(vc_lsu_rd_req),
         .lsu_ready_i(lsu_ready),
         .released_rs_slot_id_o(released_rs_slot_id_arr[3]),
@@ -324,8 +315,8 @@ module core #()(
         .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
-        .vc_ex_ready_i(vc_ex_ready_prf[0]),
-        .vc_read_request_o(vc_issued_instr[0]),
+        .vc_ex_ready_i(vc_rs_ex_ready[0]),
+        .vc_read_request_o(vc_alu_rd_req),
         .sc_read_request_tag_o(vc_alu_rd_req_tag),
         .released_rs_slot_id_o(released_rs_slot_id_arr[5]),
         .rs_slot_released_o(rs_slot_released_arr[5])
@@ -339,11 +330,9 @@ module core #()(
     data_dmem_controller u_dmem_controller (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .dmem_data_i(dmem_data_i),
         .lsu_output(lsu_output),
-        .write_enable_o(write_enable_o),
-        .mem_addr_o(mem_addr_o),
-        .dmem_data_o(dmem_data_o),
+        .dmem_data_i(dmem_data_i),
+        .dmem_req_o(dmem_request_o)
         .sc_wb_o(sc_ex_result[3]),
         .vc_wb_o(vc_ex_result[1])
     );
@@ -352,7 +341,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .precalc_i(u_alloc_bus),
-        .sc_wb_instr_i(u_sc_data_bus),
+        .sc_wb_instr_i(u_sc_prf_input),
         .sc_rd_req0_i(sc_rd_req[0]),
         .sc_ex_req0_o(sc_ex_req[0]),
         .sc_rd_req1_i(sc_rd_req[1]),
@@ -365,7 +354,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .precalc_i(u_alloc_bus),
-        .sc_wb_instr_i(u_sc_data_bus),
+        .sc_wb_instr_i(u_sc_prf_input),
         .sc_br_rd_req_i(br_rd_req),
         .sc_br_ex_req_o(br_ex_req),
         .vc_alu_rd_req_tag_i(vc_alu_rd_req_tag),
@@ -378,7 +367,7 @@ module core #()(
     data_vc_regfile_valu_ls u_vector_prf (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
-        .vc_wb_instr_i(u_vc_data_bus),
+        .vc_wb_instr_i(u_vc_prf_input),
         .vc_alu_rd_req_i(vc_alu_rd_req),
         .vc_alu_ex_req_o(vc_alu_ex_req),
         .vc_lsu_rd_req_i(vc_lsu_rd_req),
@@ -436,7 +425,7 @@ module core #()(
         .lsu_output_o(lsu_output),
         .sc_fwd_load_o(sc_lsu_result),
         .vc_fwd_load_o(vc_lsu_result),
-        .store_retire_o(store_retire),
+        .store_retire_req_o(store_retire_req),
         .sc_ex_ready_o(sc_ex_ready[3]),
         .vc_ex_ready_o(vc_ex_ready[1])
     );
