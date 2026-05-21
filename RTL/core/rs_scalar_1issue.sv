@@ -7,7 +7,7 @@ module rs_scalar_1issue #(
     input  logic reset_ni,
     input  logic flush_i,
      
-    if_alloc_bus.sc_rs sc_rs_request_i,
+    if_alloc_bus.rs rs_request_i,
     if_data_bus.snoop sc_data_bus_i,
 
     input  logic sc_ex_ready_i,
@@ -33,7 +33,7 @@ module rs_scalar_1issue #(
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid = sc_rs_request_i.sc_rs_entry.occupied && sc_rs_request_i.chip_select == CHIP_SELECT;
+        instr_valid = rs_request_i.valid && rs_request_i.chip_select == CHIP_SELECT;
 
         for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
             eligible[i] =   buffer[i].occupied && 
@@ -42,8 +42,8 @@ module rs_scalar_1issue #(
         end
         
         bypass =    instr_valid && 
-                    sc_rs_request_i.sc_rs_entry.operand_a_ready &&
-                    sc_rs_request_i.sc_rs_entry.operand_b_ready && 
+                    rs_request_i.rs_entry.operand_a_ready &&
+                    rs_request_i.rs_entry.operand_b_ready && 
                     !(|eligible) &&
                     sc_ex_ready_i;
 
@@ -74,7 +74,7 @@ module rs_scalar_1issue #(
         end
         else begin
             mask_next = mask;
-            choice = (bypass) ? sc_rs_request_i.rs_slot_id : '0;
+            choice = (bypass) ? rs_request_i.rs_slot_id : '0;
         end
     end 
 
@@ -106,15 +106,14 @@ module rs_scalar_1issue #(
 
             // dequeue instructions
             if(bypass) begin
-                // send slice of RS input to output, removing the tags and ready
-                sc_rd_req_o.valid     <= sc_rs_request_i.sc_rs_entry.occupied;
-                sc_rd_req_o.prf_tag   <= sc_rs_request_i.sc_rs_entry.prf_tag;
-                sc_rd_req_o.rob_id    <= sc_rs_request_i.sc_rs_entry.rob_id;
-                sc_rd_req_o.operation <= sc_rs_request_i.sc_rs_entry.operation;
-                sc_rd_req_o.operand_a_tag <= sc_rs_request_i.sc_rs_entry.operand_a_tag;
-                sc_rd_req_o.operand_b_tag <= sc_rs_request_i.sc_rs_entry.operand_b_tag;
-                sc_rd_req_o.imm <= sc_rs_request_i.sc_rs_entry.imm;
-                sc_rd_req_o.read_src2 <= sc_rs_request_i.sc_rs_entry.read_src2;
+                sc_rd_req_o.valid     <= rs_request_i.rs_entry.occupied;
+                sc_rd_req_o.prf_tag   <= rs_request_i.rs_entry.prf_tag;
+                sc_rd_req_o.rob_id    <= rs_request_i.rs_entry.rob_id;
+                sc_rd_req_o.operation <= rs_request_i.rs_entry.operation;
+                sc_rd_req_o.operand_a_tag <= rs_request_i.rs_entry.operand_a_tag;
+                sc_rd_req_o.operand_b_tag <= rs_request_i.rs_entry.operand_b_tag;
+                sc_rd_req_o.imm <= rs_request_i.rs_entry.imm;
+                sc_rd_req_o.read_src2 <= rs_request_i.rs_entry.read_src2;
                 
             end
             
@@ -140,8 +139,26 @@ module rs_scalar_1issue #(
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[sc_rs_request_i.rs_slot_id] <= sc_rs_request_i.sc_rs_entry;
-
+            if (instr_valid && !bypass) begin
+                buffer[rs_request_i.rs_slot_id].occupied <= rs_request_i.rs_entry.occupied;
+                buffer[rs_request_i.rs_slot_id].prf_tag <= rs_request_i.rs_entry.prf_tag;
+                buffer[rs_request_i.rs_slot_id].rob_id <= rs_request_i.rs_entry.rob_id;
+                buffer[rs_request_i.rs_slot_id].operation <= rs_request_i.rs_entry.operation;
+                
+                buffer[rs_request_i.rs_slot_id].operand_a_tag <= rs_request_i.rs_entry.operand_a_tag;
+                buffer[rs_request_i.rs_slot_id].operand_b_tag <= rs_request_i.rs_entry.operand_b_tag;
+                buffer[rs_request_i.rs_slot_id].imm <= rs_request_i.rs_entry.imm;
+                buffer[rs_request_i.rs_slot_id].read_src2 <= rs_request_i.rs_entry.read_src2;
+                buffer[rs_request_i.rs_slot_id].a_is_vector <= rs_request_i.rs_entry.a_is_vector;
+                buffer[rs_request_i.rs_slot_id].b_is_vector <= rs_request_i.rs_entry.b_is_vector;
+                buffer[rs_request_i.rs_slot_id].operand_a_ready <=  rs_request_i.rs_entry.operand_a_ready ||
+                                                                    (sc_data_bus_i.valid &&
+                                                                    sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_a_tag);
+                buffer[rs_request_i.rs_slot_id].operand_b_ready <=  rs_request_i.rs_entry.operand_b_ready ||
+                                                                    (sc_data_bus_i.valid &&
+                                                                    sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_b_tag);
+            
+            end
         end
     end
 

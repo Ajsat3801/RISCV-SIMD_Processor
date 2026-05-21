@@ -17,6 +17,7 @@
  *  ->  Fetch is remaining, current inputs and outputs of core are those of fetch
  *  ->  Index of each FU:   scalar: 0-> alu0, 1->alu1, 2->muldiv, 3->lsu
                             vector: 0-> valu, 1->lsu
+ *  ->  Ecall is used to terminate an instruction
  *
  *  Potential Optimizations for physical constraints
  *  ->  separate RS for branching and separate branch packet
@@ -34,35 +35,43 @@ module core #()(
 
     input  logic compute_i,
 
-    input  logic sc_preload_valid_i,
-    input  signal_pkg::data_t sc_preload_data_i,
-    input  signal_pkg::prf_tag_t sc_preload_addr_i, 
+    input  logic sc_prf_preload_en_i,
+    input  signal_pkg::data_t sc_prf_preload_data_i,
+    input  signal_pkg::prf_tag_t sc_prf_preload_addr_i, 
 
-    input  logic vc_preload_valid_i,
-    input  signal_pkg::vector_data_t vc_preload_data_i,
-    input  signal_pkg::prf_tag_t vc_preload_addr_i, 
+    input  logic vc_prf_preload_en_i,
+    input  signal_pkg::vector_data_t vc_prf_preload_data_i,
+    input  signal_pkg::prf_tag_t vc_prf_preload_addr_i, 
 
-    input  signal_pkg::data_t imem_instr_i,
+    input  signal_pkg::data_t imem_dout_i,
     output packet_pkg::imem_request_t imem_request_o,
 
-    input  logic [127:0] dmem_data_i
+    input  logic [127:0] dmem_dout_i,
     output packet_pkg::dmem_request_t dmem_request_o
 
 );
 
+    // broadcast signals
     logic flush;
-    signal_pkg::data_t fetched_instr;
-    signal_pkg::pc_t pc;
 
-    packet_pkg::decoded_instr_t decoded_instr, dispatched_instr;
+    // fetch output signals
+    signal_pkg::data_t fetched_instr;
+    signal_pkg::pc_t   fetched_pc;
+    logic fetch_valid;
+
+    // decode output signals
+    packet_pkg::decoded_instr_t decoded_instr;
+
+    // dispatched instruction signals
+    packet_pkg::decoded_instr_t dispatched_instr;
     signal_pkg::rs_slot_id_t dispatched_instr_rs_slot_id;
-    
+    logic queue_ready;
+
+    // signals from RS to Queue with freed RS Slot IDs
     signal_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
     logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
 
     logic rob_full, arr_full;
-
-    logic queue_ready, fetch_valid;
 
     // signals from reservation stations to prf 
     packet_pkg::read_request_t sc_rd_req[SCALAR_EX_COUNT-1:0];
@@ -158,10 +167,10 @@ module core #()(
          * Handling pre-loading of PRF
          */
 
-        if (sc_preload_valid_i) begin
-            u_sc_prf_input.valid   =  sc_preload_valid_i;
-            u_sc_prf_input.prf_tag =  sc_preload_addr_i;
-            u_sc_prf_input.data    =  sc_preload_data_i;
+        if (sc_prf_preload_en_i) begin
+            u_sc_prf_input.valid   =  sc_prf_preload_en_i;
+            u_sc_prf_input.prf_tag =  sc_prf_preload_addr_i;
+            u_sc_prf_input.data    =  sc_prf_preload_data_i;
         end
         else begin
             u_sc_prf_input.valid   = u_sc_data_bus.valid;
@@ -169,10 +178,10 @@ module core #()(
             u_sc_prf_input.data    = u_sc_data_bus.data;
         end
 
-        if (vc_preload_valid_i) begin
-            u_vc_prf_input.valid   = vc_preload_valid_i;
-            u_vc_prf_input.prf_tag = vc_preload_addr_i;
-            u_vc_prf_input.data    = vc_preload_data_i;
+        if (vc_prf_preload_en_i) begin
+            u_vc_prf_input.valid   = vc_prf_preload_en_i;
+            u_vc_prf_input.prf_tag = vc_prf_preload_addr_i;
+            u_vc_prf_input.data    = vc_prf_preload_data_i;
         end
         else begin
             u_vc_prf_input.valid = u_vc_data_bus.valid;
@@ -193,17 +202,17 @@ module core #()(
         .ready_i(queue_ready),
         .retire_instr_i(u_retirement_bus),
         .fetched_instr_o(fetched_instr),
-        .fetched_pc_o(pc),
+        .fetched_pc_o(fetched_pc),
         .fetch_valid_o(fetch_valid),
-        .instr_imem_i(imem_instr_i),
-        .imem_req_o(imem_request_o),
+        .instr_imem_i(imem_dout_i),
+        .imem_req_o(imem_request_o)
     );
 
     fe_decode u_decode (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .fetched_instr_i(fetched_instr),
-        .pc_i(pc),
+        .fetched_pc_i(fetched_pc),
         .fetch_valid_i(fetch_valid),
         .decoded_instr_o(decoded_instr)
     );
@@ -260,7 +269,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_rs_request_i(u_alloc_bus),
+        .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .sc_ex0_ready_i(sc_rs_ex_ready[0]),
         .sc_ex1_ready_i(sc_rs_ex_ready[1]),
@@ -274,7 +283,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_rs_request_i(u_alloc_bus),
+        .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .sc_ex_ready_i(sc_rs_ex_ready[2]),
         .sc_rd_req_o(sc_rd_req[2]),
@@ -300,7 +309,7 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .sc_rs_request_i(u_alloc_bus),
+        .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .sc_ex_ready_i(br_ex_ready),
         .sc_rd_req_o(br_rd_req),
@@ -331,8 +340,8 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .lsu_output(lsu_output),
-        .dmem_data_i(dmem_data_i),
-        .dmem_req_o(dmem_request_o)
+        .dmem_dout_i(dmem_dout_i),
+        .dmem_req_o(dmem_request_o),
         .sc_wb_o(sc_ex_result[3]),
         .vc_wb_o(vc_ex_result[1])
     );

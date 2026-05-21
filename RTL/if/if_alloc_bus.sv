@@ -19,15 +19,9 @@ interface if_alloc_bus;
     logic operand_a_ready, operand_b_ready;
     signal_pkg::operations_e operation;
     
-    packet_pkg::rs_entry_t sc_rs_entry, vc_rs_entry;
-    assign sc_rs_entry = packet_pkg::rs_entry_t'{ sc_valid,
-                                        prf_tag, rob_id, 
-                                        instr.operation, operand_a_tag, operand_b_tag,
-                                        instr.imm, instr.read_src2, 
-                                        a_is_vector, b_is_vector,
-                                        operand_a_ready, operand_b_ready
-                                        };
-    assign vc_rs_entry = packet_pkg::rs_entry_t'{   vc_valid, prf_tag, rob_id, instr.operation,
+    packet_pkg::rs_entry_t rs_entry;
+    
+    assign rs_entry = packet_pkg::rs_entry_t'{   1'b1, prf_tag, rob_id, instr.operation,
                                         operand_a_tag, operand_b_tag,
                                         instr.imm, instr.read_src2, 
                                         a_is_vector, b_is_vector,
@@ -55,15 +49,10 @@ interface if_alloc_bus;
         output rob_id
     );
 
-    modport sc_rs (
+    modport rs (
+        input valid,
         input chip_select,
-        input sc_rs_entry,
-        input rs_slot_id
-    );
-
-    modport vc_rs (
-        input chip_select,
-        input vc_rs_entry,
+        input rs_entry,
         input rs_slot_id
     );
 

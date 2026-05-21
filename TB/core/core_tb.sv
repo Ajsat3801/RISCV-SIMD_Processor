@@ -15,7 +15,7 @@ module core_tb;
 
     signal_pkg::data_t instr_array[];
 
-    core_test dut(
+    core dut(
         .clk_i(clk),
         .reset_ni(reset_n),
         .fetched_instr_i(raw_instr),
@@ -235,10 +235,10 @@ module core_tb;
 
     task automatic display_rs_states_sc();
         $display("[SC RS] in:[%b @ %0d (%h %h)] ready:%b %b out:[%0d %0d %b %b]",
-                dut.u_scalar_alu_rs.sc_rs_request_i.sc_rs_entry.occupied,
-                dut.u_scalar_alu_rs.sc_rs_request_i.rs_slot_id,
-                dut.u_scalar_alu_rs.sc_rs_request_i.sc_rs_entry.operand_a_ready,
-                dut.u_scalar_alu_rs.sc_rs_request_i.sc_rs_entry.operand_b_ready,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.occupied,
+                dut.u_scalar_alu_rs.rs_request_i.rs_slot_id,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.operand_a_ready,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.operand_b_ready,
                 dut.u_scalar_alu_rs.sc_ex0_ready_i,
                 dut.u_scalar_alu_rs.sc_ex1_ready_i,
                 dut.u_scalar_alu_rs.sc_rd_req0_o.prf_tag,
@@ -250,10 +250,10 @@ module core_tb;
 
     task automatic display_rs_states_vc();
         $display("[VC RS] in:[%b @ %0d (%h %h)] ready:%b out:[%0d %b]",
-                dut.u_vector_alu_rs.rs_request_i.vc_rs_entry.occupied,
+                dut.u_vector_alu_rs.rs_request_i.rs_entry.occupied,
                 dut.u_vector_alu_rs.rs_request_i.rs_slot_id,
-                dut.u_vector_alu_rs.rs_request_i.vc_rs_entry.operand_a_ready,
-                dut.u_vector_alu_rs.rs_request_i.vc_rs_entry.operand_b_ready,
+                dut.u_vector_alu_rs.rs_request_i.rs_entry.operand_a_ready,
+                dut.u_vector_alu_rs.rs_request_i.rs_entry.operand_b_ready,
                 dut.u_vector_alu_rs.vc_ex_ready_i,
                 dut.u_vector_alu_rs.vc_read_request_o.prf_tag,
                 dut.u_vector_alu_rs.vc_read_request_o.valid
@@ -266,10 +266,10 @@ module core_tb;
                 dut.u_alloc_rename_retire.alloc_instr_o.rs_slot_id,
                 dut.u_alloc_rename_retire.alloc_instr_o.operand_a_ready,
                 dut.u_alloc_rename_retire.alloc_instr_o.operand_b_ready,
-                dut.u_scalar_alu_rs.sc_rs_request_i.sc_rs_entry.occupied,
-                dut.u_scalar_alu_rs.sc_rs_request_i.rs_slot_id,
-                dut.u_scalar_alu_rs.sc_rs_request_i.sc_rs_entry.operand_a_ready,
-                dut.u_scalar_alu_rs.sc_rs_request_i.sc_rs_entry.operand_b_ready
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.occupied,
+                dut.u_scalar_alu_rs.rs_request_i.rs_slot_id,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.operand_a_ready,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.operand_b_ready
         );
     endtask
 
@@ -279,10 +279,10 @@ module core_tb;
                 dut.u_alloc_rename_retire.alloc_instr_o.rs_slot_id,
                 dut.u_alloc_rename_retire.alloc_instr_o.operand_a_ready,
                 dut.u_alloc_rename_retire.alloc_instr_o.operand_b_ready,
-                dut.u_vector_alu_rs.rs_request_i.vc_rs_entry.occupied,
+                dut.u_vector_alu_rs.rs_request_i.rs_entry.occupied,
                 dut.u_vector_alu_rs.rs_request_i.rs_slot_id,
-                dut.u_vector_alu_rs.rs_request_i.vc_rs_entry.operand_a_ready,
-                dut.u_vector_alu_rs.rs_request_i.vc_rs_entry.operand_b_ready
+                dut.u_vector_alu_rs.rs_request_i.rs_entry.operand_a_ready,
+                dut.u_vector_alu_rs.rs_request_i.rs_entry.operand_b_ready
         );
     endtask
 

@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------------------------------------------ 
  *                                    CONTROLLER FOR DATA MEMORY
  * ------------------------------------------------------------------------------------------------  
- *  Behavior/Functionality:
+ *  Functions/Behavior:
  *  ->  Acts as an interface between the core and the data memory
  *  ->  Sends data memory output directly to writeback abiters for load instructions
  *
@@ -30,7 +30,7 @@ module data_dmem_controller (
 
     input  packet_pkg::load_store_entry_t lsu_output,
 
-    input  logic [127:0] dmem_data_i,
+    input  signal_pkg::vector_data_t dmem_dout_i,
     output packet_pkg::dmem_request_t dmem_req_o,
 
     output packet_pkg::sc_ex_result_t sc_wb_o,
@@ -41,17 +41,14 @@ module data_dmem_controller (
     signal_pkg::prf_tag_t prf_tag_q;
     logic [1:0] idx;
     logic sc_wb_valid, vc_wb_valid;
-    signal_pkg::vector_data_t dmem_data;
 
     always_comb begin
         /* 
          *  COMPUTING INPUTS AND OUTPUTS FROM DMEM
-         *  ->  dmem_data_i is stored into a vector_data_t format
+         *  ->  dmem_dout_i is stored into a vector_data_t format
          *  ->  lsb 2 bits of dmem address removed as it determines bank
          *  ->  write enable is set as 1111 if vector store, else one hot for bank of store
          */ 
-        
-        dmem_data = dmem_data_i;
 
         dmem_req_o.data = lsu_output.data;
         dmem_req_o.address = lsu_output.mem_addr[9:2];
@@ -77,12 +74,12 @@ module data_dmem_controller (
         vc_wb_o.valid   = vc_wb_valid;
         vc_wb_o.rob_id  = rob_id_q;
         vc_wb_o.prf_tag = prf_tag_q;
-        vc_wb_o.data    = dmem_data;
+        vc_wb_o.data    = dmem_dout_i;
         
         sc_wb_o.valid   = sc_wb_valid;
         sc_wb_o.rob_id  = rob_id_q;
         sc_wb_o.prf_tag = prf_tag_q;
-        sc_wb_o.data    = dmem_data_i[idx];
+        sc_wb_o.data    = dmem_dout_i[idx];
 
     end
 

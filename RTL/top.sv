@@ -23,18 +23,18 @@ module top(
     input logic dmem_preload_en_i,
     input packet_pkg::dmem_request_t preload_dmem_request_i,
 
-    input  logic sc_prf_preload_valid_i,
+    input  logic sc_prf_preload_en_i,
     input  signal_pkg::data_t sc_prf_preload_data_i,
     input  signal_pkg::prf_tag_t sc_prf_preload_addr_i, 
 
-    input  logic vc_prf_preload_valid_i,
+    input  logic vc_prf_preload_en_i,
     input  signal_pkg::vector_data_t vc_prf_preload_data_i,
-    input  signal_pkg::prf_tag_t vc_prf_preload_addr_i, 
+    input  signal_pkg::prf_tag_t vc_prf_preload_addr_i
     
 );
 
-    logic [31:0] imem_out;
-    logic [127:0] dmem_out;
+    logic [31:0] imem_dout;
+    signal_pkg::vector_data_t dmem_dout;
     packet_pkg::imem_request_t imem_request, core_imem_request;
     packet_pkg::dmem_request_t dmem_request, core_dmem_request;
 
@@ -44,18 +44,18 @@ module top(
 
         .compute_i(compute_i),
 
-        .sc_preload_valid_i(sc_prf_preload_i),
-        .sc_preload_data_i(sc_prf_preload_data_i),
-        .sc_preload_addr_i(sc_prf_preload_addr_i), 
+        .sc_prf_preload_en_i(sc_prf_preload_en_i),
+        .sc_prf_preload_data_i(sc_prf_preload_data_i),
+        .sc_prf_preload_addr_i(sc_prf_preload_addr_i), 
 
-        .vc_preload_valid_i(vc_prf_preload_i),
-        .vc_preload_data_i(vc_prf_preload_data_i),
-        .vc_preload_addr_i(vc_prf_preload_addr_i), 
+        .vc_prf_preload_en_i(vc_prf_preload_en_i),
+        .vc_prf_preload_data_i(vc_prf_preload_data_i),
+        .vc_prf_preload_addr_i(vc_prf_preload_addr_i), 
 
-        .imem_instr_i(imem_out),
+        .imem_dout_i(imem_dout),
         .imem_request_o(core_imem_request),
 
-        .dmem_data_i(dmem_out),
+        .dmem_dout_i(dmem_dout),
         .dmem_request_o(core_dmem_request)
 
     );
@@ -63,13 +63,13 @@ module top(
     imem u_imem (
         .clk_i(clk_i),
         .imem_request_i(imem_request),
-        .data_o(imem_out)
+        .data_o(imem_dout)
     );
 
     dmem u_dmem (
         .clk_i(clk_i),
         .dmem_request_i(dmem_request),
-        .data_o(dmem_out)
+        .data_o(dmem_dout)
     );
 
     always_comb begin

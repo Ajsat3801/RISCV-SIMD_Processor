@@ -172,10 +172,10 @@ module core_tb;
     endtask
     task automatic display_muldiv_rs_states();
         $display("[MULDIV RS] in:%b @ %h (%h %h), ex: %b %b state: %h data_in: %d %b out: %d %b",
-                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_entry.occupied,
-                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_slot,
-                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_entry.operand_a_ready,
-                dut.u_scalar_muldiv_rs.sc_rs_request_i.rs_entry.operand_b_ready,
+                dut.u_scalar_muldiv_rs.rs_request_i.rs_entry.occupied,
+                dut.u_scalar_muldiv_rs.rs_request_i.rs_slot,
+                dut.u_scalar_muldiv_rs.rs_request_i.rs_entry.operand_a_ready,
+                dut.u_scalar_muldiv_rs.rs_request_i.rs_entry.operand_b_ready,
                 dut.u_scalar_muldiv.sc_ex_ready_o,
                 dut.u_scalar_muldiv_rs.sc_ex_ready_i,
                 dut.u_scalar_muldiv.state,
@@ -285,10 +285,10 @@ module core_tb;
 */
     task automatic display_rs_states();
         $display("[RS] in:[%b @ %0d (%h %h)] ready:%b %b out:[%0d %0d %b %b]",
-                dut.u_scalar_alu_rs.sc_rs_request_i.rs_entry.occupied,
-                dut.u_scalar_alu_rs.sc_rs_request_i.rs_slot,
-                dut.u_scalar_alu_rs.sc_rs_request_i.rs_entry.operand_a_ready,
-                dut.u_scalar_alu_rs.sc_rs_request_i.rs_entry.operand_b_ready,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.occupied,
+                dut.u_scalar_alu_rs.rs_request_i.rs_slot,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.operand_a_ready,
+                dut.u_scalar_alu_rs.rs_request_i.rs_entry.operand_b_ready,
                 dut.u_scalar_alu_rs.sc_ex0_ready_i,
                 dut.u_scalar_alu_rs.sc_ex1_ready_i,
                 dut.u_scalar_alu_rs.sc_ex0_request_o.prf_tag,
@@ -299,10 +299,10 @@ module core_tb;
     endtask
     task automatic display_rs_states_vc();
         $display("[VC RS] in:[%b @ %0d (%h %h)] ready:%b out:[%0d %b]",
-                dut.u_vector_alu_rs.vc_rs_request_i.valid,
-                dut.u_vector_alu_rs.vc_rs_request_i.prf_tag,
-                dut.u_vector_alu_rs.vc_rs_request_i.operand_a_ready,
-                dut.u_vector_alu_rs.vc_rs_request_i.operand_b_ready,
+                dut.u_vector_alu_rs.rs_request_i.valid,
+                dut.u_vector_alu_rs.rs_request_i.prf_tag,
+                dut.u_vector_alu_rs.rs_request_i.operand_a_ready,
+                dut.u_vector_alu_rs.rs_request_i.operand_b_ready,
                 dut.u_vector_alu_rs.vc_ex_ready_i,
                 dut.u_vector_alu_rs.vc_read_request_o.prf_tag,
                 dut.u_vector_alu_rs.vc_read_request_o.valid,

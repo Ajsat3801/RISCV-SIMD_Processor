@@ -18,6 +18,8 @@
 `include "lib_scalar_divider.sv"
 `include "lib_vector_alu_lane.sv"
 
+`include "sky130_sram_1kbyte_1rw_32x256_32.v"
+
 `include "fe_fetch.sv"
 `include "fe_decode.sv"
 `include "fe_instruction_queue.sv"
@@ -44,4 +46,8 @@
 `include "wb_scalar.sv"
 `include "wb_vector.sv"
 
-`include "core_test.sv"
+`include "core.sv"
+`include "imem.sv"
+`include "dmem.sv"
+
+`include "top.sv"

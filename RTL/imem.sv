@@ -26,13 +26,11 @@
 
 module imem (
     input  logic clk_i,
-
     input  packet_pkg::imem_request_t imem_request_i,
 
     output logic[31:0] data_o
-
 );
-    logic[31:0] read;
+    logic[32:0] read;
 
     sky130_sram_1kbyte_1rw_32x256_32 u_imem(
         .clk0(clk_i),
@@ -40,15 +38,10 @@ module imem (
         .web0(~imem_request_i.write_enable),
         .spare_wen0(1'b0),
         .addr0({1'b0, imem_request_i.address}),
-        .din0({1'b0, imem_request_i.data[31:0]}),
+        .din0({1'b0, imem_request_i.data}),
         .dout0(read)
     );
 
     assign data_o = read[31:0];
-
-    always_ff @(posedge clk_i) begin
-        valid_o <= imem_request_i.read_enable;
-    end
-
 
 endmodule

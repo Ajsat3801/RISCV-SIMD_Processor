@@ -169,6 +169,8 @@ module fe_instruction_queue (
 
         enqueue    = (!full || dequeue) && decoded_instr_i.valid;
         reset_wb_n = (reset_ni && !flush_i) ;
+
+        queue_ready_o = (!full || dequeue);
         
     end
 

@@ -1,9 +1,9 @@
 /* ------------------------------------------------------------------------------------------------
  *                                       INSTRUCTION DECODER
  * ------------------------------------------------------------------------------------------------
- *  Functions/Behavior
+ *  Function/Behavior
  *  ->  Decodes the fetched instructions into data & control signals
- *  ->  Jump/Branch destination PC and *UI instruction outputs are pre-calculated
+ *  ->  Jump/Branch destination PC and upper immediate instruction outputs are pre-calculated
  *  ->  Refer decoded_instr_t struct inside signal_pkg for detailed explanation
  *
  *  Inputs
@@ -18,6 +18,12 @@
  *  Notes:
  *  ->  output valid is inside decoded instruction struct
  *  ->  no flush requires as the module doesnt store current state of processor
+ *  ->  ecall instruction is used as a terminate function. (happens at fetch, it doesnt reach here)
+ *  ->  immediate propogated even if it does not exist for an instruction, all downstream modules 
+        must gate immediate value with read_src2 to prevent garbage data
+ *  ->  for stores, read_src2 is set to 0 so that the immediate is used downstream. src2 address
+        does contain the address of the register to be stored, logic for this handled separately in
+        the register module
  * ------------------------------------------------------------------------------------------------
 */
 
@@ -28,7 +34,7 @@ module fe_decode(
     input logic reset_ni,
 
     input signal_pkg::data_t fetched_instr_i,
-    input signal_pkg::data_t pc_i,
+    input signal_pkg::pc_t fetched_pc_i,
     input logic fetch_valid_i,
 
     output packet_pkg::decoded_instr_t decoded_instr_o
@@ -70,7 +76,7 @@ module fe_decode(
             7'b0010111: begin 
                 // auipc instruction
                 intermediate = {fetched_instr_i[31:12], 12'b000000000000};
-                intermediate = intermediate + pc_i;
+                intermediate = intermediate + fetched_pc_i;
 
                 decoded_instr_d.imm = {intermediate[21:12], 2'b00};
                 decoded_instr_d.src2_address = intermediate[26:22];
@@ -100,7 +106,7 @@ module fe_decode(
                 decoded_instr_d.operation   = {1'b1, fetched_instr_i[14:12]};
 
                 intermediate = {{9{fetched_instr_i[31]}}, fetched_instr_i[31], fetched_instr_i[7], fetched_instr_i[30], fetched_instr_i[29:25], fetched_instr_i[11:8], 1'b0};
-                intermediate = intermediate + pc_i;
+                intermediate = intermediate + fetched_pc_i;
 
                 decoded_instr_d.extend = intermediate[9:0];
                 decoded_instr_d.imm = intermediate[21:10];
@@ -123,7 +129,7 @@ module fe_decode(
             7'b1101111: begin 
                 // Jump instructions (only jal supported for now)
                 intermediate = {{12{fetched_instr_i[31]}}, fetched_instr_i[19:12], fetched_instr_i[20], fetched_instr_i[30], fetched_instr_i[29:21], 1'b0};
-                intermediate = intermediate + pc_i;
+                intermediate = intermediate + fetched_pc_i;
 
                 decoded_instr_d.extend = intermediate[9:0];
                 decoded_instr_d.imm    = intermediate[21:10];
@@ -156,7 +162,8 @@ module fe_decode(
                 decoded_instr_d.write_to_reg = 1'b0;
                 decoded_instr_d.src2_vector  = 1'b1;
             end
-            // not included default becase no change to initial values
+            default:
+                decoded_instr_d.valid = 1'b0;
         endcase
     end
 

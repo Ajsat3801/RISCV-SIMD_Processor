@@ -58,7 +58,9 @@ module ooo_arr_unit (
     signal_pkg::prf_address_t vc_commit_table [ARCH_REG_DEPTH];
 
     logic sc_alloc_valid, vc_alloc_valid;
+    logic sc_instr_valid, vc_instr_valid;
     logic sc_retire_valid, vc_retire_valid;
+    logic sc_store_valid, vc_store_valid;
     signal_pkg::prf_tag_t sc_prf_id, vc_prf_id;
 
     signal_pkg::prf_address_t sc_operand_a_tag, sc_operand_b_tag;
@@ -69,21 +71,26 @@ module ooo_arr_unit (
         // Empty when both epoch-packed pointers are identical
         arr_full_o = (sc_head == sc_tail) || (vc_head == vc_tail);
 
+        sc_instr_valid = dispatched_instr_i.valid && (dispatched_instr_i.chip_select[2] == 1'b0);
+        vc_instr_valid = dispatched_instr_i.valid && (dispatched_instr_i.chip_select[2] == 1'b1);
+
+        sc_store_valid = sc_instr_valid && (dispatched_instr_i.operation.lsu == signal_pkg::LSU_SW);
+        vc_store_valid = vc_instr_valid && (dispatched_instr_i.operation.vlsu == signal_pkg::VLSU_VSE32);
+
         // Allocation valid
         //   1) dispatch bus is valid
-        //   2) instruction writes to a destination register
+        //   2) instruction writes to a destination register or is a store
         //   3) destination is not x0
-        //   4) chip_select[2] selects the channel (0 = scalar, 1 = vector)
+        //   4) chip_select[2] selects the channel (0 = scalar, 1 = vector)        
 
-        sc_alloc_valid = dispatched_instr_i.valid
-                      && dispatched_instr_i.write_to_reg
-                      && (dispatched_instr_i.dest_address != '0)
-                      && (dispatched_instr_i.chip_select[2] == 1'b0);
-
-        vc_alloc_valid = dispatched_instr_i.valid
-                      && dispatched_instr_i.write_to_reg
-                      && (dispatched_instr_i.dest_address != '0)
-                      && (dispatched_instr_i.chip_select[2] == 1'b1);
+        sc_alloc_valid  =  sc_instr_valid 
+                        && dispatched_instr_i.write_to_reg 
+                        && dispatched_instr_i.dest_address != '0;
+                        
+        vc_alloc_valid  =  vc_instr_valid
+                        && dispatched_instr_i.write_to_reg
+                        && dispatched_instr_i.dest_address != '0;
+                        
 
         // Retirement valid
         //   1) retire bus is valid
@@ -92,14 +99,14 @@ module ooo_arr_unit (
         //   4) prf_tag.vector selects the channel
 
         sc_retire_valid = retire_instr_i.valid
-                       && retire_instr_i.write_to_reg
-                       && (retire_instr_i.dest_address != '0)
-                       && (retire_instr_i.prf_tag.vector == 1'b0);
+                        && retire_instr_i.write_to_reg
+                        && (retire_instr_i.dest_address != '0)
+                        && (retire_instr_i.prf_tag.vector == 1'b0);
 
         vc_retire_valid = retire_instr_i.valid
-                       && retire_instr_i.write_to_reg
-                       && (retire_instr_i.dest_address != '0)
-                       && (retire_instr_i.prf_tag.vector == 1'b1);
+                        && retire_instr_i.write_to_reg
+                        && (retire_instr_i.dest_address != '0)
+                        && (retire_instr_i.prf_tag.vector == 1'b1);
 
         // Next PRF to be assigned sits at the head of each channel's free list
         sc_prf_id = '{vector: 1'b0, tag: sc_free_list[sc_head[FIFO_WIDTH-1:0]]};
@@ -211,8 +218,8 @@ module ooo_arr_unit (
             end
 
             // Alloc output
-            alloc_instr_o.sc_valid   <= sc_alloc_valid && !dispatched_instr_i.pre_calc; 
-            alloc_instr_o.vc_valid   <= vc_alloc_valid && !dispatched_instr_i.pre_calc;
+            alloc_instr_o.sc_valid   <= (sc_alloc_valid || sc_store_valid) && !dispatched_instr_i.pre_calc; 
+            alloc_instr_o.vc_valid   <= (vc_alloc_valid || vc_store_valid) && !dispatched_instr_i.pre_calc;
             alloc_instr_o.rs_slot_id <= rs_slot_id_i;
             alloc_instr_o.instr      <= dispatched_instr_i;
             alloc_instr_o.a_is_vector <= dispatched_instr_i.src1_vector;
@@ -220,20 +227,24 @@ module ooo_arr_unit (
 
             if(dispatched_instr_i.src1_vector) begin
                 alloc_instr_o.operand_a_tag   <= '{vector: 1'b1, tag: vc_operand_a_tag};
-                alloc_instr_o.operand_a_ready <= vc_ready[vc_operand_a_tag];
+                alloc_instr_o.operand_a_ready <= vc_ready[vc_operand_a_tag] || 
+                        (vc_alloc_valid && (vc_wb_instr_i.prf_tag.tag == vc_operand_a_tag));
             end
             else begin
                 alloc_instr_o.operand_a_tag   <= '{vector: 1'b0, tag: sc_operand_a_tag};
-                alloc_instr_o.operand_a_ready <= sc_ready[sc_operand_a_tag];
+                alloc_instr_o.operand_a_ready <= sc_ready[sc_operand_a_tag] || 
+                        (sc_alloc_valid && (sc_wb_instr_i.prf_tag.tag == sc_operand_a_tag));
             end
 
             if(dispatched_instr_i.src2_vector) begin
                 alloc_instr_o.operand_b_tag   <= '{vector: 1'b1, tag: vc_operand_b_tag};
-                alloc_instr_o.operand_b_ready <= vc_ready[vc_operand_b_tag];
+                alloc_instr_o.operand_b_ready <= vc_ready[vc_operand_b_tag] || 
+                        (vc_alloc_valid && (vc_wb_instr_i.prf_tag.tag == vc_operand_b_tag));
             end
             else begin
                 alloc_instr_o.operand_b_tag   <= '{vector: 1'b0, tag: sc_operand_b_tag};
-                alloc_instr_o.operand_b_ready <= sc_ready[sc_operand_b_tag];
+                alloc_instr_o.operand_b_ready <= sc_ready[sc_operand_b_tag] || 
+                        (sc_alloc_valid && (sc_wb_instr_i.prf_tag.tag == sc_operand_b_tag));
             end
 
             case(1) 

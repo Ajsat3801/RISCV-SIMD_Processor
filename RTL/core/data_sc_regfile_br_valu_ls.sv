@@ -1,16 +1,29 @@
-/* 
- * SCALAR PHYSICAL REGISTER FILE
- * Functions:
- *  1)  Physical storage for the register values. Architectural registers
- *      are mapped to this registers using the RAT.
- *  2)  One bit for each register entry indicating whether an instruction
- *      is ready or not.
- * Behavior:
- *  1)  Instruction metadata like chip_select etc are forwarded.
- *  2)  Physical address tags have 1 extra bit. MSB == 0 ? scalar : vector
- *  3)  if instr_i is valid, dest operand tag ready bit reset.
- *  4)  if sc_wb_instr_i is valid, dest data written and dest operand tag 
-        ready bit set
+/* ------------------------------------------------------------------------------------------------
+ *                            SCALAR PHYSICAL REGISTER FILE - Replica 2
+ * ------------------------------------------------------------------------------------------------
+ *  Functions/Behavior:
+ *  ->  Physical storage for the register values. Architectural registers are mapped to this 
+        registers using the RAT.
+ *  ->  Replica 1 services branch resolution unit, vector ALU and the loadstore unit.
+ *
+ *  Inputs:
+ *  ->  clock and reset
+ *  ->  Read Requests for scalar ALU0, scalar ALU1 and scalar multiply divide
+ *  ->  Write request for LUI, AUIPC and JAL instructions from the alloc rename retire unit
+ *  ->  Snoop scalar data bus for writeback broadcast
+ *
+ *  Outputs:
+ *  ->  execution requests branch
+ *  ->  execution requests for load-store unit
+ *      ->  sc_ex_request packet for metadata + operands
+ *      ->  data_t packet for store data; used only for stores
+ *  ->  execution data for vector_alu
+ *      -> 
+ * Notes:
+ *  ->  Flush doesnt affect the physical register file. The speculative mapping is reset so any 
+ *      speculative data can be overwritten 
+ *  ->  Write is common for all replicas, so the data remains the same in all 3.
+ * ------------------------------------------------------------------------------------------------
  */
 
 module data_sc_regfile_br_valu_ls (

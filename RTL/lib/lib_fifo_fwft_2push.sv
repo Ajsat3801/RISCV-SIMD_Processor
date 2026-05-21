@@ -44,7 +44,7 @@ module lib_fifo_fwft_2push #(
         head_next = (head == BUFFER_SIZE) ? '0 :(head + 1);
 
         full_o = (tail_next == head);
-        next_full_o = (tail_next_next == head);
+        one_slot_rem = (tail_next_next == head);
         empty_o = head==tail;
 
         bypass1 = pop_i && push0_i && empty_o;
@@ -68,6 +68,8 @@ module lib_fifo_fwft_2push #(
         else if(bypass2) data_o  = push1_data_i;
         else if(!empty_o) data_o = main_fifo[head];
         else data_o = '0;
+
+        next_full_o <= one_slot_rem;
 
     end
 

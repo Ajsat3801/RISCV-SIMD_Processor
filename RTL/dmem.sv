@@ -32,32 +32,26 @@
 
 module dmem (
     input  logic clk_i,
-
-    input  signal_pkg::dmem_request_t dmem_request_i,
+    input  packet_pkg::dmem_request_t dmem_request_i,
+    /*  logic [3:0]   write_enable;
+        logic [7:0]   address;
+        logic [127:0] data;
+    */
     
-    output logic[127:0] data_o,
+    output signal_pkg::vector_data_t data_o
 );
+    
     logic[32:0] read[3:0];
     logic[3:0]  write_enable;
-
-    sky130_sram_1kbyte_1rw_32x256_32 u_dmem0(
+    
+    sky130_sram_1kbyte_1rw_32x256_32 u_dmem3(
         .clk0(clk_i),
         .csb0(1'b0),
-        .web0(write_enable[0]),
+        .web0(write_enable[3]),
         .spare_wen0(1'b0),
         .addr0({1'b0, dmem_request_i.address}),
-        .din0({1'b0, dmem_request_i.data[31:0]}),
-        .dout0(read[0])
-    );
-
-    sky130_sram_1kbyte_1rw_32x256_32 u_dmem1(
-        .clk0(clk_i),
-        .csb0(1'b0),
-        .web0(write_enable[1]),
-        .spare_wen0(1'b0),
-        .addr0({1'b0, dmem_request_i.address}),
-        .din0({1'b0, dmem_request_i.data[63:32]}),
-        .dout0(read[1])
+        .din0({1'b0, dmem_request_i.data[127:96]}),
+        .dout0(read[3])
     );
 
     sky130_sram_1kbyte_1rw_32x256_32 u_dmem2(
@@ -70,21 +64,31 @@ module dmem (
         .dout0(read[2])
     );
 
-    sky130_sram_1kbyte_1rw_32x256_32 u_dmem3(
+    sky130_sram_1kbyte_1rw_32x256_32 u_dmem1(
         .clk0(clk_i),
         .csb0(1'b0),
-        .web0(write_enable[3]),
+        .web0(write_enable[1]),
         .spare_wen0(1'b0),
         .addr0({1'b0, dmem_request_i.address}),
-        .din0({1'b0, dmem_request_i.data[127:96]}),
-        .dout0(read[3])
+        .din0({1'b0, dmem_request_i.data[63:32]}),
+        .dout0(read[1])
+    );
+
+    sky130_sram_1kbyte_1rw_32x256_32 u_dmem0(
+        .clk0(clk_i),
+        .csb0(1'b0),
+        .web0(write_enable[0]),
+        .spare_wen0(1'b0),
+        .addr0({1'b0, dmem_request_i.address}),
+        .din0({1'b0, dmem_request_i.data[31:0]}),
+        .dout0(read[0])
     );
 
     genvar i;
     generate
-        for(i=0; i<4; i++) begin
-            write_enable[i] = ~dmem_request_i.write_enable[i];
-            data_o[(32*i)+31:32*i] = read[i][31:0];
+        for(i=0; i<4; i++) begin : gen_bank_compile
+            assign write_enable[i] = ~dmem_request_i.write_enable[i];
+            assign data_o[i] = read[i][31:0];
         end
     endgenerate
 

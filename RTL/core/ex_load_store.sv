@@ -20,9 +20,9 @@
     );
 
     packet_pkg::load_store_entry_t store_buffer[config_pkg::STORE_BUFFER_SIZE-1:0];
-    packet_pkg::load_store_entry_t in, store_out, hold_reg;
+    packet_pkg::load_store_entry_t in, hold_reg;
     logic[config_pkg::STORE_BUFFER_SIZE-1:0] available;
-    logic hold;
+    logic store_out, hold;
 
     logic[$clog2(config_pkg::STORE_BUFFER_SIZE)-1:0] in_idx, out_idx, fwd_idx;
     logic send_store, send_hold, send_in, fwd_load, forward_load;
@@ -48,11 +48,15 @@
         out_idx = '0;
         in_idx  = '0;
         fwd_idx = '0;
-        fwd_load = 1'b1;
+        fwd_load = 1'b0;
+        store_out = 1'b0;
 
         for(int i=0; i<STORE_BUFFER_SIZE; i++) begin
             if(!store_buffer[i].valid) in_idx = i;
-            if(store_buffer[i].rob_id == retire_instr_i.rob_id) out_idx = i;
+            if(store_buffer[i].rob_id == retire_instr_i.rob_id) begin
+                out_idx = i;
+                store_out = 1'b1;
+            end
             if(store_buffer[i].prf_tag == lsu_request_i.prf_tag) begin
                 fwd_idx = i;
                 fwd_load = 1'b1;
@@ -60,7 +64,7 @@
         end
 
         // intermediate logic variables
-        send_store = retire_instr_i.valid && store_out.valid;
+        send_store = retire_instr_i.valid && store_out;
         send_hold  = hold && !send_store;
         send_in    = in.valid && !in.is_store && !hold && !send_store;
         forward_load = in.valid && !in.is_store && fwd_load;

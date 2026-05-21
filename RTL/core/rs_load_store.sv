@@ -7,7 +7,7 @@ module rs_load_store (
     input reset_ni,
     input flush_i,
 
-    if_alloc_bus.vc_rs rs_request_i,
+    if_alloc_bus.rs rs_request_i,
 
     if_data_bus.snoop sc_data_bus_i,
     if_data_bus.snoop vc_data_bus_i,
@@ -41,7 +41,7 @@ module rs_load_store (
         winner_lower     = '0;
         winner           = '0;
 
-        instr_valid =   rs_request_i.vc_rs_entry.occupied && (
+        instr_valid =   rs_request_i.valid && (
                         rs_request_i.chip_select == signal_pkg::CS_VLSU ||
                         rs_request_i.chip_select == signal_pkg::CS_SLSU );
 
@@ -52,8 +52,8 @@ module rs_load_store (
         end
         
         bypass =    instr_valid && 
-                    rs_request_i.vc_rs_entry.operand_a_ready &&
-                    rs_request_i.vc_rs_entry.operand_b_ready && 
+                    rs_request_i.rs_entry.operand_a_ready &&
+                    rs_request_i.rs_entry.operand_b_ready && 
                     !(|eligible) &&
                     lsu_ready_i;
 
@@ -95,11 +95,15 @@ module rs_load_store (
         ls_read_request_o.rob_id    = dispatch_q.rob_id;
         ls_read_request_o.operation = dispatch_q.operation;
 
-        ls_read_request_o.a_is_vector = dispatch_q.a_is_vector;
-        ls_read_request_o.b_is_vector = dispatch_q.b_is_vector;
         ls_read_request_o.operand_a_tag = dispatch_q.operand_a_tag;
         ls_read_request_o.operand_b_tag = dispatch_q.operand_b_tag;
 
+        ls_read_request_o.imm = dispatch_q.imm;
+        ls_read_request_o.read_src2 = dispatch_q.read_src2;
+
+        ls_read_request_o.a_is_vector = dispatch_q.a_is_vector;
+        ls_read_request_o.b_is_vector = dispatch_q.b_is_vector;
+        
         vc_lsu_rd_req_o.store_data_tag = dispatch_q.operand_b_tag;
         
         vc_lsu_rd_req_o.a_is_vector  = dispatch_q.a_is_vector;
@@ -168,18 +172,23 @@ module rs_load_store (
             // dequeue instructions
             if(bypass) begin
                 // send slice of RS input to output, removing the tags and ready
-                dispatch_q.occupied  <= rs_request_i.vc_rs_entry.occupied;
-                dispatch_q.prf_tag   <= rs_request_i.vc_rs_entry.prf_tag;
-                dispatch_q.rob_id    <= rs_request_i.vc_rs_entry.rob_id;
+                dispatch_q.occupied  <= rs_request_i.rs_entry.occupied;
+                dispatch_q.prf_tag   <= rs_request_i.rs_entry.prf_tag;
+                dispatch_q.rob_id    <= rs_request_i.rs_entry.rob_id;
 
-                dispatch_q.operation   <= rs_request_i.vc_rs_entry.operation;
-                dispatch_q.a_is_vector <= rs_request_i.vc_rs_entry.a_is_vector;
-                dispatch_q.b_is_vector <= rs_request_i.vc_rs_entry.b_is_vector;
+                dispatch_q.operation   <= rs_request_i.rs_entry.operation;
 
-                dispatch_q.operand_a_tag   <= rs_request_i.vc_rs_entry.operand_a_tag;
-                dispatch_q.operand_b_tag   <= rs_request_i.vc_rs_entry.operand_b_tag;
-                dispatch_q.operand_a_ready <= rs_request_i.vc_rs_entry.operand_a_ready;
-                dispatch_q.operand_b_ready <= rs_request_i.vc_rs_entry.operand_b_ready;
+                dispatch_q.operand_a_tag   <= rs_request_i.rs_entry.operand_a_tag;
+                dispatch_q.operand_b_tag   <= rs_request_i.rs_entry.operand_b_tag;
+
+                dispatch_q.imm <= rs_request_i.rs_entry.imm;
+                dispatch_q.read_src2 <= rs_request_i.rs_entry.read_src2;
+
+                dispatch_q.a_is_vector <= rs_request_i.rs_entry.a_is_vector;
+                dispatch_q.b_is_vector <= rs_request_i.rs_entry.b_is_vector;
+
+                dispatch_q.operand_a_ready <= rs_request_i.rs_entry.operand_a_ready;
+                dispatch_q.operand_b_ready <= rs_request_i.rs_entry.operand_b_ready;
             end
             
             else if(dispatch) begin
@@ -189,11 +198,16 @@ module rs_load_store (
                 dispatch_q.rob_id    <= buffer[choice].rob_id;
 
                 dispatch_q.operation   <= buffer[choice].operation;
-                dispatch_q.a_is_vector <= buffer[choice].a_is_vector;
-                dispatch_q.b_is_vector <= buffer[choice].b_is_vector;
 
                 dispatch_q.operand_a_tag   <= buffer[choice].operand_a_tag;
                 dispatch_q.operand_b_tag   <= buffer[choice].operand_b_tag;
+
+                dispatch_q.imm <= buffer[choice].imm;
+                dispatch_q.read_src2 <= buffer[choice].read_src2;
+
+                dispatch_q.a_is_vector <= buffer[choice].a_is_vector;
+                dispatch_q.b_is_vector <= buffer[choice].b_is_vector;
+
                 dispatch_q.operand_a_ready <= buffer[choice].operand_a_ready;
                 dispatch_q.operand_b_ready <= buffer[choice].operand_b_ready;
                 
@@ -206,7 +220,7 @@ module rs_load_store (
             mask <= mask_next;
 
             // instruction added to RS
-            if (instr_valid && !bypass) buffer[rs_request_i.rs_slot_id] <= rs_request_i.vc_rs_entry;
+            if (instr_valid && !bypass) buffer[rs_request_i.rs_slot_id] <= rs_request_i.rs_entry;
 
         end
     end
