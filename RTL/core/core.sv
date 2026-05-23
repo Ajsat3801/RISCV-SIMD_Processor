@@ -150,15 +150,15 @@ module core #()(
 
     genvar i;
 
-    generate
-        for(i=0; i<SCALAR_EX_COUNT; i++) begin : gen_sc_ready_gate
-            assign  sc_rs_ex_ready[i] = sc_ex_ready[i] && sc_wb_ready[i];
-        end
+    always_comb begin
+        sc_rs_ex_ready[0] = sc_ex_ready[0] && sc_wb_ready[0];
+        sc_rs_ex_ready[1] = sc_ex_ready[1] && sc_wb_ready[1];
+        sc_rs_ex_ready[2] = sc_ex_ready[2] && sc_wb_ready[2] && !(sc_rd_req[2].valid) && !(sc_ex_req[2].valid);
+        sc_rs_ex_ready[3] = sc_ex_ready[3] && sc_wb_ready[3];
 
-        for(i=0; i<VECTOR_EX_COUNT; i++) begin : gen_vc_ready_gate
-            assign vc_rs_ex_ready[i] = vc_ex_ready[i] && vc_wb_ready[i];
-        end
-    endgenerate
+        vc_rs_ex_ready[0] = vc_ex_ready[0] && vc_wb_ready[0];
+        vc_rs_ex_ready[1] = vc_ex_ready[1] && vc_wb_ready[1];
+    end
 
     assign lsu_ready = sc_rs_ex_ready[3] && vc_rs_ex_ready[1];
 

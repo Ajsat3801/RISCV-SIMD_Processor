@@ -1,6 +1,6 @@
 // Sanity check testbench for core + imem + dmem
-/* state as of 16th May 3pm
- * some issue with tag matching in RS. 
+/* KNown issues
+   Signed multiplication may not be working
  */
 
 module top_tb;
@@ -58,31 +58,48 @@ module top_tb;
 
     initial begin
         instr_array = '{ 
-            32'b00000000000100000010000010000011, // LW  R1 1(R0) -> result = 1
-            32'b00000000001000000010000100000011, // LW  R2 2(R0) -> result = 2
 
-            
-            
-            32'b00000000001000001000000110110011, // ADD R3 R1 R2 -> result = 3
-            32'b01100000000100010000001000110011, // SUB R4 R2 R1 -> result = 1
-            32'b00000000001100100000001010110011, // ADD R5 R3 R4 -> result = 4
-            32'b00000010010100010000001100110011, // MUL R6 R2 R5 -> result = 8
-            
-            32'b00000000000000001110000010000111, // VLE32 V1 R0 (sends mem address 0)
-            32'b00000000000000101110000100000111, // VLE32 V2 R5 (sends mem address 4)
+            32'b00000000100000000010000010000011	,//	lw   	r1	8(R0)	32	R1  becomes 15
+            32'b00000000100100000010000100000011	,//	lw  	r2	9(R0)	33	R2  becomes 4
+            32'b00000000101000000010000110000011	,//	lw  	r3	10(R0)	34	R3  becomes -7
+            32'b00000000000000001010001000000011	,//	lw  	r4	0(R1)	35	R4  becomes 3
+            32'b00000000001000001000001010110011	,//	add 	r5	r1 	r2 	36	R5  becomes 19
+            32'b01100000001000001000001100110011	,//	sub 	r6	r1 	r2 	37	R6  becomes 11
+            32'b00000000011000101000001110110011	,//	add 	r7	r5	r6 	38	R7  becomes 30
+            32'b01100000001000111000010000110011	,//	sub 	r8	r7	r2 	39	R8  becomes 26
+            32'b00000000010101000000010010010011	,//	addi	r9	r8	5  	40	R9  becomes 31
+            32'b00000000000000110010010100000011	,//	lw  	r10	0(R6)	41	R10 becomes 627
+            32'b11111111111100001010010110000011	,//	lw  	r11	-1(15)	42	R11 becomes -785
+            32'b00000010101101010000011000110011	,//	mul  	r12	r10	r11	43	R12 becomes -492195
+            32'b00000010101101010001011010110011	,//	mulh	r13	r10	r11	44	R13 becomes -1
+            32'b00000010101101010011011100110011	,//	mulhu	r14	r10	r11	45	R14 becomes 626
+            32'b00000010101001011010011110110011	,//	mulhsu	r15	r11	r10	46	R15 becomes -1
+            32'b00000000100001111111100000010011	,//	andi	r16	r15	8	47	R16 becomes 8
+            32'b00000000001000010001100010010011	,//	slli	r17	r2	2	48	R17 becomes 16
+            32'b00000000000110001101100100010011	,//	srli	r18	r17	1	49	R18 becomes 8
+            32'b00000010010000001100100110110011	,//	div 	r19	r1	r4	50	R19 becomes 5
+            32'b00000010010000001101101000110011	,//	divu	r20	r1	r4	51	R20 becomes 5
+            32'b00000010010000001110101010110011	,//	rem 	r21	r1	r4	52	R21 becomes 0 
+            32'b00000010010000011100101100110011	,//	div 	r22	r3	r4	53	R22 becomes -2
+            32'b0000001 00100 00011 111 10111 0110011	,//	remu	r23	r3	r4	54	                Currently stalling the pipeline
+            32'b00000010010000011110110000110011	,//	rem 	r24	r3	r4	55	R24 becomes 1
+            32'b00000000000100011010110010110011	,//	slt 	r25	r3	r1	56	R25 becomes 1
+            32'b00000000011101001100110100010011	,//	xori	r26	r9	7	57	R26 becomes 24
+            32'b00000000001000001011110110110011	,//	sltu	r27	r1	r2	58	R27 becomes 0
+            32'b00000001111111010110111000010011	,//	ori 	r28	r26	31	59	R28 becomes 31
+            32'b00000000000000011010111010010011	,//	slti	r29	r3	0	60	R29 becomes 1
+            32'b00000000000100011011111100010011	,//	sltiu	r30	r3	1	61	R30 becomes 0
+            32'b00000010001000001000111110110011	,//	mul  	r31	r1	r2	62	R31 becomes 60
 
-            32'b00000010010100110101001110110011, // DIV R7 R6 R5 -> result = 2
-
-            32'b00000000001000001000000111010111, // VADD.VV V3 V1 V2 
-
-            32'b00000000011000101010000000100011, // SW R6 0(R5)
-
-            32'b00000000000000000000000001110011  // ecall (terminate)
+            32'b00000000000000000000000001110011     //  ecall (terminate)
 
 
         };
         data_array = '{
-            { 32'd3, 32'd2, 32'd1, 32'd0},{32'd7, 32'd6, 32'd5, 32'd4}
+            {    3,    2,    1,    0},
+            {    7,    6,    5,    4},
+            {  627,   -7,    4,   15},
+            {    3, -785,  814, -387}
         };
         sc_prf_array = {32'd1, 32'd2};
         vc_prf_array = {{4{32'd1}},{4{32'd2}}};
@@ -215,41 +232,50 @@ module top_tb;
         );
     endtask
 
-    task automatic display_final_prf_state_sc0();
-        $display("                  FINAL STATE SCALAR PRF1");
+    task automatic display_final_prf_state_sc();
+        logic match = 1;
+        $display("                             FINAL STATE SCALAR PRF");
         for(int i=0; i<32; i+=4) begin
-            $display("R%02d: %h\t| R%02d: %h\t| R%02d: %h\t| R%02d: %h",
-                    i  , dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i]],
-                    i+1, dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+1]],
-                    i+2, dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+2]],
-                    i+3, dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+3]],
-                    );
+            $display("R%02d: %h (%04d)\t| R%02d: %h (%04d)\t| R%02d: %h (%04d)\t| R%02d: %h (%04d)",
+                i,
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i]]),
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i]]),
+                i+1,
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+1]]),
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+1]]),
+                i+2,
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+2]]),
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+2]]),
+                i+3,
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+3]]),
+                $signed(dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+3]])
+            );
         end
-        $display("----------------------------------------------------------------------------------------------------");
-    endtask
-
-    task automatic display_final_prf_state_sc1();
-        $display("                  FINAL STATE SCALAR PRF1");
-        for(int i=0; i<32; i+=4) begin
-            $display("R%02d: %h\t| R%02d: %h\t| R%02d: %h\t| R%02d: %h",
-                    i  , dut.u_core.u_scalar_prf_replica1.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i]],
-                    i+1, dut.u_core.u_scalar_prf_replica1.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+1]],
-                    i+2, dut.u_core.u_scalar_prf_replica1.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+2]],
-                    i+3, dut.u_core.u_scalar_prf_replica1.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i+3]],
-                    );
+        
+        for(int i=0; i<32; i++) begin
+            match = match && (
+                dut.u_core.u_scalar_prf_replica0.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i]] ==
+                dut.u_core.u_scalar_prf_replica1.regfile[dut.u_core.u_alloc_rename_retire.sc_commit_table[i]]
+                );
         end
+        if(match) $display("\nReplicas Match");
+        else $display("\nReplicas do not match");
         $display("----------------------------------------------------------------------------------------------------");
     endtask
 
     task automatic display_final_prf_state_vc();
-        $display("                  FINAL STATE VECTOR PRF");
+        $display("                             FINAL STATE VECTOR PRF");
         for(int i=0; i<32; i++) begin
-            $display("V%02d: %h %h %h %h", 
+            $display("V%02d:\t%h (%04d)  \t%h (%04d)  \t%h (%04d)  \t%h (%04d) ", 
                     i, 
-                    dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][0],
-                    dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][1],
-                    dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][2],
-                    dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][3]
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][0]),
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][0]),
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][1]),
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][1]),
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][2]),
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][2]),
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][3]),
+                    $signed(dut.u_core.u_vector_prf.regfile[dut.u_core.u_alloc_rename_retire.vc_commit_table[i]][3])
                 );
         end
         $display("----------------------------------------------------------------------------------------------------");
@@ -290,6 +316,15 @@ module top_tb;
         );
     endtask
 
+    task automatic display_prf_inout_ls();
+    $display("[PRF IN] sc: [%b @ %d (%0d %0d)]",
+            dut.u_core.u_scalar_prf_replica1.ls_rd_req_i.valid,
+            dut.u_core.u_scalar_prf_replica1.ls_rd_req_i.prf_tag,
+            dut.u_core.u_scalar_prf_replica1.ls_rd_req_i.operand_a_tag,
+            dut.u_core.u_scalar_prf_replica1.ls_rd_req_i.operand_b_tag,
+        );
+    endtask
+
     task automatic display_prf_inout_vc();
         $display("[PRF INOUT] IN:[%b @ %0d (%b %b)] OUT:[%b - %h %h]",
             dut.u_core.u_vector_prf.vc_alu_rd_req_i.valid,
@@ -303,7 +338,7 @@ module top_tb;
     endtask
 
     task automatic display_stage_valids();             
-        $display("[SC CORE] fetch=%h, decode=%h, queue=%h %h, alloc=%h %h @ %0d, rs=%h %h %h %h %h %h, ex=%h %h %h %h %h %h, wb=%h %h, retire=%h (%0d)",
+        $display("[SC CORE] fetch=%h, decode=%h, queue=%h %h, alloc=%h %h @ %0d, rs=%h %h %h %h %h %h, ex=%h %h %h %h %h %h, wb=%h %h (%0d, %od), retire=%h (%0d)",
                 dut.u_core.u_decode.fetch_valid_i,
                 dut.u_core.u_decode.decoded_instr_o.valid, 
                 dut.u_core.u_instr_q.dispatched_instr_o.valid,
@@ -321,6 +356,7 @@ module top_tb;
                 dut.u_core.u_lsu.lsu_output_o.valid, dut.u_core.u_vector_alu.vc_ex_result_o.valid,
 
                 dut.u_core.u_scalar_writeback.data_bus_o.valid, dut.u_core.u_vector_writeback.data_bus_o.valid,
+                dut.u_core.u_scalar_writeback.data_bus_o.prf_tag, dut.u_core.u_vector_writeback.data_bus_o.prf_tag,
 
                 dut.u_core.u_reorder_buffer.retire_instr_o.valid, dut.u_core.u_reorder_buffer.retire_instr_o.prf_tag
         );
@@ -348,11 +384,11 @@ module top_tb;
     endtask
 
     task automatic display_rs_states_muldiv();
-    if(dut.u_core.u_scalar_muldiv_rs.rs_request_i.valid || 
+    /*if(dut.u_core.u_scalar_muldiv_rs.instr_valid || 
         dut.u_core.u_scalar_muldiv_rs.sc_data_bus_i.valid ||
         dut.u_core.u_scalar_muldiv_rs.sc_rd_req_o.valid
-    ) begin
-        $display("[MULDIV RS] in for %0d [%b @ %0d %0d (%0d-%h %0d-%h)] ready:[%b] data_bus:[%b %0d] out:[%b %0d]",
+    ) begin*/
+        $display("[MULDIV RS] in for %0d [%b @ %0d %0d (%0d-%h %0d-%h)] ready:[%b %b (%b %b)- %b] data_bus:[%b %0d] out:[%b %0d]",
                 dut.u_core.u_scalar_muldiv_rs.rs_request_i.chip_select,
                 dut.u_core.u_scalar_muldiv_rs.rs_request_i.valid,
                 dut.u_core.u_scalar_muldiv_rs.rs_request_i.rs_slot_id,
@@ -361,12 +397,16 @@ module top_tb;
                 dut.u_core.u_scalar_muldiv_rs.rs_request_i.rs_entry.operand_a_ready,
                 dut.u_core.u_scalar_muldiv_rs.rs_request_i.rs_entry.operand_b_tag,
                 dut.u_core.u_scalar_muldiv_rs.rs_request_i.rs_entry.operand_b_ready,
+                dut.u_core.sc_ex_ready[2],
+                !(dut.u_core.sc_rd_req[2].valid),
+                !(dut.u_core.sc_ex_req[2].valid),
                 dut.u_core.u_scalar_muldiv_rs.sc_ex_ready_i,
                 dut.u_core.u_scalar_muldiv_rs.sc_data_bus_i.valid,
                 dut.u_core.u_scalar_muldiv_rs.sc_data_bus_i.prf_tag,
                 dut.u_core.u_scalar_muldiv_rs.sc_rd_req_o.valid,
                 dut.u_core.u_scalar_muldiv_rs.sc_rd_req_o.prf_tag,
         );
+        /* // for printing RS buffer values
         for(int i=0; i<2; i++) begin
             $display("[RS_STATE %0d] %b %0d %0d %b %b", i,
                 dut.u_core.u_scalar_muldiv_rs.buffer[i].occupied,
@@ -376,7 +416,8 @@ module top_tb;
                 dut.u_core.u_scalar_muldiv_rs.buffer[i].operand_b_ready
             );
         end
-    end
+        */
+    //end
     endtask
 
     task automatic display_rs_states_vc();
@@ -392,6 +433,7 @@ module top_tb;
     endtask
 
     task automatic display_rs_states_lsu();
+    if(dut.u_core.u_lsu_rs.ls_read_request_o.valid || dut.u_core.u_lsu_rs.instr_valid)
         $display("[LSU RS] in:[%b @ %0d %0d (%h %h) imm(%b %b)] ready:%b out:[%b %0d imm(%b %b)]",
                 dut.u_core.u_lsu_rs.rs_request_i.valid,
                 dut.u_core.u_lsu_rs.rs_request_i.rs_slot_id,
@@ -446,6 +488,21 @@ module top_tb;
         );
     endtask
 
+    task automatic display_muldiv_states();
+        $display("[MULDIV] IN:[%b @ %0d - %h %h], ready:[%b %b %b] OUT:[%b @ %0d - %h]",
+            dut.u_core.u_scalar_muldiv.sc_ex_request_i.valid,
+            dut.u_core.u_scalar_muldiv.sc_ex_request_i.prf_tag,
+            dut.u_core.u_scalar_muldiv.sc_ex_request_i.operand_a,
+            dut.u_core.u_scalar_muldiv.sc_ex_request_i.operand_b,
+            dut.u_core.u_scalar_muldiv_rs.sc_ex_ready_i,
+                !(dut.u_core.sc_rd_req[2]),
+                !(dut.u_core.sc_ex_req[2]),
+            dut.u_core.u_scalar_muldiv.sc_ex_result_o.valid,
+            dut.u_core.u_scalar_muldiv.sc_ex_result_o.prf_tag,
+            dut.u_core.u_scalar_muldiv.sc_ex_result_o.data
+        );
+    endtask
+
     task automatic display_fetch_states();
         $display("[FETCH] IN:[PC:%0d (%b %b)], OUT:[%b @ %b - %0d]",
             dut.u_core.u_fetch.imem_req_o.address,
@@ -487,20 +544,22 @@ module top_tb;
     endtask
 
     task automatic display_lsu_inout();
-        $display("[LSU] in[%b %h %h], out[%b %h]",
+        $display("[LSU] in[%b %h %h @ %0d], out[%b %h @ %0d]",
             dut.u_core.u_lsu.lsu_request_i.valid,
             dut.u_core.u_lsu.lsu_request_i.operand_a,
             dut.u_core.u_lsu.lsu_request_i.operand_b,
+            dut.u_core.u_lsu.lsu_request_i.prf_tag,
             dut.u_core.u_lsu.lsu_output_o.valid,
-            dut.u_core.u_lsu.lsu_output_o.mem_addr
+            dut.u_core.u_lsu.lsu_output_o.mem_addr,
+            dut.u_core.u_lsu.lsu_output_o.prf_tag
         );
     endtask
     task automatic display_sc_wb();
-        $display("[SC_WB] in[%b %b %b %b %0d %0d %0d %0d], out[%b %0d %h]",
-            dut.u_core.u_scalar_writeback.ex_result_i[0].valid, dut.u_core.u_scalar_writeback.ex_result_i[1].valid, 
-            dut.u_core.u_scalar_writeback.ex_result_i[2].valid, dut.u_core.u_scalar_writeback.ex_result_i[3].valid,
-            dut.u_core.u_scalar_writeback.ex_result_i[0].prf_tag, dut.u_core.u_scalar_writeback.ex_result_i[1].prf_tag,
-            dut.u_core.u_scalar_writeback.ex_result_i[2].prf_tag, dut.u_core.u_scalar_writeback.ex_result_i[3].prf_tag,
+        $display("[SC_WB] in[%b %0d | %b  %0d | %b %0d | %b %0d], out[%b %0d %h]",
+            dut.u_core.u_scalar_writeback.ex_result_i[0].valid, dut.u_core.u_scalar_writeback.ex_result_i[0].prf_tag, 
+            dut.u_core.u_scalar_writeback.ex_result_i[1].valid, dut.u_core.u_scalar_writeback.ex_result_i[1].prf_tag,
+            dut.u_core.u_scalar_writeback.ex_result_i[2].valid, dut.u_core.u_scalar_writeback.ex_result_i[2].prf_tag, 
+            dut.u_core.u_scalar_writeback.ex_result_i[3].valid, dut.u_core.u_scalar_writeback.ex_result_i[3].prf_tag,
             dut.u_core.u_scalar_writeback.data_bus_o.valid,
             dut.u_core.u_scalar_writeback.data_bus_o.prf_tag,
             dut.u_core.u_scalar_writeback.data_bus_o.data
@@ -513,7 +572,7 @@ module top_tb;
         prev_retire_sc    <= dut.u_core.u_alloc_rename_retire.retire_instr_i.valid && !dut.u_core.u_alloc_rename_retire.retire_instr_i.prf_tag.vector;
         prev_retire_vc    <= dut.u_core.u_alloc_rename_retire.retire_instr_i.valid && dut.u_core.u_alloc_rename_retire.retire_instr_i.prf_tag.vector;
         if(prev_retire_sc) begin
-        $display("[sc Retire at cycle %0d (%0t ns)] \tR%0d \ttag:%0d \tval:%h",
+        $display("[sc Retire at cycle %0d (%0t ns)] \tR%02d \ttag:%0d \tval:%h",
             (cycles-1), ($time()-20),
             prev_dest_address,
             prev_prf_tag,
@@ -521,7 +580,7 @@ module top_tb;
         );
         end
         if(prev_retire_vc) begin
-        $display("[vc Retire at cycle %0d (%0t ns)] \tV%0d \ttag:%0d \tval:%h",
+        $display("[vc Retire at cycle %0d (%0t ns)] \tV%02d \ttag:%0d \tval:%h",
             (cycles-1), ($time()-20),
             prev_dest_address,
             prev_prf_tag,
@@ -549,34 +608,45 @@ module top_tb;
     always @(posedge clk) begin
         #1;
         cycles++;
-        //display_commit_states_sc();
-        //display_commit_states_vc();
+
         display_stage_valids();
+
         //display_fetch_states();
-        //display_prf_sc();
-        //display_prf_vc();
-        //display_prf_inout_sc();
-        //display_prf_inout_vc();
-        //display_vc_alu_states();
+
+        //display_arr_states_sc();
+        //display_arr_states_vc();
+
         //display_rs_states_sc();
         //display_rs_states_muldiv();
         //display_rs_states_vc();
         //display_rs_states_lsu();
-        //display_arr_states_sc();
-        //display_arr_states_vc();
+
+        //display_prf_sc();
+        //display_prf_vc();
+        //display_prf_inout_sc();
+        //display_prf_inout_vc();
+        //display_prf_inout_ls();
+
+        //display_vc_alu_states();
+        //display_muldiv_states();
+        //display_lsu_inout();
+
         //display_dmem_inout();
         //display_dmem_val(0);
         //display_dmem_val(1);
         //display_dmem_val(2);
         //display_dmem_controller();
-        //display_lsu_inout();
+
         //display_sc_wb();
-        if(cycles >= 80) begin
+
+        //display_commit_states_sc();
+        //display_commit_states_vc();
+
+        if(cycles >= 512) begin
             $display("----------------------------------------------------------------------------------------------------");
             $display("                                           RUN COMPLETE"); 
             $display("----------------------------------------------------------------------------------------------------");
-            display_final_prf_state_sc0();
-            display_final_prf_state_sc1();
+            display_final_prf_state_sc();
             display_final_prf_state_vc();
             $finish;
         end
