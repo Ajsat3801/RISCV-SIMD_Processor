@@ -66,6 +66,7 @@ always_comb begin
         alloc_instr_io.instr.extend
     };
     rob_input.is_branch = alloc_instr_io.instr.is_branch;
+    rob_input.branch_taken = rob_input.ready && alloc_instr_io.instr.is_branch;
 
     // sends signal to instruction queue when 1 slot or no slots are remaining
     rob_full_o = (head.address == tail_next.address) && (head.epoch != tail_next.epoch) || full;

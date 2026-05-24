@@ -78,6 +78,7 @@ module fe_fetch(
             valid <= 1'b1;
             //ecall is used as terminate
             if(instr_imem_i[6:0] == 7'b1110011) complete <= 1'b1;
+            if(branch_taken) complete <= 1'b0;
         end
         else begin
             fetch_valid_o   <= 1'b0;

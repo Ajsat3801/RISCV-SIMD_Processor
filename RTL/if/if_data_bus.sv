@@ -21,13 +21,18 @@ interface if_data_bus #(
 
     modport rob (
         input valid,
-        input rob_id
+        input rob_id,
+        input precalc_valid,
+        input precalc_rob_id
     );
 
     modport prf (
         input valid,
         input prf_tag,
-        input data
+        input data,
+        input precalc_valid,
+        input precalc_rob_id,
+        input precalc_data
     );
 
 endinterface

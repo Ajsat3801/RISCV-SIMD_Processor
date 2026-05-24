@@ -14,6 +14,7 @@ interface if_alloc_bus;
     signal_pkg::prf_tag_t operand_a_tag, operand_b_tag;
     signal_pkg::prf_tag_t precalc_prf_tag;
     signal_pkg::chip_select_e chip_select;
+    signal_pkg::data_t precalc_data;
 
     logic a_is_vector, b_is_vector;
     logic operand_a_ready, operand_b_ready;

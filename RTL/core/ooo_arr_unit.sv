@@ -147,9 +147,14 @@ module ooo_arr_unit (
 
             sc_head <= '0;
             vc_head <= '0;
+            sc_head_committed <= '0;
+            vc_head_committed <= '0;
 
             sc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
             vc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
+
+            sc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
+            vc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
 
         // FLUSH
         //   Restore RATs from commit tables.
@@ -162,12 +167,23 @@ module ooo_arr_unit (
         else if (flush_i) begin
 
             for (int i=0; i<ARCH_REG_DEPTH; i++) begin
-                sc_reg_alloc_table[i] <= sc_commit_table[i];
+                if(sc_retire_valid && i == retire_instr_i.dest_address) begin
+                    sc_reg_alloc_table[i] <= retire_instr_i.prf_tag.tag;
+                    sc_commit_table[i] <= retire_instr_i.prf_tag.tag;
+                end
+                else sc_reg_alloc_table[i] <= sc_commit_table[i];
                 vc_reg_alloc_table[i] <= vc_commit_table[i];
             end
 
-            sc_head <= sc_head_committed;
-            vc_head <= vc_head_committed;
+            if (sc_retire_valid) begin
+                sc_free_list[sc_tail[FIFO_WIDTH-1:0]] <= sc_commit_table[retire_instr_i.dest_address];
+                sc_tail <= sc_tail + 1'b1;
+                sc_head <= sc_head_committed + 1'b1;
+            end
+            else begin
+                sc_head <= sc_head_committed;
+                vc_head <= vc_head_committed;
+            end
 
         end 
         else begin
@@ -213,13 +229,13 @@ module ooo_arr_unit (
 
             if (vc_alloc_valid) begin
                 vc_reg_alloc_table[dispatched_instr_i.dest_address] <= vc_prf_id.tag;
-                vc_ready[vc_prf_id.tag]  <= dispatched_instr_i.pre_calc;
+                vc_ready[vc_prf_id.tag]  <= 1'b0;
                 vc_head <= vc_head + 1'b1; 
             end
 
             // Alloc output
-            alloc_instr_o.sc_valid   <= (sc_alloc_valid || sc_store_valid) && !dispatched_instr_i.pre_calc; 
-            alloc_instr_o.vc_valid   <= (vc_alloc_valid || vc_store_valid) && !dispatched_instr_i.pre_calc;
+            alloc_instr_o.sc_valid   <= ((sc_alloc_valid || sc_store_valid) && !dispatched_instr_i.pre_calc) || dispatched_instr_i.is_branch; 
+            alloc_instr_o.vc_valid   <= (vc_alloc_valid || vc_store_valid);
             alloc_instr_o.rs_slot_id <= rs_slot_id_i;
             alloc_instr_o.instr      <= dispatched_instr_i;
             alloc_instr_o.a_is_vector <= dispatched_instr_i.src1_vector;
