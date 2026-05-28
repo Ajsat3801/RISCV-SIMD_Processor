@@ -34,6 +34,7 @@ module top(
 );
 
     logic [31:0] imem_dout;
+    logic [7:0] imem_addr;
     signal_pkg::vector_data_t dmem_dout;
     packet_pkg::imem_request_t imem_request, core_imem_request;
     packet_pkg::dmem_request_t dmem_request, core_dmem_request;
@@ -53,6 +54,7 @@ module top(
         .vc_prf_preload_addr_i(vc_prf_preload_addr_i), 
 
         .imem_dout_i(imem_dout),
+        .imem_addr_i(imem_addr),
         .imem_request_o(core_imem_request),
 
         .dmem_dout_i(dmem_dout),
@@ -63,7 +65,8 @@ module top(
     imem u_imem (
         .clk_i(clk_i),
         .imem_request_i(imem_request),
-        .data_o(imem_dout)
+        .data_o(imem_dout),
+        .address_o(imem_addr)
     );
 
     dmem u_dmem (

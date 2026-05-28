@@ -234,7 +234,7 @@ module ooo_arr_unit (
             end
 
             // Alloc output
-            alloc_instr_o.sc_valid   <= ((sc_alloc_valid || sc_store_valid) && !dispatched_instr_i.pre_calc) || dispatched_instr_i.is_branch; 
+            alloc_instr_o.sc_valid   <= (sc_alloc_valid || sc_store_valid) || dispatched_instr_i.is_branch; 
             alloc_instr_o.vc_valid   <= (vc_alloc_valid || vc_store_valid);
             alloc_instr_o.rs_slot_id <= rs_slot_id_i;
             alloc_instr_o.instr      <= dispatched_instr_i;

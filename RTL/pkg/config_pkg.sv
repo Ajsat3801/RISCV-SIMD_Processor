@@ -16,7 +16,7 @@ package config_pkg;
     parameter int unsigned SINGLE_SLOT_RS_COUNT = 4;
     parameter int unsigned DUAL_SLOT_RS_COUNT = 1;
     parameter int unsigned SINGLE_SLOT_RS_LEN = 8;
-    parameter int unsigned DUAL_SLOT_RS_LEN = 16;
+    parameter int unsigned DUAL_SLOT_RS_LEN = 32;
 
     // Data/Storage config
     parameter int unsigned DATA_SIZE = 32;
@@ -40,7 +40,6 @@ package config_pkg;
 
     localparam int unsigned RS_MAX_LEN = (DUAL_SLOT_RS_LEN>SINGLE_SLOT_RS_LEN) ? DUAL_SLOT_RS_LEN : SINGLE_SLOT_RS_LEN;
     localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_LEN);
-    localparam int unsigned INSTRUCTION_QUEUE_PTR_LEN = $clog2(INSTRUCTION_QUEUE_LEN+1);
     localparam int unsigned RS_IDX_W = (RS_COUNT>1) ? $clog2(RS_COUNT) : 1;
     localparam int unsigned ROB_ADDR_W = $clog2(ROB_LEN);
     localparam int unsigned DUAL_SLOT_RS_IDX_W =$clog2(DUAL_SLOT_RS_LEN);

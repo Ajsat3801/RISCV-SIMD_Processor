@@ -38,11 +38,12 @@ module fe_fetch(
     output signal_pkg::pc_t fetched_pc_o,
     output logic fetch_valid_o,
 
-    input  signal_pkg::data_t instr_imem_i,
+    input  signal_pkg::data_t imem_instr_i,
+    input  [7:0] imem_addr_i,
     output packet_pkg::imem_request_t imem_req_o
 );
     
-    signal_pkg::pc_t pc, pc_sent, pc_imem;
+    signal_pkg::pc_t pc, pc_imem;
     logic branch_taken;
     logic complete, valid;
 
@@ -55,7 +56,7 @@ module fe_fetch(
         
         imem_req_o.read_enable  = compute_i;
         imem_req_o.write_enable = 1'b0;
-        imem_req_o.address = pc_imem;
+        imem_req_o.address = (ready_i) ? pc_imem : imem_addr_i;
         imem_req_o.data    = 32'b0;
 
     end
@@ -71,17 +72,13 @@ module fe_fetch(
         end
         else if(compute_i && ready_i) begin
             pc <= (branch_taken) ? retire_instr_i.data + 1'b1 : pc + 1'b1;
-            pc_sent <= pc_imem;
-            fetched_instr_o <= instr_imem_i;
-            fetched_pc_o    <= pc_sent;
+            fetched_instr_o <= imem_instr_i;
+            fetched_pc_o    <= imem_addr_i;
             fetch_valid_o   <= !branch_taken && !complete && valid; 
             valid <= 1'b1;
             //ecall is used as terminate
-            if(instr_imem_i[6:0] == 7'b1110011) complete <= 1'b1;
+            if(imem_instr_i[6:0] == 7'b1110011) complete <= 1'b1;
             if(branch_taken) complete <= 1'b0;
-        end
-        else begin
-            fetch_valid_o   <= 1'b0;
         end
     end
 

@@ -28,7 +28,7 @@ package signal_pkg;
     } alu_operations_e;
 
     typedef enum logic [3:0] {
-        BR_BEQ  = 4'b1000,                    BR_BNE  = 4'b1010, 
+        BR_BEQ  = 4'b1000,                    BR_BNE  = 4'b1001, 
         BR_BLT  = 4'b1100, BR_BGE  = 4'b1101, BR_BLTU = 4'b1110, BR_BGEU = 4'b1111
     } branch_operations_e;
 

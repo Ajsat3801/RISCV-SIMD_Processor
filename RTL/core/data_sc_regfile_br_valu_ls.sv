@@ -91,9 +91,8 @@ module data_sc_regfile_br_valu_ls (
             sc_br_ex_req_o.operation <= sc_br_rd_req_i.operation;
 
             sc_br_ex_req_o.operand_a <= operand_a0;
-            sc_br_ex_req_o.operand_b <= (sc_br_rd_req_i.read_src2) ? 
-                operand_b0 : {{20{sc_br_rd_req_i.imm[11]}},sc_br_rd_req_i.imm};
-
+            sc_br_ex_req_o.operand_b <= operand_b0;
+            
             // READ SCALAR OPERANDS FOR VECTOR ALU
             vc_alu_sc_operand_o <= operand_vc;
 

@@ -44,6 +44,7 @@ module core #()(
     input  signal_pkg::prf_tag_t vc_prf_preload_addr_i, 
 
     input  signal_pkg::data_t imem_dout_i,
+    input  logic [7:0] imem_addr_i,
     output packet_pkg::imem_request_t imem_request_o,
 
     input  logic [127:0] dmem_dout_i,
@@ -65,7 +66,7 @@ module core #()(
     // dispatched instruction signals
     packet_pkg::decoded_instr_t dispatched_instr;
     signal_pkg::rs_slot_id_t dispatched_instr_rs_slot_id;
-    logic queue_ready;
+    logic queue_ready, decode_ready, decoded_instr_en;
 
     // signals from RS to Queue with freed RS Slot IDs
     signal_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
@@ -199,12 +200,13 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .compute_i(compute_i),
-        .ready_i(queue_ready),
+        .ready_i(decode_ready),
         .retire_instr_i(u_retirement_bus),
         .fetched_instr_o(fetched_instr),
         .fetched_pc_o(fetched_pc),
         .fetch_valid_o(fetch_valid),
-        .instr_imem_i(imem_dout_i),
+        .imem_instr_i(imem_dout_i),
+        .imem_addr_i(imem_addr_i),
         .imem_req_o(imem_request_o)
     );
 
@@ -214,7 +216,10 @@ module core #()(
         .fetched_instr_i(fetched_instr),
         .fetched_pc_i(fetched_pc),
         .fetch_valid_i(fetch_valid),
-        .decoded_instr_o(decoded_instr)
+        .decode_ready_o(decode_ready),
+        .queue_ready_i(queue_ready),
+        .decoded_instr_o(decoded_instr),
+        .decoded_instr_en_o(decoded_instr_en)
     );
 
     fe_instruction_queue u_instr_q (
@@ -222,6 +227,7 @@ module core #()(
         .reset_ni(reset_ni),
         .flush_i(flush),
         .decoded_instr_i(decoded_instr),
+        .decoded_instr_en_i(decoded_instr_en),
         .released_rs_slot_id_i(released_rs_slot_id_arr),
         .rs_slot_released_i(rs_slot_released_arr),
         .rob_full_i(rob_full),

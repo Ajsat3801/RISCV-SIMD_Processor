@@ -17,12 +17,12 @@ module lib_vector_alu_lane(
 
         unique case (operation.valu)
             signal_pkg::VALU_ADD  : result_o <= operand_a + operand_b;
-            signal_pkg::VALU_SUB  : result_o <= operand_a - operand_b;
-            signal_pkg::VALU_RSUB : result_o <= operand_b - operand_a;
+            signal_pkg::VALU_SUB  : result_o <= operand_b - operand_a;
+            signal_pkg::VALU_RSUB : result_o <= operand_a - operand_b;
             signal_pkg::VALU_XOR  : result_o <= operand_a ^ operand_b;
             signal_pkg::VALU_OR   : result_o <= operand_a | operand_b;
             signal_pkg::VALU_AND  : result_o <= operand_a & operand_b;
-            default: result_o <= '0;
+            default: result_o <= '1;
         endcase
 
     end

@@ -17,19 +17,10 @@ module ooo_reorder_buffer (
     output logic flush_o
 );
 
-/*
-sc is 1 and vc is 0 -> 
-    store scalar prf in dest
-    scalar instruction completely ignore vc
-sc is 0 and vc is 1 -> vv instruction -> completely ignore sc
-both 1 -> vx instruction, -> store vector prf in dest
-both 0 -> NOP -> output not valid
-*/
-
 packet_pkg::rob_entry_t rob_table[ROB_LEN-1:0];
 packet_pkg::rob_entry_t rob_input;
-signal_pkg::rob_address_t head, tail, head_next, tail_next;
-logic full, empty;
+signal_pkg::rob_address_t head, tail, head_next, tail_next, tail_add2;
+logic full, full_next, full_in2, empty;
 logic push_allowed, pop_allowed;
 int i;
 
@@ -41,9 +32,27 @@ typedef enum logic[1:0]{
 instr_type_e instr_type;
 
 always_comb begin
+    // compiling instruction into rob entry
+    // inputs valid and instr
+    rob_input.ready =   alloc_instr_io.instr.pre_calc && 
+                        alloc_instr_io.instr.write_to_reg;
+    rob_input.write_to_reg = alloc_instr_io.instr.write_to_reg;
+    rob_input.prf_tag      = alloc_instr_io.prf_tag;
+    rob_input.dest_address = alloc_instr_io.instr.dest_address;
+    rob_input.data  = (alloc_instr_io.instr.is_branch) 
+                    ? {10'd0, alloc_instr_io.instr.imm, alloc_instr_io.instr.extend} 
+                    : { alloc_instr_io.instr.src1_address, alloc_instr_io.instr.src2_address,
+                        alloc_instr_io.instr.imm, alloc_instr_io.instr.extend };
+    rob_input.is_branch = alloc_instr_io.instr.is_branch;
+    rob_input.branch_taken = rob_input.ready && alloc_instr_io.instr.is_branch;
+end
+
+always_comb begin
 
     {head_next.epoch, head_next.address} = {head.epoch, head.address} + 1'b1;
     {tail_next.epoch, tail_next.address} = {tail.epoch, tail.address} + 1'b1;
+
+    {tail_add2.epoch, tail_add2.address} = {tail.epoch, tail.address} + 2'b10;
 
     full  = (head.address == tail.address) && (head.epoch != tail.epoch);
     empty = (head.address == tail.address) && (head.epoch == tail.epoch);
@@ -51,25 +60,9 @@ always_comb begin
     push_allowed = !full && alloc_instr_io.valid;
     pop_allowed  = !empty && rob_table[head.address].ready;
 
-    // compiling instruction into rob entry
-    // inputs valid and instr
-
-    rob_input.ready =   alloc_instr_io.instr.pre_calc && 
-                        alloc_instr_io.instr.write_to_reg;
-    rob_input.write_to_reg = alloc_instr_io.instr.write_to_reg;
-    rob_input.prf_tag      = alloc_instr_io.prf_tag;
-    rob_input.dest_address = alloc_instr_io.instr.dest_address;
-    rob_input.data = {
-        alloc_instr_io.instr.src1_address,
-        alloc_instr_io.instr.src2_address,
-        alloc_instr_io.instr.imm,
-        alloc_instr_io.instr.extend
-    };
-    rob_input.is_branch = alloc_instr_io.instr.is_branch;
-    rob_input.branch_taken = rob_input.ready && alloc_instr_io.instr.is_branch;
-
-    // sends signal to instruction queue when 1 slot or no slots are remaining
-    rob_full_o = (head.address == tail_next.address) && (head.epoch != tail_next.epoch) || full;
+    rob_full_o = (tail_add2.epoch!= head.epoch) ? 
+                     (tail_add2.address >= head.address) : 
+                     (tail_add2.address < tail.address);
     
     alloc_instr_io.rob_id = tail;
     

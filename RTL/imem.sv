@@ -28,7 +28,8 @@ module imem (
     input  logic clk_i,
     input  packet_pkg::imem_request_t imem_request_i,
 
-    output logic[31:0] data_o
+    output logic[31:0] data_o,
+    output logic[7:0] address_o
 );
     logic[32:0] read;
 
@@ -43,5 +44,8 @@ module imem (
     );
 
     assign data_o = read[31:0];
+    always @(posedge clk_i) begin
+        address_o <= imem_request_i.address;
+    end
 
 endmodule
