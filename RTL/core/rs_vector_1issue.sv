@@ -1,3 +1,28 @@
+/* ------------------------------------------------------------------------------------------------
+ *                              VECTOR SINGLE ISSUE RESERVATION STATION
+ * ------------------------------------------------------------------------------------------------
+ *
+ *   Functions/Behavior
+ *  ->  Reservation station for vector operations.
+ *  ->  Logic & functionality similar to load-store reservation station with slight changes (refer
+ *      to rs_load_store.sv for details)
+ *
+ *  Inputs:
+ *  ->  clk, reset_n & flush
+ *  ->  rs_request_i — Instruction to be allocated.
+ *  ->  sc_data_bus_i — Snoop scalar CDB
+ *  ->  vc_data_bus_i — Snoop vector CDB 
+ *  ->  vc_ex_ready_i — Ready signal from vector execution unit
+ *
+ *  Outputs:
+ *  ->  vc_read_request_o — Read request sent to the vector execution unit. 
+ *  ->  sc_read_request_tag_o — The PRF tag for the scalar source operand A.
+ *  ->  released_rs_slot_id_o — The RS slot ID of the instruction dispatched
+ *  ->  rs_slot_released_o — signal indicating slot has been released
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
+
 
 module rs_vector_1issue #(
     parameter signal_pkg::chip_select_e CHIP_SELECT = signal_pkg::CS_VALU

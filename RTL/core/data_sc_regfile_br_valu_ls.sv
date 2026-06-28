@@ -1,42 +1,52 @@
 /* ------------------------------------------------------------------------------------------------
  *                            SCALAR PHYSICAL REGISTER FILE - Replica 2
  * ------------------------------------------------------------------------------------------------
- *  Functions/Behavior:
- *  ->  Physical storage for the register values. Architectural registers are mapped to this 
-        registers using the RAT.
- *  ->  Replica 1 services branch resolution unit, vector ALU and the loadstore unit.
  *
- *  Inputs:
- *  ->  clock and reset
- *  ->  Read Requests for scalar ALU0, scalar ALU1 and scalar multiply divide
- *  ->  Write request for LUI, AUIPC and JAL instructions from the alloc rename retire unit
- *  ->  Snoop scalar data bus for writeback broadcast
+ *  Functions/Behavior
+ *  ->  Physical register file (Replica 2) that stores scalar register values.
+ *  ->  Services 3 FUs: branch resolution, vector ALU and load-store unit.
+ *  ->  Functionally same as replica 1, only ports are different
+ *  
+ *  Inputs
+ *  ->  clk & reset_n
+ *  ->  precalc_i — Pre-calculated write port for LUI, AUIPC & JAL.
+ *  ->  sc_wb_instr_i — Writeback broadcast bus.
+ *  ->  sc_br_rd_req_i — Read request from the branch unit.
+ *  ->  vc_alu_rd_req_tag_i — Single PRF tag read request from the vector ALU, used to fetch the
+ *      scalar operand for .vx operations.
+ *  ->  ls_rd_req_i — Read request from the load-store unit.
+ *  
+ *  Outputs
+ *  ->  sc_br_ex_req_o — Registered execution packet for the branch unit.
+ *  ->  vc_alu_sc_operand_o — Registered scalar operand value for the vector ALU, read from the PRF
+ *      tag supplied by vc_alu_rd_req_tag_i.
+ *  ->  ls_ex_req_o — Registered execution packet for the load-store unit. operand_a is RS1 (base
+ *      address); operand_b is the sign-extended 12-bit immediate (address offset for loads/scalar
+ *      stores). Metadata is forwarded from ls_rd_req_i.
+ *  ->  ls_store_data_o — Store data scalar store word operations.
+ *  
+ *  Notes
+ *  ->  Flush does not affect the physical register file contents.
+ *  ->  Write logic is identical across all PRF replicas ensuring all copies remain coherent.
+ *  ->  There is a one-cycle read latency: operands are read combinationally but registered before
+ *      being driven to output, so the execution request arrives one cycle after the read request.
+ *  ->  Both write ports are independent and can fire in the same cycle. If precalc & sc_wb_instr
+ *      are both valid and target the same PRF tag simultaneously, the writeback (sc_wb_instr_i)
+ *      write wins because it is the last assignment in the always_ff block
+ *  ->  Load-store operand_b output is NOT the raw register value, it is the sign-extended immediate
+ *      used as address offset. Actual store data is delivered separately on ls_store_data_o.
  *
- *  Outputs:
- *  ->  execution requests branch
- *  ->  execution requests for load-store unit
- *      ->  sc_ex_request packet for metadata + operands
- *      ->  data_t packet for store data; used only for stores
- *  ->  execution data for vector_alu
- *      -> 
- * Notes:
- *  ->  Flush doesnt affect the physical register file. The speculative mapping is reset so any 
- *      speculative data can be overwritten 
- *  ->  Write is common for all replicas, so the data remains the same in all 3.
- * ------------------------------------------------------------------------------------------------
+ * ------------------------------------------------------------------------------------------------ 
  */
 
 module data_sc_regfile_br_valu_ls (
     input logic clk_i,
     input logic reset_ni,
 
-    // inputs from ARR for instructions that dont require an FU
     if_alloc_bus.precalc precalc_i,
 
-    // snooping from CDB
     if_data_bus.prf sc_wb_instr_i,
 
-    // Read operands from RS and send to functional unit
     input  packet_pkg::read_request_t sc_br_rd_req_i,
     output packet_pkg::sc_ex_request_t sc_br_ex_req_o,
 
@@ -53,7 +63,7 @@ module data_sc_regfile_br_valu_ls (
     signal_pkg::data_t operand_b0, operand_b1;
 
     always_comb begin
-        // COMBINATIONAL READS FOR OPERANDS
+        // combinational read for operands
         operand_a0 = regfile[sc_br_rd_req_i.operand_a_tag.tag];
         operand_b0 = regfile[sc_br_rd_req_i.operand_b_tag.tag];
         operand_a1 = regfile[ls_rd_req_i.operand_a_tag.tag];
@@ -69,10 +79,13 @@ module data_sc_regfile_br_valu_ls (
         end
 
         else begin
-            /* WRITING TO THE PRF
-             * 2 scenarios where its done
+            // ------------------------------------------------------------------------------------
+            //                                          WRITES
+            // ------------------------------------------------------------------------------------
+            /*  2 scenarios where writing done
              *  ->  there is a pre-calculated value that needs to be stored
              *  ->  instruction is written back
+             *  Note: Exact same block as data_sc_regfile_3sc.sv
              */
 
             if(precalc_i.precalc_valid) begin
@@ -83,7 +96,11 @@ module data_sc_regfile_br_valu_ls (
                 regfile[sc_wb_instr_i.prf_tag.tag] <= sc_wb_instr_i.data;
             end
 
-            // READ OPERANDS FOR BRANCH UNIT
+            // ------------------------------------------------------------------------------------
+            //                                          READS
+            // ------------------------------------------------------------------------------------
+
+            // Port 0: Scalar operands for branching unit
 
             sc_br_ex_req_o.valid     <= sc_br_rd_req_i.valid;
             sc_br_ex_req_o.prf_tag   <= sc_br_rd_req_i.prf_tag;
@@ -93,15 +110,15 @@ module data_sc_regfile_br_valu_ls (
             sc_br_ex_req_o.operand_a <= operand_a0;
             sc_br_ex_req_o.operand_b <= operand_b0;
             
-            // READ SCALAR OPERANDS FOR VECTOR ALU
+            // Port 1: Scalar operands for vector ALU
             vc_alu_sc_operand_o <= operand_vc;
 
-            /* READ SCALAR OPERANDS FOR LOAD-STORE UNIT
+            /* Port 2: Scalar operands for Load-store unit
              *  ->  operand_a is RS1, for both scalar and vector ops
              *  ->  operand_b is imm, used to calculate dest address for scalar ops
              *  ->  ls_store_data is store data used for scalar store word operations only
-             */
-
+             */  
+            
             ls_ex_req_o.valid     <= ls_rd_req_i.valid;
             ls_ex_req_o.prf_tag   <= ls_rd_req_i.prf_tag;
             ls_ex_req_o.rob_id    <= ls_rd_req_i.rob_id;

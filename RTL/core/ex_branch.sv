@@ -1,29 +1,31 @@
 /* ------------------------------------------------------------------------------------------------
  *                               FUNCTIONAL UNIT FOR BRANCH RESOLUTION
  * ------------------------------------------------------------------------------------------------
+ *
  *  Functions/Behavior:
- *  ->  checks for branch condition and returns flag to indicate branch taken or not
+ *  ->  Receives a branch execution request containing two operands and a branch operation type.
+ *  ->  Computes three comparison signals combinatorially and uses result to send output based on 
+ *      branch operation.
  *
  *  Inputs
- *  ->  clock, reset_n and flush
- *  ->  branch request packet (see packet_pkg::sc_ex_request_t for detailed info)
+ *  ->  clk, reset_n & flush
+ *  ->  br_ex_request_i — Branch execution request packet.
  *
  *  Outputs
- *  ->  branch result packet (see packet_pkg for detailed info)
- *  ->  ready
+ *  ->  br_ex_result_o — Branch result packet sent directly to the ROB.
+ *  ->  br_ex_ready_o — Ready signal. Always driven to 1.
  *
  *  Notes
- *  ->  result of branch resolution goes directly to the ROB bypassing writeback
- *  ->  flush and reset_n gives 0 as the output, no other functionality
- *  ->  ready out is always 1
- *  ->  flush and ready have functionality in multi-cycle FUs. added here for uniformity
- *  ->  prf_tag from branch packet is dont care. creating a separate packet for branches with prf
-        tag removed scalar RS 1 issue model cannot be used for scheduling, so retained.
+ *  ->  Branch result bypasses writeback and sent to ROB since branches dont write to PRF.
+ *  ->  Reset and flush are functionally equivalent. No distinction between the two in behavior.
+ *  ->  br_ex_ready_o is always 1, regardless of reset or flush. Included for interface uniformity
+ *      with multi-cycle functional units.
+ *  ->  prf_tag in the request packet unused.
+ *  ->  The comparison logic runs every cycle regardless of state. Only gated by reset/flush.
  *
- *  Potential Optimizations for future
- *  ->  Remove PRF tag from branch request packet
  * ------------------------------------------------------------------------------------------------
  */
+
 module ex_branch(
     input logic clk_i,
     input logic reset_ni,

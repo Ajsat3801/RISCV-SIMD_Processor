@@ -1,37 +1,52 @@
 /* ------------------------------------------------------------------------------------------------
- *                                       INSTRUCTION DECODER
+ *                                       INSTRUCTION DECODE
  * ------------------------------------------------------------------------------------------------
  *  Function/Behavior
- *  ->  Decodes the fetched instructions into data & control signals
- *  ->  Jump/Branch destination PC and upper immediate instruction outputs are pre-calculated
- *  ->  Refer decoded_instr_t struct inside signal_pkg for detailed explanation
+ *  ->  Decodes raw 32-bit RISC-V instruction into control signals & data fields, packaging them
+ *      into a struct for downstream consumption.
+ *  ->  Pre-calculates branch & jump target PCs & encodes result directly into imm/extend/src fields
+ *      of the decoded packet, setting pre_calc to signal downstream that the address is ready.
+ *  ->  For LUI/AUIPC, the 20-bit upper immediate is pre-computed & packed into imm/src fields with
+ *      pre_calc = 1, bypassing the ALU immediate path.
+ *  ->  Implements a one-entry elastic buffer (hold register) to decouple fetch throughput from
+ *      instruction-queue backpressure: an incoming instruction is held if the queue is not ready,
+ *      and drained on the next cycle the queue accepts data.
+ *  ->  decode_ready_o is deasserted only when the hold register is occupied AND the queue is not
+ *      draining it.
+ *  ->  On flush or reset, everything cleared to zero.
+ *  ->  Refer packet_pkg for detailed info on decoded instruction struct.
  *
  *  Inputs
- *  ->  clk, reset_n
- *  ->  raw 32bit instruction
- *  ->  PC of current instruction
- *  ->  input instruction valid
+ *  ->  clk, reset_n & flush
+ *  ->  fetched_instr_i — Raw 32-bit instruction word from the fetch stage.
+ *  ->  fetched_pc_i — Program counter of the instruction currently being decoded.
+ *  ->  fetch_valid_i — Asserted by fetch when a valid instruction is fetched.
+ *  ->  queue_ready_i — Asserted by instruction queue when it can accept a new instruction.
  *
  *  Outputs
- *  ->  decoded instruction sent to instruction queue
+ *  ->  decoded_instr_o — Decoded instruction packet sent to the instruction queue.
+ *  ->  decoded_instr_en_o — Enable/valid strobe for decoded_instr_o.
+ *  ->  decode_ready_o — Back-pressure signal to the fetch stage.
  *
  *  Notes:
- *  ->  output valid is inside decoded instruction struct
- *  ->  no flush requires as the module doesnt store current state of processor
- *  ->  ecall instruction is used as a terminate function. (happens at fetch, it doesnt reach here)
- *  ->  immediate propogated even if it does not exist for an instruction, all downstream modules 
-        must gate immediate value with read_src2 to prevent garbage data
- *  ->  for stores, read_src2 is set to 0 so that the immediate is used downstream. src2 address
-        does contain the address of the register to be stored, logic for this handled separately in
-        the register module
+ *  ->  The valid bit for the output lives inside the decoded_instr_t struct.
+ *  ->  ECALL is handled upstream in the fetch stage and never reaches this module.
+ *  ->  Immediates are always propagated regardless of instruction type. Downstream modules must
+ *      gate immediate with read_src2 == 0 to avoid using garbage data on R-type instructions.
+ *  ->  For store instructions, read_src2 is explicitly forced to 0 so that the ALU uses the
+ *      immediate as operand B. The actual source-2 register address is still placed in 
+ *      src2_address for the register file to read separately. PRF handles this quirk.
+ *  ->  Unrecognized opcodes result in input_instr.valid = 0, effectively dropping the instruction silently.
+ *
  * ------------------------------------------------------------------------------------------------
-*/
+ */
 
 //import config_pkg::*;
 
 module fe_decode(
     input  logic clk_i,
     input  logic reset_ni,
+    input  logic flush_i,
 
     input  signal_pkg::data_t fetched_instr_i,
     input  signal_pkg::pc_t fetched_pc_i,
@@ -187,7 +202,7 @@ module fe_decode(
     end
 
     always_ff @(posedge clk_i) begin
-        if (!reset_ni) begin
+        if (!reset_ni || flush_i) begin
             decoded_instr_o <= '0;
             hold_instr  <= '0;
             hold_en <= 1'b0;

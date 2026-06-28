@@ -1,24 +1,42 @@
 /* ------------------------------------------------------------------------------------------------
  *                            SCALAR PHYSICAL REGISTER FILE - Replica 1
  * ------------------------------------------------------------------------------------------------
- *  Functions/Behavior:
- *  ->  Physical storage for the register values. Architectural registers are mapped to this 
-        registers using the RAT.
- *  ->  Replica 1 services 3 scalar functional units in parallel, connected to the 2 scalar ALUs 
- *      and the muldiv unit.
+ *
+ *  Functions / Behavior:
+ *  ->  Physical register file (PRF) replica that stores scalar register values. Architectural
+ *      registers are mapped to physical registers via the Register Alias Table (RAT).
+ *  ->  Services 3 scalar functional units in parallel ALU0, ALU1 & Multiply-Divide unit.
+ *  ->  On each clock cycle, combinationally reads two operands (A & B) per port from register file
+ *      array, then registers the full execution request to the appropriate output port.
+ *  ->  Operand B selection is conditional: 
+ *      ->  if read_src2 is asserted the register file value is used
+ *      ->  otherwise a sign-extended 12-bit immediate is forwarded instead.
+ *  ->  Supports two write paths:
+ *      ->  pre-calculated values for LUI/AUIPC/JAL instructions forwarded from ARR unit
+ *      ->  normal writeback via the scalar data bus snoop.
  *
  *  Inputs:
- *  ->  clock and reset
- *  ->  Read Requests for scalar ALU0, scalar ALU1 and scalar multiply divide
- *  ->  Write request for LUI, AUIPC and JAL instructions from the alloc rename retire unit
- *  ->  Snoop scalar data bus for writeback broadcast
- *
+ *  ->  clk, reset_n
+ *  ->  precalc_i — Pre-calculated data interface from the ARR unit for LUI, AUIPC & JAL.
+ *  ->  sc_wb_instr_i — Scalar writeback data bus snoop.
+ *  ->  sc_rd_req0_i — Read request for Scalar ALU0.
+ *  ->  sc_rd_req1_i — Read request for Scalar ALU1.
+ *  ->  sc_rd_req2_i — Read request for the Multiply-Divide unit.
+
  *  Outputs:
- *  ->  execution requests for scalar ALU0, scalar ALU1 and scalar multiply divide
- * Notes:
- *  ->  Flush doesnt affect the physical register file. The speculative mapping is reset so any 
- *      speculative data can be overwritten 
- *  ->  Write is common for all replicas, so the data remains the same in all 3.
+ *  ->  sc_ex_req0_o — Registered execution request for Scalar ALU0.
+ *  ->  sc_ex_req1_o — Registered execution request for Scalar ALU1.
+ *  ->  sc_ex_req2_o — Registered execution request for the Multiply-Divide unit.
+
+ *  Notes:
+ *  ->  Flush does not affect the physical register file contents.
+ *  ->  Write logic is identical across all PRF replicas ensuring all copies remain coherent.
+ *  ->  There is a one-cycle read latency: operands are read combinationally but registered before
+ *      being driven to output, so the execution request arrives one cycle after the read request.
+ *  ->  Both write ports are independent and can fire in the same cycle. If precalc & sc_wb_instr
+ *      are both valid and target the same PRF tag simultaneously, the writeback (sc_wb_instr_i)
+ *      write wins because it is the last assignment in the always_ff block.
+ *
  * ------------------------------------------------------------------------------------------------
  */
 
@@ -26,13 +44,10 @@ module data_sc_regfile_3sc (
     input logic clk_i,
     input logic reset_ni,
 
-      // inputs from ARR for instructions that dont require an FU
     if_alloc_bus.precalc precalc_i,
 
-    // snooping from CDB
     if_data_bus.prf sc_wb_instr_i,
 
-    // Read operands from RS and send to functional unit
     input  packet_pkg::read_request_t sc_rd_req0_i,
     output packet_pkg::sc_ex_request_t sc_ex_req0_o,
 
@@ -48,7 +63,7 @@ module data_sc_regfile_3sc (
     signal_pkg::data_t operand_b0, operand_b1, operand_b2;
 
     always_comb begin
-        // COMBINATIONAL READS FOR OPERANDS
+        // Combinational reads for operands
         operand_a0 = regfile[sc_rd_req0_i.operand_a_tag.tag];
         operand_b0 = regfile[sc_rd_req0_i.operand_b_tag.tag];
         operand_a1 = regfile[sc_rd_req1_i.operand_a_tag.tag];
@@ -65,10 +80,13 @@ module data_sc_regfile_3sc (
         end
 
         else begin
-            /* WRITING TO THE PRF
-             * 2 scenarios where its done
+            // ------------------------------------------------------------------------------------
+            //                                          WRITES
+            // ------------------------------------------------------------------------------------
+            /* 2 scenarios where writing done
              *  ->  there is a pre-calculated value that needs to be stored
              *  ->  instruction is written back
+             *  Note: Exact same block as data_sc_regfile_br_valu_ls.sv
              */
 
             if(precalc_i.precalc_valid) begin
@@ -79,7 +97,11 @@ module data_sc_regfile_3sc (
                 regfile[sc_wb_instr_i.prf_tag.tag] <= sc_wb_instr_i.data;
             end
 
-            // READ SCALAR OPERANDS FOR ALU0
+            // ------------------------------------------------------------------------------------
+            //                                          READS
+            // ------------------------------------------------------------------------------------
+
+            // Port 1: Scalar operands for ALU0
 
             sc_ex_req0_o.valid     <= sc_rd_req0_i.valid;
             sc_ex_req0_o.prf_tag   <= sc_rd_req0_i.prf_tag;
@@ -90,7 +112,7 @@ module data_sc_regfile_3sc (
             sc_ex_req0_o.operand_b <= (sc_rd_req0_i.read_src2) ? 
                 operand_b0 : {{20{sc_rd_req0_i.imm[11]}},sc_rd_req0_i.imm};
 
-            // READ SCALAR OPERANDS FOR ALU1
+            // Port 2: Scalar Operands for ALU1
 
             sc_ex_req1_o.valid     <= sc_rd_req1_i.valid;
             sc_ex_req1_o.prf_tag   <= sc_rd_req1_i.prf_tag;
@@ -101,7 +123,7 @@ module data_sc_regfile_3sc (
             sc_ex_req1_o.operand_b <= (sc_rd_req1_i.read_src2) ? 
                 operand_b1 : {{20{sc_rd_req1_i.imm[11]}},sc_rd_req1_i.imm};
 
-            // READ SCALAR OPERANDS FOR MULDIV
+            // Port 3: Scalar Operands for Multiply-Divide unit
 
             sc_ex_req2_o.valid     <= sc_rd_req2_i.valid;
             sc_ex_req2_o.prf_tag   <= sc_rd_req2_i.prf_tag;

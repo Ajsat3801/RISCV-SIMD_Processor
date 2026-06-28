@@ -2,5 +2,3 @@
 *.xlsx
 .claudeignore
 .vscode/*
-doc/block_diagram_old.drawio.svg
-doc/block_diagramv2.drawio.svg

@@ -6,16 +6,19 @@
         result into the vector data bus for writeback.
  *  ->  Contains 2 circular fifos with FWFT, one supporting a single push, and second supporting
         two simultaneous pushes. (see FIFO RTL in lib directory for details)
- *  ->  Hardcoded arbitration policy - see implementation below for details
+ *  ->  Hardcoded arbitration policy
+ *      ->  If any queue is full, it gets priority.
+ *      ->  If any queue is empty, the other queue gets priority.
+ *      ->  Otherwise LSU gets priority
  *
  *  Inputs:
- *  ->  clock, reset, flush
- *  ->  array of vector ex results
- *  ->  separate input for forwarded load-store results
+ *  ->  clk, reset_n & flush
+ *  ->  ex_result_i — execution results from vector EX units.
+ *  ->  lsu_result_i — forwarded load-store result arriving directly from the DMEM
  *
  *  Outputs:
- *  ->  array of ready bits, one for each ex unit
- *  ->  vector data bus for writeback
+ *  ->  wb_ready_o — ready bits per vector EX unit sent to the reservation station. 
+ *  ->  data_bus_o — writeback data bus. 
  *
  *  Notes:
  *  ->  Forwarded load-store results have a separate input because it is a special case of load-
@@ -23,8 +26,6 @@
  *  ->  Index 0 is vector ALU, Index 1 is LSU.
  *  -----------------------------------------------------------------------------------------------
 */
-
-//import config_pkg::*;
 
 module wb_vector (
     input logic clk_i,
@@ -87,11 +88,7 @@ module wb_vector (
 
         wb_chosen = 1'b0;
 
-        /*  HARD-CODED ARBITRATION BETWEEN 2 QUEUES.  
-         *  ->  If any queue is full, it gets priority.
-         *  ->  If any queue is empty, the other queue gets priority.
-         *  ->  Otherwise LSU gets priority
-         */
+        // Arbitration between the queues
         if(full[0] || (!full[1] && !empty[0] && empty[1])) begin
             choice    = 1'b0;
             wb_chosen = (empty[0]) ? 1'b0 : 1'b1;

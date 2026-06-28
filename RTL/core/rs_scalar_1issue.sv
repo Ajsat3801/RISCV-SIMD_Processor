@@ -1,4 +1,33 @@
-//import config_pkg::*;
+/* ------------------------------------------------------------------------------------------------
+ *                                   SINGLE ISSUE RESERVATION STATION
+ * ------------------------------------------------------------------------------------------------
+ *
+ * Functions/Behavior:
+ *  ->  Implements a reservation station (RS) for scalar instructions targeting a single-issue
+ *      execution unit (parameterized via CHIP_SELECT, e.g. CS_SALU).
+ *  ->  Supports bypass if buffer is empty and FU is ready.
+ *  ->  Mask-based round-robin arbitration scheme.
+ *  ->  On dispatch, selected buffer slot is cleared and dispatched entry is sent to output.
+ *  ->  On reset or flush, all buffer entries, dispatch_q, and the arbitration mask are cleared.
+ *
+ * Inputs:
+ *  ->  clk, reset_n & flush
+ *  ->  rs_request_i — Allocation bus carrying the incoming instruction entry
+ *  ->  sc_data_bus_i — CDB snoop interface.
+ *  ->  sc_ex_ready_i — Ready signal from downstream ex unit.
+ *
+ * Outputs:
+ *  ->  sc_rd_req_o — Read request packet sent to the execution unit.
+ *  ->  released_rs_slot_id_o — ID of the RS slot freed this cycle
+ *  ->  rs_slot_released_o — Signals whether RS slot was freed or not
+
+ *
+ * Notes:
+ *  ->  On a bypass cycle no buffer slot is consumed, but outputs are treated similar to when
+ *      a slot has been released
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
 
 module rs_scalar_1issue #(
     parameter signal_pkg::chip_select_e CHIP_SELECT = signal_pkg::CS_SALU

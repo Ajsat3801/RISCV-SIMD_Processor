@@ -1,14 +1,38 @@
-/*  
-Arbiter for writeback
-Takes inputs from all the EX units and sends one instruction per cycle to CDB
-Round robin policy
-
-TODO: IMPROVEMENTS
--> Mask based round robin like RS
--> Remove 1 cycle lag 
-*/
-
-//import config_pkg::*;
+/* ------------------------------------------------------------------------------------------------
+ *                                      SCALAR WRITEBACK ARBITER
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior
+ *  ->  Arbitrates writeback across all scalar execution units, so that only one result per cycle is
+ *      sent to the Common Data Bus.
+ *  ->  Each EX unit has its own FIFO buffer with First-Word-Fall-Through, ALU0 & ALU1 have depth 4,
+ *      Multiply-Divide has depth 2, and LSU has depth 4.
+ *  ->  The LSU FIFO supports two simultaneous pushes (push0 from LSU for forwarded loads and push1
+ *      from the DMEM for loaded data, while all other FIFOs accept one push at a time.
+ *  ->  Arbitration uses modified 2 step round robin policy
+ *      ->  FIFOs that are full receive highest priority to prevent stalls.
+ *      ->  A rotating mask selects the winner in round-robin order (refer to reservation station 
+ *          implementation for details) among eligible non-full units.
+ *  ->  On flush or reset, all FIFOs are cleared and the round-robin mask resets to slot 0.
+ *
+ *
+ *  Inputs
+ *  ->  clk, reset_ni & flush
+ *  ->  ex_result_i — Array of result packets from each scalar EX unit
+ *  ->  lsu_result_i — result packet from the LSU (the memory-return path).
+ *
+ *  Outputs
+ *  ->  wb_ready_o — array of ready signals, one per unit
+ *  ->  data_bus_o — CDB output port.
+ *
+ *  Notes
+ *  ->  ready signals deasserted when a FIFO has 1 or lesser available slots, ex units do not have
+ *      holding capability & handshake happens between RS and WB
+ *  ->  Branches & stores bypass this unit to go directly to the ROB as there is no writeback into
+ *      the register.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
 
 module wb_scalar (
     input logic clk_i,
@@ -29,7 +53,7 @@ module wb_scalar (
     logic[SCALAR_EX_COUNT-1:0] empty, full, next_full, eligible;
     logic[SCALAR_EX_COUNT-1:0] dequeue, dequeue_next;
     logic[SCALAR_EX_COUNT-1:0] mask, mask_upper, mask_next;
-    logic[SCALAR_EX_COUNT-1:0] canditates1, canditates2_upper, canditates2_lower;
+    logic[SCALAR_EX_COUNT-1:0] candidates1, candidates2_upper, candidates2_lower;
     logic[SCALAR_EX_COUNT-1:0] winner_upper, winner_lower, winner1, winner2;
 
     logic reset_wb_n;
@@ -108,17 +132,17 @@ module wb_scalar (
             mask_upper[i] = mask_upper[i-1] | mask[i];
         end
 
-        canditates1 = eligible & full;
+        candidates1 = eligible & full;
 
-        winner1 = canditates1 & (~canditates1 + 1'b1);
+        winner1 = candidates1 & (~candidates1 + 1'b1);
 
-        canditates2_upper = eligible & mask_upper & ~winner1;
-        canditates2_lower = eligible & ~mask_upper & ~winner1;
+        candidates2_upper = eligible & mask_upper & ~winner1;
+        candidates2_lower = eligible & ~mask_upper & ~winner1;
 
-        winner_upper = canditates2_upper & (~canditates2_upper + 1'b1);
-        winner_lower = canditates2_lower & (~canditates2_lower + 1'b1);
+        winner_upper = candidates2_upper & (~candidates2_upper + 1'b1);
+        winner_lower = candidates2_lower & (~candidates2_lower + 1'b1);
 
-        winner2 = (|canditates2_upper) ? winner_upper : winner_lower;
+        winner2 = (|candidates2_upper) ? winner_upper : winner_lower;
 
         if(|winner1) begin // something is full
             for(int i=0; i<SCALAR_EX_COUNT; i++) begin

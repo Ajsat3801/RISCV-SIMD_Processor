@@ -1,7 +1,44 @@
-
+/* ------------------------------------------------------------------------------------------------
+ *                                          REORDER BUFFER
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior
+ *  ->  Implements circular FIFO Reorder Buffer that tracks in-flight instructions & retires them 
+ *      in program order.
+ *  ->  On allocation, assigns ROB ID equal to the current tail pointer, and advances the tail on 
+ *      each valid push.
+ *  ->  Marks ROB entries as ready by snooping for writeback
+ *  ->  Retires the head in each cycle if its ready.
+ *  ->  On a taken-branch retirement, flushes the entire ROB and broadcast flush to all units
+ *  ->  rob_full_o is a two-ahead lookahead (tail + 2) to accomodate backpressure for
+ *      in-flight allocations.
+ *
+ *  Inputs
+ *  ->  clk, reset_n & flush
+ *  ->  alloc_instr_io — Incoming instructions to be allocated
+ *  ->  sc_data_bus_i — Scalar execution result bus
+ *  ->  vc_data_bus_i — Vector execution result bus
+ *  ->  branch_result_i — Branch resolution result
+ *  ->  store_retire_req_i — Store-retirement handshake
+ *
+ *  Outputs
+ *  ->  alloc_instr_io.rob_id — Next ROB ID that will be assigned to instruction being allocated.
+ *  ->  retire_instr_o — Instruction to be retired at the head of ROB when it is ready to commit.
+ *  ->  rob_full_o — Early-full indicator. 
+ *  ->  flush_o — Flush signal broadcast to all the units
+ *
+ *  Notes
+ *  ->  rob_full_o is two-ahead lookahead (tail + 2) to accomodate backpressure for in-flight
+ *      allocations preventing allocation.
+ *  ->  Branch flush is triggered at retire time, not at resolution time.
+ *  ->  The ready flag for pre_calc instructions set at allocation time.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
 module ooo_reorder_buffer (
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
 
     if_alloc_bus.rob alloc_instr_io,
 
@@ -24,18 +61,10 @@ logic full, full_next, full_in2, empty;
 logic push_allowed, pop_allowed;
 int i;
 
-typedef enum logic[1:0]{
-    INSTR_NOP = 2'b00, INSTR_VV = 2'b01, 
-    INSTR_SC  = 2'b10, INSTR_VX = 2'b11
-} instr_type_e;
-
-instr_type_e instr_type;
-
 always_comb begin
     // compiling instruction into rob entry
     // inputs valid and instr
-    rob_input.ready =   alloc_instr_io.instr.pre_calc && 
-                        alloc_instr_io.instr.write_to_reg;
+    rob_input.ready = alloc_instr_io.instr.pre_calc && alloc_instr_io.instr.write_to_reg;
     rob_input.write_to_reg = alloc_instr_io.instr.write_to_reg;
     rob_input.prf_tag      = alloc_instr_io.prf_tag;
     rob_input.dest_address = alloc_instr_io.instr.dest_address;
@@ -44,7 +73,7 @@ always_comb begin
                     : { alloc_instr_io.instr.src1_address, alloc_instr_io.instr.src2_address,
                         alloc_instr_io.instr.imm, alloc_instr_io.instr.extend };
     rob_input.is_branch = alloc_instr_io.instr.is_branch;
-    rob_input.branch_taken = rob_input.ready && alloc_instr_io.instr.is_branch;
+    rob_input.branch_taken = alloc_instr_io.instr.pre_calc && alloc_instr_io.instr.write_to_reg && alloc_instr_io.instr.is_branch;
 end
 
 always_comb begin
@@ -70,10 +99,21 @@ end
 
 always_ff @(posedge clk_i) begin
     
-    if(!reset_ni) begin
+    if(!reset_ni || flush_i) begin
         for (i=0; i<ROB_LEN; i++) rob_table[i] <= '0;
         head <= '0;
         tail <= '0;
+
+        retire_instr_o.valid   <= '0;
+        retire_instr_o.prf_tag <= '0;
+        retire_instr_o.rob_id  <= '0;
+        retire_instr_o.data    <= '0;
+        retire_instr_o.write_to_reg <= '0;
+        retire_instr_o.dest_address <= '0;
+        retire_instr_o.is_branch    <= '0;
+        retire_instr_o.branch_taken <= '0;
+
+        flush_o <= '0;
 
     end
     else begin

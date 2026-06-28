@@ -1,7 +1,39 @@
-/*
-operand a stores address
-operand b stores stride (not implemented, provision for future)
-*/
+/* ------------------------------------------------------------------------------------------------
+ *                            RESERVATION STATION FOR LOAD-STORE UNIT
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior
+ *  ->  Implements reservation station to schedule load/store instructions destined for load-store
+ *      unit until both operands and functional unit are ready.
+ *  ->  Snoops both scalar & vector CDB to mark buffered operands ready when PRF tag matches
+ *      broadcast result.
+ *  ->  Supports bypass if buffer is empty and LSU is ready.
+ *  ->  Mask-based round-robin arbitration scheme.
+ *  ->  On dispatch, selected buffer slot is cleared and dispatched entry is sent to output.
+ *  ->  On reset or flush, all buffer entries, dispatch_q, and the arbitration mask are cleared.
+ *
+ *  Inputs
+ *  ->  clk, reset_n & flush
+ *  ->  rs_request_i — Allocation bus carrying the incoming RS entry.
+ *  ->  sc_data_bus_i — Scalar common data bus snoop port.
+ *  ->  vc_data_bus_i — Vector common data bus snoop port.
+ *  ->  lsu_ready_i — Handshake from LSU indicating it can accept a new instruction.
+ *
+ *  Outputs
+ *  ->  ls_read_request_o — Scalar LSU read request driven to PRF
+ *  ->  vc_lsu_rd_req_o — Vector LSU read request driven to PRF
+ *  ->  released_rs_slot_id_o — Slot ID of the entry dispatched this cycle.
+ *  ->  rs_slot_released_o — Signal to indicate that an RS slot has been freed
+ *
+ *  Notes
+ *  ->  On a bypass cycle no buffer slot is consumed, but outputs are treated similar to when
+ *      a slot has been released
+ *  ->  Both scalar & vector read requests are valid after dispatch; The respective PRFs 
+ *      process the data and sends them to the LSU. LSU handles the data and gating.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
+
 module rs_load_store (
     input clk_i,
     input reset_ni,

@@ -1,4 +1,28 @@
-
+/* ------------------------------------------------------------------------------------------------
+ *                                  VECTOR ARITHMETIC LOGIC UNIT
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior
+ *  ->  Top-level vector ALU execution unit. Instantiates VECTOR_SIZE parallel ALU lanes, one lane
+ *      per vector element.
+ *  ->  Scalar operands replicated to perform vector operations for mixed scalar-vector operation. 
+ *  ->  On reset or flush, the output cleared to zero and vc_ex_ready_o is driven high.
+ *
+ *  Inputs
+ *  ->  clk, reset_n & flush
+ *  ->  vc_ex_request_i — Incoming vector ALU request packet from reservation station/PRF.
+ *  ->  sc_operand_i — Scalar operand input used for .vx instructions
+ *
+ *  Outputs
+ *  ->  vc_ex_result_o — Registered result packet.
+ *  ->  vc_ex_ready_o — Indicates the unit is ready to accept a new request.
+ *
+ *  Notes
+ *  ->  The result is considered valid only when all lane valid outputs are asserted.
+ *  ->  vc_ex_ready_o is always 1 outside of reset/flush.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
 module ex_vector_alu (
     input  logic clk_i,
     input  logic reset_ni,
@@ -31,7 +55,7 @@ module ex_vector_alu (
     endgenerate
 
     always_comb begin
-        valu_operand_a = (vc_ex_request_i.a_is_vector) ? vc_ex_request_i.operand_a : {4{sc_operand_i}};
+        valu_operand_a = (vc_ex_request_i.a_is_vector) ? vc_ex_request_i.operand_a : {VECTOR_SIZE{sc_operand_i}};
     end
 
     always_ff @(posedge clk_i) begin

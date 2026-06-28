@@ -1,16 +1,29 @@
-/* 
- * VECTOR PHYSICAL REGISTER FILE
- * Functions:
- *  1)  Physical storage for the register values. Architectural registers
- *      are mapped to this registers using the RAT.
- *  2)  One bit for each register entry indicating whether an instruction
- *      is ready or not.
- * Behavior:
- *  1)  Instruction metadata like chip_select etc are forwarded.
- *  2)  Physical address tags have 1 extra bit. MSB == 0 ? scalar : vector
- *  3)  if instr_i is valid, dest operand tag ready bit reset.
- *  4)  if vc_wb_instr_i is valid, dest data written and dest operand tag 
-        ready bit set
+/* ------------------------------------------------------------------------------------------------
+ *                                     VECTOR PHYSICAL REGISTER FILE
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior:
+ *  ->  Acts as physical register file for vector data.
+ *  ->  Snoops Common Data Bus and writes the data to the corresponding PRF tag if vector.
+ *  ->  Reads operand A & B for Vector ALU and store data operand for Vector Load/Store ops.
+ *
+ *  Inputs
+ *  ->  clk & reset_n
+ *  ->  vc_wb_instr_i — CDB snooping interface for writeback.
+ *  ->  vc_alu_rd_req_i — Read request from the Vector ALU reservation station.
+ *  ->  vc_lsu_rd_req_i — Read request from the Vector LSU reservation station.
+ *
+ *  Outputs
+ *  ->  vc_alu_ex_req_o — Registered packet sent to the VALU execution unit.
+ *  ->  vc_lsu_ex_req_o — Registered packet sent to the VLSU execution unit.
+ *
+ *  Notes
+ *  ->  No ready output, this module only stores and retrieves data values.
+ *  ->  Writeback only occurs when vc_wb_instr_i.prf_tag.vector are true. Scalar writebacks are
+ *      silently ignored.
+ *  ->  Unique module; No replicas
+ *
+ * ------------------------------------------------------------------------------------------------
  */
 
 module data_vc_regfile_valu_ls (
@@ -35,7 +48,7 @@ module data_vc_regfile_valu_ls (
     always_comb begin
         operand_a0 = regfile[vc_alu_rd_req_i.operand_a_tag.tag];
         operand_b0 = regfile[vc_alu_rd_req_i.operand_b_tag.tag];
-        operand_sd = regfile[vc_lsu_rd_req_i.store_data_tag];
+        operand_sd = regfile[vc_lsu_rd_req_i.store_data_tag.tag];
     end
 
     always_ff @(posedge clk_i) begin

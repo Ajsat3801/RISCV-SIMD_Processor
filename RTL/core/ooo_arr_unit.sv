@@ -1,27 +1,45 @@
-/*  ALLOCATION RENAME RETIRE UNIT
+/* ------------------------------------------------------------------------------------------------
+ *                                  ALLOCATE-RENAME-RETIRE UNIT
+ * ------------------------------------------------------------------------------------------------
  *
- *  Two channels are maintained: 0 (scalar, index 0) and 1 (vector, index 1).
- *  The RATs and commit tables are kept as separate named arrays per channel.
- *  All free-list infrastructure is unified into [2]-indexed arrays.
- *
- *  Free list is a circular FIFO.  head advances on allocation (speculative),
- *  tail advances on retirement (permanent).  head_committed is a shadow of
- *  head that only advances on retirement, tracking the last confirmed state.
- *  On flush, head is restored to head_committed — no scanning required and
- *  no prf_used bitmap is needed.
+ *  Functions / Behavior
+ *  ->  Maintains two independent rename channels for scalar & vector instructions, selected by bit
+ *      [2] of chip_select.
+ *  ->  Each channel holds a Register Allocation Table that maps architectural register addresses
+ *      to physical register file tags.
+ *  ->  A Commit Table per channel shadows the RAT and only updates on retirement, to maintain the
+ *      last architecturally committed state.
+ *  ->  Maintains list of available PRF tags
+ *  ->  On allocation, head of free list is popped and assigned to instruction
+ *  ->  on retirement, the old PRF tag from the commit table is pushed onto the tail of free-list &
+        the commit table is updated to the retired tag.
+ *  ->  on flush, the RAT is rolled back to the state of the commit table.
+ *  ->  on writeback, PRF ready bit set to allow for dependent instructions to execute. Forwarding
+ *      supported for same-cycle writeback and allocation
  *
  *  Inputs
- *    dispatched_instr_i  — instruction from dispatch needing rename
- *    retire_instr_i      — instruction being retired from ROB
- *    sc_wb_instr_i       — scalar writeback (marks PRF ready)
- *    vc_wb_instr_i       — vector writeback (marks PRF ready)
+ *  ->  clk, reset_n & flush
+ *  ->  dispatched_instr_i — decoded instruction from the dispatch stage requiring rename.
+ *  ->  rs_slot_id_i — reservation station slot assigned at dispatch
+ *  ->  retire_instr_i — retirement bus from the ROB. 
+ *  ->  sc_wb_instr_i — scalar writeback bus snooped to mark scalar PRF ready bits.
+ *  ->  vc_wb_instr_i — vector writeback bus snooped to mark vector PRF ready bits.
+ *
  *  Outputs
- *    alloc_instr_o       — renamed instruction to RS / ROB
- *    precalc_*           — pre-calculated result for scalar ops (lui, auipc, branches, jal)
- *    arr_full_o          — stall: free list empty on either channel
+ *  ->  alloc_instr_o — renamed instruction bundle sent to the reservation station and ROB.
+ *  ->  arr_full_o — stall signal asserted when scalar or vector free-list FIFO is empty.
+ *
+ *  Notes
+ *  ->  The order in which PRF entries are allocated does not matter, used circular FIFO it becomes
+ *      easy to track which entries are used without loops.
+ *  ->  PRF ready bit is set immediately at allocation time for pre-calculated instructions.
+ *  ->  Stores and branches are forwarded to the RS/ROB even if they produce no destination register.
+ *  ->  For .vx instructions both the scalar & vector RATs are looked up combinatorially so either
+ *      operand can be routed to the correct channel via src1_vector / src2_vector flags.
+ *
+ * ------------------------------------------------------------------------------------------------
  */
 
-//import config_pkg::*;
 module ooo_arr_unit (
     input  logic clk_i,
     input  logic reset_ni,
@@ -154,36 +172,67 @@ module ooo_arr_unit (
             vc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
 
             sc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
-            vc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
+            vc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH); 
 
-        // FLUSH
-        //   Restore RATs from commit tables.
-        //   Snap head back to head_committed — all speculatively allocated
-        //   PRFs are between head_committed and head in the free list array
-        //   and are instantly reclaimed by moving the pointer.
-        //   tail is untouched; retirements are permanent.
+            alloc_instr_o.sc_valid    <= 1'b0; 
+            alloc_instr_o.vc_valid    <= 1'b0;      
 
         end 
         else if (flush_i) begin
 
+            // FLUSH
+            //   Restore RATs from commit tables.
+            //   Snap head back to head_committed — all speculatively allocated
+            //   PRFs are between head_committed and head in the free list array
+            //   and are instantly reclaimed by moving the pointer.
+            //   tail is untouched; retirements are permanent.
+
             for (int i=0; i<ARCH_REG_DEPTH; i++) begin
+                // Restoring state of scalar registers
+
+                // handling simultaneous flush + scalar retire
                 if(sc_retire_valid && i == retire_instr_i.dest_address) begin
                     sc_reg_alloc_table[i] <= retire_instr_i.prf_tag.tag;
-                    sc_commit_table[i] <= retire_instr_i.prf_tag.tag;
+                    sc_commit_table[i]    <= retire_instr_i.prf_tag.tag;
                 end
+                
                 else sc_reg_alloc_table[i] <= sc_commit_table[i];
-                vc_reg_alloc_table[i] <= vc_commit_table[i];
+
+                // Restoring state of vector registers
+                
+                // handling simultaneous flush + vector retire
+                if(vc_retire_valid && i == retire_instr_i.dest_address) begin
+                    vc_reg_alloc_table[i] <= retire_instr_i.prf_tag.tag;
+                    vc_commit_table[i]    <= retire_instr_i.prf_tag.tag;;
+                end
+
+                else vc_reg_alloc_table[i] <= vc_commit_table[i];
             end
 
-            if (sc_retire_valid) begin
+            // Update head and tail of scalar free list FIFO
+            if(sc_retire_valid) begin
                 sc_free_list[sc_tail[FIFO_WIDTH-1:0]] <= sc_commit_table[retire_instr_i.dest_address];
-                sc_tail <= sc_tail + 1'b1;
                 sc_head <= sc_head_committed + 1'b1;
+                sc_tail <= sc_tail + 1'b1;
             end
             else begin
                 sc_head <= sc_head_committed;
-                vc_head <= vc_head_committed;
+                sc_tail <= sc_tail;
             end
+            
+            // Update head and tail of vector free list FIFO
+            if(vc_retire_valid) begin
+                vc_free_list[vc_tail[FIFO_WIDTH-1:0]] <= vc_commit_table[retire_instr_i.dest_address];
+                vc_head <= vc_head_committed + 1'b1;
+                vc_tail <= vc_tail + 1'b1;
+            end
+            else begin
+                vc_head <= vc_head_committed;
+                vc_tail <= vc_tail;
+            end
+
+            alloc_instr_o.sc_valid    <= 1'b0; 
+            alloc_instr_o.vc_valid    <= 1'b0;
 
         end 
         else begin
@@ -192,11 +241,11 @@ module ooo_arr_unit (
             if (sc_wb_instr_i.valid) sc_ready[sc_wb_instr_i.prf_tag.tag] <= 1'b1;
             if (vc_wb_instr_i.valid) vc_ready[vc_wb_instr_i.prf_tag.tag] <= 1'b1;
 
-            // RETIREMENT
-            //   1) The PRF currently in the commit table for dest_address is
-            //      now superseded — push it onto the free list tail.
-            //   2) Update the commit table to the newly retired PRF tag.
-            //   3) Advance head_committed to confirm this allocation.
+            /* RETIREMENT
+             *  ->  The PRF currently in the commit table for dest_address pushed to free list tail.
+             *  ->  Update the commit table to the newly retired PRF tag.
+             *  ->  Advance head_committed to confirm this allocation.
+             */
 
             if (sc_retire_valid) begin
                 sc_free_list[sc_tail[FIFO_WIDTH-1:0]] <= sc_commit_table[retire_instr_i.dest_address];
@@ -212,14 +261,12 @@ module ooo_arr_unit (
                 vc_head_committed <= vc_head_committed + 1'b1;
             end
 
-             // ALLOCATION
-            // Pass-through fields are written unconditionally (ungated on
-            // sc_alloc_valid) so that .vx instructions — which have a scalar
-            // destination but may carry vector source operands — still see
-            // correct operand tags on the scalar alloc bus.
-            //
-            // Operand tags and ready bits select between 0 and 1 RAT/ready
-            // based on src1_vector / src2_vector flags.
+            /*  ALLOCATION
+             *  ->  Pass-through fields are written unconditionally (ungated on sc_alloc_valid) so that 
+             *      .vx instructions still see correct operand tags on the scalar alloc bus.
+             *  ->  Operand tags and ready bits select between 0 and 1 RAT/ready based on src1_vector / 
+             *      src2_vector flags.
+             */
 
             if (sc_alloc_valid) begin
                 sc_reg_alloc_table[dispatched_instr_i.dest_address] <= sc_prf_id.tag;
@@ -233,11 +280,14 @@ module ooo_arr_unit (
                 vc_head <= vc_head + 1'b1; 
             end
 
-            // Alloc output
-            alloc_instr_o.sc_valid   <= (sc_alloc_valid || sc_store_valid) || dispatched_instr_i.is_branch; 
-            alloc_instr_o.vc_valid   <= (vc_alloc_valid || vc_store_valid);
-            alloc_instr_o.rs_slot_id <= rs_slot_id_i;
-            alloc_instr_o.instr      <= dispatched_instr_i;
+            /*  ALLOCATED INSTRUCTION TO BE SENT TO SCHEDULER
+             *  (Refer allocation bus for details)
+             *  Scalar is valid if 
+             */
+            alloc_instr_o.sc_valid    <= (sc_alloc_valid || sc_store_valid) || dispatched_instr_i.is_branch; 
+            alloc_instr_o.vc_valid    <= (vc_alloc_valid || vc_store_valid);
+            alloc_instr_o.rs_slot_id  <= rs_slot_id_i;
+            alloc_instr_o.instr       <= dispatched_instr_i;
             alloc_instr_o.a_is_vector <= dispatched_instr_i.src1_vector;
             alloc_instr_o.b_is_vector <= dispatched_instr_i.src2_vector;
 
@@ -266,7 +316,10 @@ module ooo_arr_unit (
             case(1) 
                 sc_alloc_valid: alloc_instr_o.prf_tag <= sc_prf_id;
                 vc_alloc_valid: alloc_instr_o.prf_tag <= vc_prf_id;
-                default: alloc_instr_o.prf_tag <= '0;
+                default: begin
+                    alloc_instr_o.prf_tag.vector <= vc_instr_valid;
+                    alloc_instr_o.prf_tag.tag <= '0;
+                end
             endcase
 
             alloc_instr_o.precalc_valid   <= sc_alloc_valid && dispatched_instr_i.pre_calc;

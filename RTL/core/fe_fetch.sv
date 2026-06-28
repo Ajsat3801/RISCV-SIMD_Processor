@@ -2,28 +2,39 @@
  *                                        INSTRUCTION FETCH
  * ------------------------------------------------------------------------------------------------
  *  Function/Behavior:
- *  ->  maintains PC and reads from instruction memory and sends them to the decoder
- *  ->  branching also done in this unit, PC is changed if a branch is taken and current output is
-        discarded
- *  ->  ecall instruction is treated as terminate and all subsequent instructions are invalid
+ *  ->  Maintains Program Counter and issues read requests to instruction memory, forwards fetched
+ *      instructions downstream to decode.
+ *  ->  PC is redirected to branch target and current in-flight instruction is invalidated when the
+ *      retirement bus signals a taken branch, .
+ *  ->  ECALL instruction acts as a termination signal. All instructions fetched after an ECALL are
+ *      marked invalid unless a branch clears the complete flag.
  *
  *  Inputs:
- *  ->  clock, reset
- *  ->  external signal to  start compute
- *  ->  ready signal from instruction queue 
- *  ->  retirement bus, for branching 
- *  ->  instruction from instruction memory
+ *  ->  clk, reset_n
+ *  ->  compute_i — External start-compute enable
+ *  ->  ready_i — Ready signal from the instruction queue.
+ *  ->  retire_instr_i — Retirement bus used for branch resolution.
+ *  ->  imem_instr_i — Instruction word returned by instruction memory on the current cycle.
+ *  ->  imem_addr_i — Address of instruction word returned by instruction memory.
  *
  *  Outputs:
- *  ->  read request for instruction memory
- *  ->  outputs to decode
- *      ->  fetched instruction
- *      ->  pc of fetched instruction
- *      ->  valid signal
+ *  ->  fetched_instr_o — The instruction word latched from imem_instr_i on the previous cycle.
+ *  ->  fetched_pc_o — The PC value associated with fetched_instr_o.
+ *  ->  fetch_valid_o — signal valid instruction
+ *  ->  imem_req_o — Instruction memory request
+ *
  *  Notes:
- *  ->  instruction memory read is always valid, this unit gates the instructions to determine if 
-        it is valid or not
- */
+ *  ->  Instruction memory is always read; Module does not suppress the read on branch. Pipeline
+ *      validity is controlled entirely through fetch_valid_o, not by gating memory.
+ *  ->  The valid signal requires an internal warm-up: the first cycle after reset keeps valid=0
+ *      and sets it to 1 on the next active cycle. Preventing spurious valid on the first fetch.
+ *  ->  When a branch is taken, complete is cleared to 0 on the same cycle PC is redirected. This
+ *      allows execution to resume in case of an ECALL in a mispredicted branch.
+ *  ->  PC arithmetic is word-addressed (increments by 1, not 4). The branch target from retirement
+ *      bus is expected to also be a word address.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */ 
 
 module fe_fetch(
     input  logic clk_i,

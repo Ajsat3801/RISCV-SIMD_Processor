@@ -1,3 +1,44 @@
+/* ------------------------------------------------------------------------------------------------
+ *                                        MULTIPLY-DIVIDE UNIT
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior
+ *  ->  Implements a multi-cycle scalar integer multiply and divide execution unit.
+ *  ->  Uses a Radix-4 Booth iterative multiplier (lib_scalar_multiplier) and a restoring iterative
+ *      divider (lib_scalar_divider) as sub-units.
+ *  ->  Operates as a 3-state FSM: READY (idle), MUL (multiplication in progress), DIV (division in
+ *      progress). Only one operation can be in-flight at a time.
+ *  ->  Accepts a new request only when in the READY state and no valid request is simultaneously
+ *      arriving (sc_ex_ready_o is deasserted on a new request cycle).
+ *  ->  On receiving a valid request, latches the PRF tag, ROB ID, and operation type, then pulses
+ *      the appropriate sub-unit's valid_i for one cycle to kick off computation.
+ *  ->  ex_complete asserted when the active sub-unit signals done. The result is forwarded to 
+ *      the writeback bus, and the FSM returns to READY.
+ *  ->  On reset or flush, the FSM returns to READY and all latched metadata is cleared.
+ *
+ *  Inputs
+ *  ->  clk, reset_n & flush
+ *  ->  sc_ex_request_i — Request packet from Reservation station and operands from PRF. 
+ *
+ *  Outputs
+ *  ->  sc_ex_result_o — Writeback result packet sent to the writeback arbiter.
+ *  ->  sc_ex_ready_o — Signals to the reservation station that the unit can accept a new instruction.
+ *
+ *  Notes
+ *  ->  The 64-bit sub-unit results encode both the encode both upper and lower halves.
+ *      -> Upper half of mul_result — output of MULH, MULHU or MULHSU
+ *      -> Lower half of mul_result — output of MUL
+ *      -> Upper half of div_result — output of REM or REMU
+ *      -> Lower half of div_result — output of DIV or DIVU
+ *  ->  Flush and reset behave identically at the register level
+ *  ->  On flush, sub-units continue internally but their valid_o outputs are ignored because the
+ *      FSM resets to READY and will not re-enter MUL/DIV states without a new request.
+ *  ->  The operation field is latched on entry to the MUL/DIV state and cleared on ex_complete,
+ *      preventing stale operation decode on the result mux after completion.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
+
 module ex_scalar_muldiv(
     input logic clk_i,
     input logic reset_ni,
@@ -10,9 +51,6 @@ module ex_scalar_muldiv(
     output packet_pkg::sc_ex_result_t sc_ex_result_o,
     output logic sc_ex_ready_o
 );
-
-// radix booth 4 iterative multiplier
-// restoring iterative divide
 
 typedef enum logic[2:0] {READY, MUL, DIV} muldiv_state_e;
 muldiv_state_e state, state_next;

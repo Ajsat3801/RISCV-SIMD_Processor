@@ -1,3 +1,51 @@
+/* ------------------------------------------------------------------------------------------------
+ *                                          LOAD-STORE UNIT
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior
+ *  ->  Load/Store Unit for the execute stage. Handles both scalar & vector memory operations.
+ *  ->  Maintains a store buffer of configurable depth. Incoming store instructions held in the
+ *      buffer till retirement, ensuring correct memory ordering.
+ *  ->  Computes effective memory addresses by summing operand_a and operand_b (base + offset).
+ *  ->  Data forwarded if incoming load targets the same address as an entry in the store buffer.
+ *  ->  Issues store-retire request to retirement bus as soon as it enters the buffer, enabling ROB
+ *      to track it.
+ *  ->  Manages hold register for loads that arrive simultaneously with a store retirement; the load
+ *      is replayed the next cycle after the store is drained.
+ *  ->  Signal stall upstream when the store buffer is full or a held load is pending.
+ *  ->  Synchronously resets store buffer, hold register & output registers on reset or flush.
+ *  ->  Store buffer indexing is done combinatorially by scanning all entries each cycle. First
+ *      invalid slot becomes in_idx; the entry whose rob_id matches the retiring instruction is
+ *      out_idx.
+ *
+ *  Inputs
+ *  ->  clk, reset_n & flush
+ *  ->  lsu_request_i — Scalar LSU request from the execute stage.
+ *  ->  sc_store_data_i — Scalar store data.
+ *  ->  vc_lsu_ex_request_i — Vector LSU request.
+ *  ->  retire_instr_i — Retirement bus interface.
+ *  
+ *  Outputs
+ *  ->  lsu_output_o — The resolved load/store entry forwarded to the next pipeline stage.
+ *  ->  sc_fwd_load_o — Scalar store-to-load forwarding result. Valid when a scalar load hits a
+ *      matching store buffer entry.
+ *  ->  vc_fwd_load_o — Vector store-to-load forwarding result. Valid when a vector load hits a
+ *      matching store buffer entry.
+ *  ->  store_retire_req_o — Asserted for one cycle when a store enters the store buffer; provides
+ *      the ROB ID so the ROB can mark the store as ready to commit.
+ *  ->  sc_ex_ready_o — Scalar LSU ready signal.
+ *  ->  vc_ex_ready_o — Vector LSU ready signal. Same ready as sc_ex_ready_o
+ *
+ *  Notes
+ *  ->  The forwarding check scans all store buffer entries for address match. If multiple entries
+ *      share the same address, the last matching index wins due to the loop ordering.
+ *  ->  Scalar store data is written to specific lane, rest of the data is zeroed.
+ *  ->  A new load that arrives in the same cycle as a store retirement is captured in hold_reg &
+ *      sent in the next cycle.
+ *  ->  sc_ex_ready_o & vc_ex_ready_o are the same logically, separated for interface cleanliness.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
 
     module ex_load_store(
         input logic clk_i,
@@ -21,7 +69,7 @@
 
     packet_pkg::load_store_entry_t store_buffer[config_pkg::STORE_BUFFER_SIZE-1:0];
     packet_pkg::load_store_entry_t in, hold_reg;
-    logic[config_pkg::STORE_BUFFER_SIZE-1:0] available;
+    logic[config_pkg::STORE_BUFFER_SIZE-1:0] available, available_next;
     logic store_out, hold;
 
     logic[$clog2(config_pkg::STORE_BUFFER_SIZE)-1:0] in_idx, out_idx, fwd_idx;
@@ -57,7 +105,7 @@
                 out_idx = i;
                 store_out = 1'b1;
             end
-            if(store_buffer[i].prf_tag == lsu_request_i.prf_tag) begin
+            if(store_buffer[i].mem_addr == in.mem_addr) begin
                 fwd_idx = i;
                 fwd_load = 1'b1;
             end
@@ -68,6 +116,10 @@
         send_hold  = hold && !send_store;
         send_in    = in.valid && !in.is_store && !hold && !send_store;
         forward_load = in.valid && !in.is_store && fwd_load;
+
+        available_next = available;
+        available_next[in_idx] = in.valid && in.is_store;
+        available_next[out_idx] = send_store;
         
     end
 
@@ -78,7 +130,10 @@
                 available[i]    <= '1;
                 hold <= 1'b0;
                 hold_reg <= '0;
+                
             end
+            store_retire_req_o.valid  <= 1'b0;
+            store_retire_req_o.rob_id <= '0;
         end
         else begin
             if(in.valid && in.is_store) begin
@@ -91,7 +146,7 @@
                 store_retire_req_o.valid  <= 1'b0;
                 store_retire_req_o.rob_id <= '0;
             end
-            unique case(1)
+            case(1)
                 send_store: begin
                     lsu_output_o <= store_buffer[out_idx];
                     
@@ -124,7 +179,7 @@
                         };
     end
 
-    assign sc_ex_ready_o = |available && !hold;
-    assign vc_ex_ready_o = |available && !hold;
+    assign sc_ex_ready_o = |available_next && !hold;
+    assign vc_ex_ready_o = |available_next && !hold;
 
 endmodule

@@ -1,32 +1,51 @@
-/* INSTRUCTION QUEUE
- * Functions 
- *   -> Maintains queue of instructions that are ready to dispatch
- *   -> Keeps a FIFO of available slots of each reservation station
- *   -> Enqueue if instruction is valid
- *   -> 3 conditions for dequeue
+/* ------------------------------------------------------------------------------------------------
+ *                              INSTRUCTION QUEUE
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions/Behavior:
+ *  ->  Maintains queue of instructions that are ready to dispatch
+ *  ->  Keeps a FIFO of available slots of each reservation station
+ *  ->  Enqueue if instruction is valid
+ *  ->  3 conditions for dequeue
  *      1) FIFO is not empty
  *      2) RS slot is available for the instruction at head of FIFO
  *      3) ROB is not full
- *   -> Refer to module definition of RS slot FIFO for behavior of RS slot FIFO
- * Inputs
- *   -> clk, reset_n, flush
- *   -> decoded instruction from decode
- *   -> array of RS slots released. Length of array is same as number of ex units
- *   -> array of flag bits to indicate if an RS slot is released
- *   -> signal indicating availability of ROB 
- * Outputs
- *   -> signal to decoder indicating availability of slot in FIFO
- *   -> allocated instruction and RS slot sent to instruction bus
- * Notes 
- *   -> Buffer full scenario is not handled as its assumed no valid input occurs
- *      when the buffer is full. Handled by decoder
- *   -> Number of entries in the fifo is 1 more than the buffer size for simpler logic
- *   -> If chip select is 1 we check 0th RS fifo. chip select 0 is a NOP
- * TODO Future Improvements
+ *  ->  Refer to module definition of RS slot FIFO for behavior of RS slot FIFO
+ *  ->  On flush or reset all FIFO entries, pointers & outputs cleared to zero. RS slot free queues
+ *      also reset on flush.
+ *  ->  Signals upstream readiness via queue_ready_o, 0 when FIFO is full or will be full next cycle
+ *      unless a simultaneous dequeue creates room.
+
+ *  Inputs:
+ *  ->  clk, reset_n, flush
+ *  ->  decoded_instr_i — Decoded instruction packet from the decode stage, to be enqueued.
+ *  ->  decoded_instr_en_i — Enable qualifying decoded_instr_i.
+ *  ->  released_rs_slot_id_i — Array of RS slot IDs being freed by completing execution units, one
+ *      per dispatch channel.
+ *  ->  rs_slot_released_i — Valid flags for released_rs_slot_id_i.
+ *  ->  rob_full_i — signal indicating Reorder Buffer is full.
+ *  ->  arr_full_i — signal indicating ARR is full.
+ *
+ *  Outputs:
+ *  ->  dispatched_instr_o — Dispatched instruction from head of queue.
+ *  ->  rs_slot_id_o — RS slot ID allocated to the dispatched instruction.
+ *  ->  queue_ready_o — 1 when queue can accept at least one more instruction.
+ *
+ *  Notes:
+ *  ->  Head and tail use an epoch+address struct pointer scheme.
+ *  ->  queue_ready_o deasserts one cycle before the FIFO fills.
+ *  ->  NOP instructions bypass the RS slot availability check and sent directly to ROB if valid.
+ *  ->  Both CS_SLSU and CS_VLSU share the same resource. Separated for decoding uniformity
+ *  ->  Slot repopulation after a flush is driven externally via rs_slot_released_i.
+ *  ->  Buffer overflow is not handled internally. The decoder is responsible for halting valid
+ *      instruction input when queue_ready_o is 0.
+
+ *  Future Improvements:
  *   -> Implement bypass and remove 1 cycle lag when queue is empty
+ *
+ * ------------------------------------------------------------------------------------------------
  */
 
-//import config_pkg::*;
 
 module fe_instruction_queue (
 
@@ -64,6 +83,7 @@ module fe_instruction_queue (
     // intermediate variables
     rs_index_e rs_index;
     logic reset_wb_n;
+    packet_pkg::decoded_instr_t dispatched_instr_q;
 
     lib_rs_slot_freeq_2push #(
         .BUFFER_SIZE(16),
@@ -176,12 +196,16 @@ module fe_instruction_queue (
         
     end
 
+    always_comb begin
+        dispatched_instr_o = (!flush_i) ? dispatched_instr_q : '0;
+    end
+
     always_ff @(posedge clk_i) begin
         if (!reset_ni || flush_i) begin
 
             for (int i=0; i<INSTRUCTION_QUEUE_LEN; i++) instr_fifo[i] <= '0;
 
-            dispatched_instr_o <= '0;
+            dispatched_instr_q <= '0;
             rs_slot_id_o  <= '0;
             head <= '0;
             tail <= '0;
@@ -189,12 +213,12 @@ module fe_instruction_queue (
 
         else begin
             if (dequeue) begin
-                dispatched_instr_o <= instr_fifo[head.address];
+                 dispatched_instr_q <= instr_fifo[head.address];
                 rs_slot_id_o  <= next_rs_slot[rs_index];
                 head <= head_next;
             end
             else begin 
-                dispatched_instr_o <= '0;
+                 dispatched_instr_q <= '0;
                 rs_slot_id_o  <= '0;
             end
             if (enqueue) begin

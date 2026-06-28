@@ -1,29 +1,42 @@
 /* ------------------------------------------------------------------------------------------------ 
  *                                    CONTROLLER FOR DATA MEMORY
- * ------------------------------------------------------------------------------------------------  
+ * ------------------------------------------------------------------------------------------------
+ *  
  *  Functions/Behavior:
  *  ->  Acts as an interface between the core and the data memory
- *  ->  Sends data memory output directly to writeback abiters for load instructions
+ *  ->  Compiles memory request combinatorially from the LSU output each cycle.
+ *  ->  Asserts write enable for store instructions
+ *  ->  registers ROB ID, PRF tag and bank index on the clock edge, and forwards memory read data
+ *      to scalar or vector writeback arbiters in next cycle for loads.
+ *  ->  Scalar loads slice one 32-bit word from the 128-bit dmem output using the registered bank
+ *      index. Vector loads forward the full 128-bit read data.
  *
  *  Inputs:
- *  ->  clock, reset
- *  ->  signal from load-store for memory operations
- *  ->  Value of data to be loaded from data memory (128 bits)
+ *  ->  clock, reset_n
+ *  ->  lsu_output — Output packet from the load-store unit.
+ *  ->  dmem_dout (128 bits) — Read data returned by data memory on the cycle after a request.
  *
  *  Outputs:
- *  ->  signals to data memory (refer dmem_request_t in packet_pkg)
- *  ->  signal to scalar writeback for loads
- *  ->  signal to vector writeback for loads
+ *  ->  dmem_req_o — Request to data memory each cycle.
+ *  ->  sc_wb_o — Scalar writeback result.
+ *  ->  vc_wb_o — Vector writeback result.
  *
  *  Notes:
- *  ->  stores and loads with forwarded values are not written back. They are handled directly by
-        the load-store unit. Refer LSU implementation for details
-    ->  the memory always returns a read value unless write enable is 1. this module forwards the
-        garbage values to the arbiters, but the valids are set only if there was a valid signal 
-        from the load-store unit.
+ *  ->  For scalar stores, write enable is one-hot encoded using addr[1:0] (byte lane select). For
+ *      vector stores, all write-enable lanes are asserted (write_enable = '1).
+ *  ->  Stores and loads with forwarded values are not written back through this module, handled
+ *      directly by the LSU. Writeback valids here are only asserted for non-forwarded loads.
+ *  ->  The data memory always returns a read value regardless of whether a write occurred. This
+ *      module forwards that (potentially garbage) data to the writeback arbiters every cycle, but
+ *      valid signals gate whether arbiters accept it.
+ *  ->  There is an inherent one-cycle latency: address & write-enable go to dmem combinatorially,
+ *      but ROB ID, PRF tag, bank index, and valids are registered, aligning with the memory's
+ *      one-cycle read latency.
+ *  ->  sc_wb_valid and vc_wb_valid are mutually exclusive.
  *
  * ------------------------------------------------------------------------------------------------
  */
+
 module data_dmem_controller (
     input  logic clk_i,
     input  logic reset_ni,
@@ -53,13 +66,12 @@ module data_dmem_controller (
         dmem_req_o.data = lsu_output.data;
         dmem_req_o.address = lsu_output.mem_addr[9:2];
 
-        if(!lsu_output.valid || !lsu_output.is_store) dmem_req_o.write_enable = '0;
-        else if(lsu_output.is_vector) dmem_req_o.write_enable = '1;
+        if (!lsu_output.valid || !lsu_output.is_store) dmem_req_o.write_enable = '0;
+        else if (lsu_output.is_vector) dmem_req_o.write_enable = '1;
         else begin
-            dmem_req_o.write_enable =  '0;
+            dmem_req_o.write_enable = '0;
             dmem_req_o.write_enable[lsu_output.mem_addr[1:0]] = 1'b1;
         end
-
         
     end
 

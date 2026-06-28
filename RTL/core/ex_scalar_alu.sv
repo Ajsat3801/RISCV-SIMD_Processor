@@ -1,3 +1,31 @@
+/* ------------------------------------------------------------------------------------------------
+ *                                          SCALAR ALU
+ * ------------------------------------------------------------------------------------------------
+ *
+ *  Functions / Behavior:
+ *  ->  Single-cycle scalar ALU that executes integer arithmetic & logical operations.
+ *  ->  Receives ex request packet from the reservation station each cycle & produces a result
+ *      packet for the writeback arbiter.
+ *  ->  On reset or flush, the result register is cleared and ex_ready_o is driven high.
+ *
+ *  Inputs:
+ *  ->  clk, reset_n & flush
+ *  ->  sc_ex_request_i — Scalar execution request packet from the reservation station.
+ *
+ *  Outputs:
+ *  ->  sc_ex_result_o — Scalar execution result packet forwarded to the writeback arbiter.
+ *  ->  sc_ex_ready_o — Indicates the ALU is ready to accept a new request.
+ *
+ *  Notes:
+ *  ->  SLT and SLTU produce a 1-bit result sign-extended to 32 bits.
+ *  ->  ex_ready_o is always 1 (the ALU accepts a new request every cycle and never stalls).
+ *  ->  SRA not supported by the core, provision given for adding it in the future.
+ *  ->  Possiblity to add pipelining for shifts to improve timing in the future.
+ *
+ * ------------------------------------------------------------------------------------------------
+ */
+
+
 module ex_scalar_alu(
     input logic clk_i,
     input logic reset_ni,
