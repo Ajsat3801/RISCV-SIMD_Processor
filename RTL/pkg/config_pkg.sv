@@ -30,7 +30,6 @@ package config_pkg;
     parameter int unsigned IMEM_NUM_WORDS = 256;
     parameter int unsigned DMEM_WORD_SIZE = 32;
     parameter int unsigned DMEM_NUM_WORDS = 256;
-    parameter int unsigned DMEM_NUM_BANKS = 4;
 
     // We are using 5 identical SRAMs, each with 1 R/W port. one for IMEM and 4 for banked DMEM
 
@@ -49,6 +48,7 @@ package config_pkg;
     localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
     localparam int unsigned RS_DISPATCH_COUNT = 2*DUAL_SLOT_RS_COUNT + SINGLE_SLOT_RS_COUNT;
     localparam int unsigned IMEM_ADDR_SIZE = $clog2(IMEM_NUM_WORDS);
+    localparam int unsigned DMEM_NUM_BANKS = VECTOR_SIZE;
     localparam int unsigned DMEM_ADDR_SIZE = $clog2(DMEM_NUM_WORDS*DMEM_NUM_BANKS);
 
 endpackage

@@ -2,12 +2,30 @@
  *                                      TOP MODULE OF THE PROCESSOR
  * ------------------------------------------------------------------------------------------------
  *  Function/Behavior:
- *  ->  Integrates core with Instruction memory and data memory.
- *  ->  MUX to send preload data into both memories.
+ *  ->  Integrates the core, instruction memory, and data memory.
+ *  ->  Arbitrates between the core's memory requests and externally supplied preload requests.
+ *  ->  Provides preload path so IMEM, DMEM and both scalar and vector PRFs can be initialized directly
+ *      from testbenchinputs before or during simulation, bypassing normal core-driven requests.
  *  
  *  Inputs:
- *  Outputs:
+ *  ->  clk & reset_n
+ *  ->  compute_i – Enables/starts core computation (passed straight through to the core).
+ *  ->  imem_preload_en_i – preloads instruction from input into imem instead of executing the
+ *      core's own instruction request.
+ *  ->  preload_imem_request_i – Preload request packet when imem_preload_en_i is asserted.
+ *  ->  dmem_preload_en_i – preloads into data memory instead of the core's own data request.
+ *  ->  preload_dmem_request_i – Preload request packet when dmem_preload_en_i is asserted.
+ *  ->  sc_prf_preload_en_i – Enables direct preload of the scalar physical register file
+ *  ->  sc_prf_preload_data_i – Data value written into the scalar PRF during preload.
+ *  ->  sc_prf_preload_addr_i – Physical register tag/address targeted by the scalar PRF preload.
+ *  ->  vc_prf_preload_en_i – Enables direct preload of the vector physical register file.
+ *  ->  vc_prf_preload_data_i – Data value written into the vector PRF during preload.
+ *  ->  vc_prf_preload_addr_i – Physical register tag/address targeted by the vector PRF preload.
+ *
  *  Notes:
+ *  ->  Module contains no outputs. All results stay in the DMEM. To read DMEM outputs call
+ *      directly from the test environment
+ *
  *  -----------------------------------------------------------------------------------------------
  */
 

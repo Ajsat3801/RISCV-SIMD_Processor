@@ -1,5 +1,8 @@
-/*
- * Hacky solution to simulate the core on EDA Playground
+/*  -----------------------------------------------------------------------------------------------
+ *  Hacky solution to simulate the core on EDA Playground
+ *  Includes all the files into a single file as EDA playground does not support multiple files &
+ *  there is no way to set compilation order.
+ *  -----------------------------------------------------------------------------------------------
  */
 
 `include "config_pkg.sv"
