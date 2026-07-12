@@ -110,16 +110,16 @@ package packet_pkg;
     } store_retire_request_t;
 
     typedef struct packed {
-        logic [3:0]   write_enable;
-        logic [7:0]   address;
-        logic [127:0] data;
+        logic [config_pkg::DMEM_NUM_BANKS-1:0] write_enable;
+        signal_pkg::dmem_address_t address;
+        signal_pkg::vector_data_t data;
     } dmem_request_t;
 
     typedef struct packed {
         logic read_enable;
         logic write_enable;
-        logic [7:0] address;
-        logic [31:0] data;
+        signal_pkg::imem_address_t address;
+        signal_pkg::data_t data;
     } imem_request_t;
 
 // ------------------------------------------------------------------------------------------------
