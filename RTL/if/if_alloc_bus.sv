@@ -1,7 +1,39 @@
-/* ALLOCATED INSTRUCTION BUS
- * ->  Interface between ARR units, reorder buffer and physical registers
- * ->  2 instances created, one for scalar and one for vector
- * ->  (Future scope: potential to reduce the number of fields sent inside instr)
+/*  -----------------------------------------------------------------------------------------------
+ *                                  ALLOCATED INSTRUCTION BUS
+ *  -----------------------------------------------------------------------------------------------
+ *
+ *  Functions/Behavior:
+ *  ->  Bus that compiles decoded instruction from alloc-rename-retire unit & assigns rob id from
+ *      reorder buffer into a single packet and broadcasts to all the reservation stations.
+ *  ->  The reservation stations snoop the bus & processes them by matching with chip_select
+ *  ->  Also the interface between alloc-rename-retire and physical register file for writing
+ *      the results of pre-calculated instructions
+ *  
+ *  Inputs & Outputs:
+ *  ->  Allocate-Rename-Retire:
+ *      ->  Instruction to be sent to the reservation stations
+ *      ->  Already decoded
+ *      ->  Destination PRF ID assiged already 
+ *      ->  source IDs and source readys
+ *      ->  results of pre-calculated inputs
+ *      ->  pre-calculated results into PRF
+ *  ->  Reorder Buffer
+ *      ->  PRF tag of the allocated instruction
+ *      ->  outputs ROB ID for the allocated instruction
+ *  ->  Reservation Stations
+ *      ->  combined inputs of ROB and ARR into a single struct rs_entry_t
+ *      ->  reservation station slot id from ARR
+ *  ->  Physical Register File
+ *      ->  Preloaded results that dont need a register/memory read
+ *
+ *  Notes:
+ *  ->  Assigned instruction may or may not be ready to execute, that is handled by the 
+ *      reservation stations
+ *  ->  The alloc-rename-retire unit and reorder buffer work independently with no 
+ *      co-ordination or checks, keep eye out for incorrect ROB ID getting assigned to
+ *      the instruction during verification
+ *
+ *  -----------------------------------------------------------------------------------------------
 */
 
 interface if_alloc_bus;
