@@ -1,3 +1,9 @@
+/* ------------------------------------------------------------------------------------------------
+ *                              Interface for sampling DMEM
+ *  -----------------------------------------------------------------------------------------------
+ *  <Todo: add additional documentation here>
+ */ 
+
 interface top_tb_if_dmem_sample (input logic clk_i);
 
     function automatic signal_pkg::vector_data_t get_dmem_row(
