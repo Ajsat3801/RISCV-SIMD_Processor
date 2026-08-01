@@ -18,7 +18,7 @@ interface top_tb_if_preload (input logic clk_i);
     signal_pkg::vector_data_t vc_prf_preload_data;
     signal_pkg::prf_tag_t vc_prf_preload_addr;
 
-    task automatic drive(
+    task automatic drive_preload(
         input logic imem_en = 1'b0,
         input signal_pkg::imem_address_t imem_address = '0,
         input signal_pkg::data_t imem_data = '0,
@@ -65,6 +65,15 @@ interface top_tb_if_preload (input logic clk_i);
         
     endtask
 
+    task automatic drive_compute(bit start);
+        /* Task that sends signal to DUT to start computation
+         * Run once and compute set to 1, doesnt reset in every cycle
+         */
+        drive();
+
+        compute <= start;
+    endtask  
+    
     task automatic idle();
 
         /*  default state when there is no preload
@@ -74,23 +83,7 @@ interface top_tb_if_preload (input logic clk_i);
         drive();
     endtask
     
-    task automatic start_compute();
-        /* Task that sends signal to DUT to start computation
-         * Run once and compute set to 1, doesnt reset in every cycle
-         */
-        drive();
-
-        compute <= 1'b1;
-    endtask 
-
-    task automatic stop_compute();
-        /* Task that sends signal to DUT to stop computation
-         * Run once and compute set to 0, doesnt reset in every cycle
-         */
-        drive();
-
-        compute <= 1'b0;
-    endtask   
+    
 
 
 endinterface
