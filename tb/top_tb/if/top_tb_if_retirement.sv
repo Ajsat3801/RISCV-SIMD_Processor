@@ -1,6 +1,6 @@
 interface top_tb_if_retirement (input logic clk_i);
 
-    function automatic top_tb_typedef_pkg::retirement_snapshot_t sample();
+    function automatic top_tb_typedef_pkg::retire_snapshot_t sample();
         /*  Samples the retirement bus and returns a struct with the sampled values
          *  (pretty much an interface for the rest of the testbench to see the dut values)
          */

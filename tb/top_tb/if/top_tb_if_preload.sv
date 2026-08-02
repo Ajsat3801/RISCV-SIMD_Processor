@@ -69,7 +69,7 @@ interface top_tb_if_preload (input logic clk_i);
         /* Task that sends signal to DUT to start computation
          * Run once and compute set to 1, doesnt reset in every cycle
          */
-        drive();
+        drive_preload();
 
         compute <= start;
     endtask  
@@ -80,7 +80,7 @@ interface top_tb_if_preload (input logic clk_i);
          *  Note: same as calling drive with no args, wrapper for readablity
          */
 
-        drive();
+        drive_preload();
     endtask
     
     
