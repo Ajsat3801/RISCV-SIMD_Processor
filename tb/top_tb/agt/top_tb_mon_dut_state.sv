@@ -7,8 +7,7 @@
 
 class top_tb_mon_dut_state extends uvm_monitor;
 
-    virtual top_tb_if_prf_sample vif_prf;
-    virtual top_tb_if_dmem_sample vif_dmem;
+    virtual top_tb_if_dut_state vif_dut_state;
 
     uvm_analysis_port #(top_tb_tr_dut_state) ap;
     uvm_event test_complete;
@@ -28,11 +27,8 @@ class top_tb_mon_dut_state extends uvm_monitor;
 
         super.build_phase(phase);
 
-        if(!uvm_config_db#(virtual top_tb_if_prf_sample)::get(this, "", "vif_prf", vif_prf))
+        if(!uvm_config_db#(virtual top_tb_if_dut_state)::get(this, "", "vif_dut_state", vif_dut_state))
             `uvm_fatal("MON/NOVIF","Unable to get vif from UVM config DB for PRF final state monitor")
-
-        if(!uvm_config_db#(virtual top_tb_if_dmem_sample)::get(this,"","vif_dmem", vif_dmem))
-            `uvm_fatal("MON/NOVIF","Unable to get vif from UVM config DB for DMEM final monitor")
 
         ap = new("ap", this);
 
@@ -60,10 +56,10 @@ class top_tb_mon_dut_state extends uvm_monitor;
 
         tr = top_tb_tr_dut_state::type_id::create("tr", this);
 
-        vif_prf.dump_sc_regs(tr.sc_reg_sample, tr.sc_replicas_match);
-        vif_prf.dump_vc_regs(tr.vc_reg_sample);
+        vif_dut_state.dump_sc_regs(tr.sc_reg_sample, tr.sc_replicas_match);
+        vif_dut_state.dump_vc_regs(tr.vc_reg_sample);
 
-        vif_dmem.dump_dmem(tr.dmem_sample);
+        vif_dut_state.dump_dmem(tr.dmem_sample);
 
         ap.write(tr);
 
