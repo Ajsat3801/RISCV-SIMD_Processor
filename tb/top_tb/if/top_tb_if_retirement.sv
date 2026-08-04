@@ -18,7 +18,7 @@ interface top_tb_if_retirement (input logic clk_i);
         sample.is_branch = dut.u_core.u_retirement_bus.is_branch;
         sample.branch_taken = dut.u_core.u_retirement_bus.branch_taken;
 
-    endfunction
+    endfunction : sample
 
     /*  Keep track for number of cycles since the last retirement
      *  when the number crosses a treshold we terminate the testbench
@@ -33,4 +33,4 @@ interface top_tb_if_retirement (input logic clk_i);
 
     end
 
-endinterface
+endinterface : top_tb_if_retirement

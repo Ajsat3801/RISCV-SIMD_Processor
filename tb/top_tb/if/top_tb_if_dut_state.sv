@@ -20,6 +20,7 @@ interface top_tb_if_dut_state (input logic clk_i);
         sc_replicas_match = match;
 
     endfunction : sc_replicas_match
+    
 
     function automatic signal_pkg::data_t get_sc_prf_data (
         signal_pkg::prf_tag_t address
@@ -28,6 +29,7 @@ interface top_tb_if_dut_state (input logic clk_i);
         get_sc_prf_data = dut.u_core.u_scalar_prf_replica0.regfile[address.tag];
 
     endfunction : get_sc_prf_data
+
 
     function automatic signal_pkg::data_t get_sc_reg (
         signal_pkg::arf_address_t address
@@ -38,6 +40,7 @@ interface top_tb_if_dut_state (input logic clk_i);
             dut.u_core.u_alloc_rename_retire.sc_commit_table [address]];
 
     endfunction : get_sc_reg
+
 
     function automatic void dump_sc_regs (
         output signal_pkg::data_t arr[config_pkg::ARCH_REG_DEPTH],
@@ -62,7 +65,8 @@ interface top_tb_if_dut_state (input logic clk_i);
         // Returns the data present in the input address of the PRF
         get_vc_prf_data = dut.u_core.u_vector_prf.regfile[address.tag];
 
-    endfunction
+    endfunction : get_vc_prf_data
+
 
     function automatic signal_pkg::vector_data_t get_vc_reg (
         signal_pkg::arf_address_t address
@@ -71,7 +75,8 @@ interface top_tb_if_dut_state (input logic clk_i);
         get_vc_reg = dut.u_core.u_vector_prf.regfile [
             dut.u_core.u_alloc_rename_retire.vc_commit_table [address]];
 
-    endfunction
+    endfunction : get_vc_reg
+
 
     function automatic void dump_vc_regs (
         output signal_pkg::vector_data_t arr[config_pkg::ARCH_REG_DEPTH]
@@ -81,7 +86,7 @@ interface top_tb_if_dut_state (input logic clk_i);
             arr[i] = get_vc_reg(i);
         end
         
-    endfunction
+    endfunction : dump_vc_regs
 
     //  -------------------------------------------------------------------------------------------
     //                              BFM for reading DMEM values
@@ -97,7 +102,8 @@ interface top_tb_if_dut_state (input logic clk_i);
         get_dmem_row[2] = dut.u_dmem.u_dmem2.mem[address[config_pkg::DMEM_ADDR_SIZE-1:2]][31:0];
         get_dmem_row[3] = dut.u_dmem.u_dmem3.mem[address[config_pkg::DMEM_ADDR_SIZE-1:2]][31:0];
 
-    endfunction
+    endfunction : get_dmem_row
+
 
     function automatic void dump_dmem(
         output signal_pkg::data_t arr[config_pkg::DMEM_SIZE]
@@ -111,6 +117,6 @@ interface top_tb_if_dut_state (input logic clk_i);
             arr[i+2] = row[2];
             arr[i+3] = row[3];
         end
-    endfunction
+    endfunction : dump_dmem
 
 endinterface : top_tb_if_dut_state

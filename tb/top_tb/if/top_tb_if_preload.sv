@@ -63,16 +63,16 @@ interface top_tb_if_preload (input logic clk_i);
         vc_prf_preload_data <= vc_prf_data;
         vc_prf_preload_addr <= vc_prf_address;
         
-    endtask
+    endtask : drive_preload
 
     task automatic drive_compute(bit start);
         /* Task that sends signal to DUT to start computation
          * Run once and compute set to 1, doesnt reset in every cycle
          */
         drive_preload();
+        drive_compute <= start;
 
-        compute <= start;
-    endtask  
+    endtask  : drive_compute
     
     task automatic idle();
 
@@ -81,9 +81,6 @@ interface top_tb_if_preload (input logic clk_i);
          */
 
         drive_preload();
-    endtask
+    endtask : idle
     
-    
-
-
-endinterface
+endinterface : top_tb_if_preload

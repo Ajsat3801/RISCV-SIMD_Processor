@@ -1,6 +1,6 @@
 # OoO RISC-V processor with SIMD
 
-**NOTE: Ongoing, not complete**
+**NOTE: Ongoing, not complete**  
 **Current Status:** RTL complete and is passing sanity check testbench. constrained random UVM testbench in progress for in-depth verification.
 
 ### Design
@@ -95,6 +95,6 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 
 ## Verification Strategy
 
-* **Stage 1:**Directed testbench for sanity check, to ensure functionality
-* **Stage 2:**UVM based global testbench for chip level verification
-* **Stage 3:**Unit level constrained random testbenches for each RTL module
+* **Stage 1:** Directed testbench for sanity check, to ensure functionality
+* **Stage 2:** UVM based global testbench for chip level verification
+* **Stage 3:** Unit level constrained random testbenches for each RTL module
