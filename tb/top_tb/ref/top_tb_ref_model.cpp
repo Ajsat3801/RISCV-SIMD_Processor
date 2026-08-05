@@ -1,6 +1,7 @@
 
 #include <vector>
 #include <cstdint> // Required for uint32_t / int32_t / INT32_MIN
+#include <svdpi.h>
 
 struct decoded_instr_t {
     uint32_t rd, rs1, rs2;
@@ -24,7 +25,7 @@ class top_funct_sim {
      *      writeback
      *  ->  Decoded_instr_t struct does not have any data in it, its just addresses and flags. 
      *  ->  vlen, imem_num_words, dmem_num_words and dmem_size are const config parameters
-     *  ->  
+     *  ->  IMP NOTE: DMEM and Vector reg inputs and outputs is flattened, its not 2D data
      *  -------------------------------------------------------------------------------------------
     */
 
@@ -281,7 +282,7 @@ class top_funct_sim {
               sc_registers(32, 0),
               vc_registers(32, std::vector<uint32_t>(vlen, 0)),
               imem(imem_num_words, 0),
-              dmem(dmem_num_words, 0),
+              dmem(dmem_num_words*vlen, 0),
               pc(0) {}
 
         
@@ -302,14 +303,26 @@ class top_funct_sim {
         uint32_t get_sc_reg(uint32_t idx) const { return sc_registers[idx]; }
         uint32_t get_vc_reg(int idx, int lane) const { return vc_registers[idx][lane]; }
         uint32_t get_dmem(uint32_t idx) const { return dmem[idx]; }
+        uint32_t get_vlen() const { return vlen; }
+        uint32_t get_dmem_size() const { return dmem_size; }
 
         void set_pc(uint32_t p) { pc = p;}
 
         void set_imem(int idx, uint32_t val) { imem[idx] = val;}
-        void set_dmem(int idx, uint32_t val) { dmem[idx] = val;}
+        void set_dmem(int idx, std::vector<uint32_t> val) { 
+            for(int i=0; i<vlen; i++) {
+                dmem[(idx*vlen)+i] = val[i];
+            }
+        }
 
         void set_sc_reg(int idx, uint32_t val) { sc_registers[idx] = (idx == 0) ? 0 : val; }
         void set_vc_reg(int idx, int lane, uint32_t val) { vc_registers[idx][lane] = val;}
+
+        void set_vc_reg(int idx, std::vector<uint32_t> val) { 
+            for(int i=0; i<vlen; i++) {
+                vc_registers[idx][i] = val[i];
+            }
+        }
 
 
         // functions to return final architectural state (read by scoreboard via DPI)
@@ -320,11 +333,11 @@ class top_funct_sim {
             return sc_regs;
         }
 
-        std::vector<vector<uint32_t>> dump_vc_regs(){
-            std::vector<uint32_t> vc_regs(32,std::vector<uint32_t>(vlen, 0));
+        std::vector<uint32_t> dump_vc_regs(){
+            std::vector<uint32_t> vc_regs(32*vlen,0);
             for(int i=0; i<32; i++) {
-                for(int j=0; i<vlen; j++){
-                    vc_regs[i][j] = get_vc_reg(i,j);
+                for(int j=0; j<vlen; j++){
+                    vc_regs[(i*vlen)+j] = get_vc_reg(i,j);
                 }
             }
             return vc_regs;
@@ -338,6 +351,18 @@ class top_funct_sim {
 
 };
 
+// initialize reference model
+
+top_funct_sim* model;
+
+extern "C" void top_tb_ref_model_init(
+    int imem_num_words,
+    int dmem_num_words,
+    int vlen
+){
+    model = new top_funct_sim(imem_num_words, dmem_num_words, vlen);
+}
+
 // function to preload imem, dmem and registers
 
 extern "C" void top_tb_ref_model_preload(
@@ -346,7 +371,7 @@ extern "C" void top_tb_ref_model_preload(
     unsigned int imem_preload_data,
 
     svBit dmem_preload_en,
-    int dmem_preload_write_enable,
+    int dmem_preload_write_enable, // ignored because used only during operation
     int dmem_preload_addr,
     const unsigned int* dmem_preload_data, // array of unsigned ints, passed as pointer
 
@@ -358,9 +383,41 @@ extern "C" void top_tb_ref_model_preload(
     int vc_prf_preload_addr,
     const unsigned int* vc_prf_preload_data // array of unsigned ints, passed as pointer
 ){
-    if(imem_preload_en) set_imem(imem_preload_addr, imem_preload_data)
-
     
+    // preloading into IMEM
+    if(imem_preload_en) model->set_imem(imem_preload_addr, imem_preload_data);
+
+    // converting 
+    if(dmem_preload_en) {
+        std::vector<uint32_t> val(model->get_vlen(), 0);
+        for(int i=0; i<model->get_vlen(); i++) val[i] = dmem_preload_data[i];
+        model->set_dmem(dmem_preload_addr, val);
+    }
+
+    if(sc_prf_preload_en) model->set_sc_reg(sc_prf_preload_addr, sc_prf_preload_data);
+
+    if(vc_prf_preload_en) {
+        std::vector<uint32_t> val(model->get_vlen(), 0);
+        for(int i=0; i<model->get_vlen(); i++) val[i] = vc_prf_preload_data[i];
+        model->set_vc_reg(vc_prf_preload_addr, val);
+    }
+
 }
 
 // function to start running and return final arch states
+
+extern "C" void top_tb_ref_model_simulate(
+    unsigned int* sc_regs_final,
+    unsigned int* vc_regs_final,
+    unsigned int* dmem_final
+){
+    model->compute();
+    
+    std::vector<uint32_t> sc_regs_dump = model->dump_sc_regs();
+    std::vector<uint32_t> vc_regs_dump = model->dump_vc_regs();
+    std::vector<uint32_t> dmem_dump = model->dump_dmem();
+
+    for(int i=0; i<32; i++) sc_regs_final[i] = sc_regs_dump[i];
+    for(int i=0; i<32*model->get_vlen(); i++) vc_regs_final[i] = vc_regs_dump[i];
+    for(int i=0; i<model->get_dmem_size(); i++) dmem_final[i] = dmem_dump[i];
+}
