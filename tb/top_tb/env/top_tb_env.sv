@@ -11,7 +11,7 @@ class top_tb_env extends uvm_env;
     top_tb_scb scb;
 
     function new(string name="top_tb_env", uvm_component parent=null);
-        super.new(name, parent)
+        super.new(name, parent);
     endfunction : new
 
     //  -------------------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ class top_tb_env extends uvm_env;
     endfunction : build_phase
 
 
-    virtual task connect_phase(uvm_phase phase);
+    virtual function void connect_phase(uvm_phase phase);
         
         super.connect_phase(phase);
 
@@ -45,6 +45,6 @@ class top_tb_env extends uvm_env;
 
         // Note: cov and scb logic pending, current statements are placeholders
     
-    endtask : connect_phase
+    endfunction : connect_phase
     
 endclass : top_tb_env

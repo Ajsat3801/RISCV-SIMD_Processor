@@ -10,7 +10,32 @@ struct decoded_instr_t {
 };
 
 class top_funct_sim {
+
+    /*  -------------------------------------------------------------------------------------------
+     *                                   Functional Simulation model
+     *  -------------------------------------------------------------------------------------------
+     *
+     *  ->  Class that is the golden reference for the end result of the run
+     *  ->  Preload function called everytime monitor gets a preload transaction. The model is 
+     *      run and the results are dumped only after the DUT finishes execution.
+     *  ->  Does not model PRF or RAT or any out-of-order optimizations. This is purely functional 
+     *      and instructions run in order with no cycle counts or performance models
+     *  ->  2 stages, decode and execute. Execute involves reading operands, executing and
+     *      writeback
+     *  ->  Decoded_instr_t struct does not have any data in it, its just addresses and flags. 
+     *  ->  vlen, imem_num_words, dmem_num_words and dmem_size are const config parameters
+     *  ->  
+     *  -------------------------------------------------------------------------------------------
+    */
+
     private:
+
+        // config variables set during construction    
+        const int vlen; // lanes per vector register (VECTOR_SIZE)
+        const int imem_num_words;
+        const int dmem_num_words;
+        const int dmem_size; // dmem_size * vlen (vlen == number of banks)
+
         std::vector<uint32_t> sc_registers;              // 32 scalar regs
         std::vector<std::vector<uint32_t>> vc_registers; // 32 vec regs x 4 lanes
 
@@ -19,8 +44,7 @@ class top_funct_sim {
 
         uint32_t pc;
 
-        int vlen; // lanes per vector register (VECTOR_SIZE)
-
+        
         decoded_instr_t decode(uint32_t raw_instr) {
 
             // populating struct fields
@@ -249,22 +273,17 @@ class top_funct_sim {
 
     public:
         // imem_words : size of instruction memory (in words)
-        top_funct_sim(int imem_words, int dmem_words, int vlen)
-            : sc_registers(32, 0),
+        top_funct_sim(int imem_num_words, int dmem_num_words, int vlen)
+            : vlen(vlen),
+              imem_num_words(imem_num_words),
+              dmem_num_words(dmem_num_words),
+              dmem_size(dmem_num_words*vlen),
+              sc_registers(32, 0),
               vc_registers(32, std::vector<uint32_t>(vlen, 0)),
-              imem(imem_words, 0),
-              dmem(256, 0), // DMEM = 256 words
-              pc(0),
-              vlen(vlen) {}
+              imem(imem_num_words, 0),
+              dmem(dmem_num_words, 0),
+              pc(0) {}
 
-        // preload (called by the DPI adapter before compute)
-        void set_pc(uint32_t p) { pc = p;}
-
-        void load_imem(uint32_t idx, uint32_t val) { imem[idx] = val;}
-        void load_dmem(uint32_t idx, uint32_t val) { dmem[idx] = val;}
-
-        void set_sc_reg(uint32_t idx, uint32_t val) { sc_registers[idx] = (idx == 0) ? 0 : val; }
-        void set_vc_reg(uint32_t idx, int lane, uint32_t val) { vc_registers[idx][lane] = val;}
         
         // run whole program in order
         void compute(uint32_t max_steps = 100000) {
@@ -279,11 +298,69 @@ class top_funct_sim {
             }
         }
 
-        // final architectural state (read by scoreboard via DPI)
-
+        // getters and setters
         uint32_t get_sc_reg(uint32_t idx) const { return sc_registers[idx]; }
-        uint32_t get_vc_reg(uint32_t idx, int lane) const { return vc_registers[idx][lane]; }
+        uint32_t get_vc_reg(int idx, int lane) const { return vc_registers[idx][lane]; }
         uint32_t get_dmem(uint32_t idx) const { return dmem[idx]; }
+
+        void set_pc(uint32_t p) { pc = p;}
+
+        void set_imem(int idx, uint32_t val) { imem[idx] = val;}
+        void set_dmem(int idx, uint32_t val) { dmem[idx] = val;}
+
+        void set_sc_reg(int idx, uint32_t val) { sc_registers[idx] = (idx == 0) ? 0 : val; }
+        void set_vc_reg(int idx, int lane, uint32_t val) { vc_registers[idx][lane] = val;}
+
+
+        // functions to return final architectural state (read by scoreboard via DPI)
+
+        std::vector<uint32_t> dump_sc_regs(){
+            std::vector<uint32_t> sc_regs(32,0);
+            for(int i=0; i<32; i++) sc_regs[i] = get_sc_reg(i);
+            return sc_regs;
+        }
+
+        std::vector<vector<uint32_t>> dump_vc_regs(){
+            std::vector<uint32_t> vc_regs(32,std::vector<uint32_t>(vlen, 0));
+            for(int i=0; i<32; i++) {
+                for(int j=0; i<vlen; j++){
+                    vc_regs[i][j] = get_vc_reg(i,j);
+                }
+            }
+            return vc_regs;
+        }
+
+        std::vector<uint32_t> dump_dmem(){
+            std::vector<uint32_t> dmem_dump(dmem_size, 0);
+            for(int i=0; i<dmem_size; i++) dmem_dump[i] = get_dmem(i);
+            return dmem_dump;
+        }
+
 };
 
+// function to preload imem, dmem and registers
 
+extern "C" void top_tb_ref_model_preload(
+    svBit imem_preload_en,
+    int imem_preload_addr,
+    unsigned int imem_preload_data,
+
+    svBit dmem_preload_en,
+    int dmem_preload_write_enable,
+    int dmem_preload_addr,
+    const unsigned int* dmem_preload_data, // array of unsigned ints, passed as pointer
+
+    svBit sc_prf_preload_en,
+    int sc_prf_preload_addr,
+    unsigned int sc_prf_preload_data,
+
+    svBit vc_prf_preload_en,
+    int vc_prf_preload_addr,
+    const unsigned int* vc_prf_preload_data // array of unsigned ints, passed as pointer
+){
+    if(imem_preload_en) set_imem(imem_preload_addr, imem_preload_data)
+
+    
+}
+
+// function to start running and return final arch states

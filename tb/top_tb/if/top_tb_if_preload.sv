@@ -25,7 +25,7 @@ interface top_tb_if_preload (input logic clk_i);
 
         input logic dmem_en = 1'b0,
         input logic [config_pkg::DMEM_NUM_BANKS-1:0] dmem_write_enable = '0,
-        input signal_pkg::dmem_address_t dmem_address = '0,
+        input signal_pkg::dmem_word_address_t dmem_address = '0,
         input signal_pkg::vector_data_t dmem_data = '0,
 
         input logic sc_prf_en = 1'b0,

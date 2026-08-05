@@ -111,7 +111,7 @@ package packet_pkg;
 
     typedef struct packed {
         logic [config_pkg::DMEM_NUM_BANKS-1:0] write_enable;
-        signal_pkg::dmem_address_t address;
+        signal_pkg::dmem_word_address_t address;
         signal_pkg::vector_data_t data;
     } dmem_request_t;
 

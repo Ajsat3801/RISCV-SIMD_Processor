@@ -82,6 +82,7 @@ package signal_pkg;
     
     typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
     typedef logic [(DMEM_ADDR_SIZE)-1:0] dmem_address_t;
+    typedef logic [(DMEM_WORD_ADDR_SIZE)-1:0] dmem_word_address_t;
     typedef logic [(IMEM_ADDR_SIZE)-1:0] imem_address_t;
     typedef logic [(IMEM_ADDR_SIZE)-1:0] pc_t;
     

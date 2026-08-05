@@ -11,7 +11,7 @@ class top_tb_agt_dut_state extends uvm_agent;
 
     function new(string name = "top_tb_agt_dut_state", uvm_component parent = null);
         super.new(name, parent);
-    endfunction : 
+    endfunction : new
     
     //  -------------------------------------------------------------------------------------------
     //                                          Phases

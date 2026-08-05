@@ -93,7 +93,7 @@ interface top_tb_if_dut_state (input logic clk_i);
     //  -------------------------------------------------------------------------------------------
 
     function automatic signal_pkg::vector_data_t get_dmem_row(
-        signal_pkg::dmem_address_t address
+        signal_pkg::dmem_word_address_t address
     );
         // returns one row of DMEM data across banks
         // row[i] = value in row at bank i

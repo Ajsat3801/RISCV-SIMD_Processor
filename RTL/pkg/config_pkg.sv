@@ -51,6 +51,7 @@ package config_pkg;
     localparam int unsigned DMEM_NUM_BANKS = VECTOR_SIZE;
     localparam int unsigned DMEM_SIZE = DMEM_NUM_WORDS * DMEM_NUM_BANKS;
     localparam int unsigned DMEM_ADDR_SIZE = $clog2(DMEM_SIZE);
+    localparam int unsigned DMEM_WORD_ADDR_SIZE = $clog2(DMEM_NUM_WORDS);
 
 endpackage
 

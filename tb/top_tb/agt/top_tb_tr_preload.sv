@@ -17,7 +17,7 @@ class top_tb_tr_preload extends uvm_sequence_item;
 
     rand logic dmem_en;
     rand logic [config_pkg::DMEM_NUM_BANKS-1:0] dmem_write_enable;
-    rand signal_pkg::dmem_address_t dmem_address;
+    rand signal_pkg::dmem_word_address_t dmem_address;
     rand signal_pkg::vector_data_t dmem_data;
 
     rand logic sc_prf_en;
