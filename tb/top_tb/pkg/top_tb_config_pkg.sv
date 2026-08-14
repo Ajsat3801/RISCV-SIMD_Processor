@@ -5,4 +5,6 @@ package top_tb_config_pkg;
 
     parameter time TEST_TIMEOUT = 100ms;
 
+    parameter int unsigned DMEM_FILL_UPTO = 256;
+
 endpackage
