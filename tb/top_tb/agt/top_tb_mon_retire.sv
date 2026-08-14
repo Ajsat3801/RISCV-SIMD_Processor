@@ -6,9 +6,9 @@
 class top_tb_mon_retire extends uvm_monitor;
 
     virtual top_tb_if_retirement vif_retire;
+    top_tb_run_status status;
 
     uvm_analysis_port #(top_tb_tr_retire) ap;
-    uvm_event test_complete;
 
     `uvm_component_utils(top_tb_mon_retire)
 
@@ -24,17 +24,22 @@ class top_tb_mon_retire extends uvm_monitor;
         if(!uvm_config_db#(virtual top_tb_if_retirement)::get(this,"","vif_retire", vif_retire))
             `uvm_fatal("MON/NOVIF","Unable to get vif_retire from UVM config DB for retirement monitor")
 
-        ap = new("ap", this);
+        if(!uvm_config_db#(top_tb_run_status)::get(this,"","run_status", status))
+            `uvm_fatal("MON/NOSTATUS","Unable to get run status from UVM config DB for retirement monitor")
 
-        test_complete = uvm_event_pool::get_global("test_complete");
+        ap = new("ap", this);
 
     endfunction : build_phase
 
     virtual task run_phase(uvm_phase phase);
-        super.run_phase(phase);
-
+        
         top_tb_typedef_pkg::retire_snapshot_t snap;
         top_tb_tr_retire tr;
+        bit complete_q;
+
+        super.run_phase(phase);
+
+        complete_q = 1'b0;
 
         forever begin
 
@@ -51,10 +56,15 @@ class top_tb_mon_retire extends uvm_monitor;
 
             end
 
-            if(vif_retire.idle_cycles == top_tb_config_pkg::IDLE_CYCLE_THRESHOLD) begin
+            status.retire_count = vif_retire.retire_count;
+            status.idle_cycles = vif_retire.idle_cycles;
+            status.complete = vif_retire.complete();
+
+            if(status.complete && !complete_q) begin
                 `uvm_info("MON", "Idle treshold reach, terminating test", UVM_LOW)
-                test_complete.trigger();
             end
+
+            complete_q = status.complete;
 
         end
 

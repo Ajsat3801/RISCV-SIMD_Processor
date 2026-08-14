@@ -7,8 +7,9 @@ class top_tb_env extends uvm_env;
     top_tb_agt_retire agt_retire;
     top_tb_agt_dut_state agt_dut_state;
 
-    top_tb_cov cov;
     top_tb_scb scb;
+    //top_tb_cov cov;
+    
 
     function new(string name="top_tb_env", uvm_component parent=null);
         super.new(name, parent);

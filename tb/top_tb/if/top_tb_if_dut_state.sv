@@ -93,14 +93,14 @@ interface top_tb_if_dut_state (input logic clk_i);
     //  -------------------------------------------------------------------------------------------
 
     function automatic signal_pkg::vector_data_t get_dmem_row(
-        signal_pkg::dmem_word_address_t address
+        signal_pkg::dmem_word_address_t row
     );
         // returns one row of DMEM data across banks
         // row[i] = value in row at bank i
-        get_dmem_row[0] = dut.u_dmem.u_dmem0.mem[address[config_pkg::DMEM_ADDR_SIZE-1:2]][31:0];
-        get_dmem_row[1] = dut.u_dmem.u_dmem1.mem[address[config_pkg::DMEM_ADDR_SIZE-1:2]][31:0];
-        get_dmem_row[2] = dut.u_dmem.u_dmem2.mem[address[config_pkg::DMEM_ADDR_SIZE-1:2]][31:0];
-        get_dmem_row[3] = dut.u_dmem.u_dmem3.mem[address[config_pkg::DMEM_ADDR_SIZE-1:2]][31:0];
+        get_dmem_row[0] = dut.u_dmem.u_dmem0.mem[row][31:0];
+        get_dmem_row[1] = dut.u_dmem.u_dmem1.mem[row][31:0];
+        get_dmem_row[2] = dut.u_dmem.u_dmem2.mem[row][31:0];
+        get_dmem_row[3] = dut.u_dmem.u_dmem3.mem[row][31:0];
 
     endfunction : get_dmem_row
 

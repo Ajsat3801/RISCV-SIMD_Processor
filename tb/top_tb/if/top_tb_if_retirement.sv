@@ -25,12 +25,44 @@ interface top_tb_if_retirement (input logic clk_i);
      */
     
     int unsigned idle_cycles;
+    int unsigned retire_count;
+    logic started;
+    logic compute_q;            // previous state of compute
 
+    wire compute_now = dut.compute_i;
+    wire retire_now  = dut.u_core.u_retirement_bus.valid;
+    
+    
     always @(posedge clk_i) begin
+        if(!dut.reset_ni) begin
 
-        if (dut.u_core.u_retirement_bus.valid) idle_cycles <= '0;
-        else idle_cycles <= idle_cycles + 1'b1;
+            idle_cycles <= 0;
+            retire_count <= 0;
+            started <= 1'b0;
+            compute_q <= 1'b0;
 
+        end
+
+        else begin
+            compute_q <= compute_now;
+
+            if(retire_now) retire_count <= retire_count + 1;
+
+            if(compute_now && !compute_q) begin
+                started <= 1'b1;
+                idle_cycles <= '0;
+            end
+            else if(retire_now) idle_cycles <= '0;
+            else if(started) idle_cycles <= idle_cycles + 1;
+            else idle_cycles <= '0;
+        
+        end
     end
+    
+    function automatic bit complete();
 
+        return started && (idle_cycles >= top_tb_config_pkg::IDLE_CYCLE_THRESHOLD);
+
+    endfunction : complete
+    
 endinterface : top_tb_if_retirement

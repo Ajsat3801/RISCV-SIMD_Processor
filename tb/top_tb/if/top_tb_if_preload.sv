@@ -1,6 +1,6 @@
 // top tb preload interface
 
-interface top_tb_if_preload (input logic clk_i);
+interface top_tb_if_preload (input logic clk_i, input logic reset_ni);
 
     logic compute;
 
@@ -83,33 +83,29 @@ interface top_tb_if_preload (input logic clk_i);
         drive_preload();
     endtask : idle
 
-    task automatic init();
-
-        /*  Initial state for the DUT
-            Only difference between idle and init is that init does not wait for clock
+    task automatic reset();
+        /*  Also works as initial state
          */
 
-        imem_preload_en <= 1'b0;
+        compute = 1'b0;
 
-        preload_imem_request.read_enable <= 1'b1;
-        preload_imem_request.write_enable <= '0;
-        preload_imem_request.address <= '0;
-        preload_imem_request.data <= '0;
-        
-        dmem_preload_en  <= 1'b0;
-        preload_dmem_request.write_enable <= '0;
-        preload_dmem_request.address <= '0;
-        preload_dmem_request.data <= '0;
-        
-        sc_prf_preload_en <= 1'b0;
-        sc_prf_preload_data <= '0;
-        sc_prf_preload_addr <= '0;
-        
-        vc_prf_preload_en <= 1'b0;
-        vc_prf_preload_data <= '0;
-        vc_prf_preload_addr <= '0;
+        imem_preload_en = 1'b0;
+        preload_imem_request = '0;
 
-        
-    endtask : init
+        dmem_preload_en = 1'b0;
+        preload_dmem_request = '0;
+
+        sc_prf_preload_en = 1'b0;
+        sc_prf_preload_data = '0;
+        sc_prf_preload_addr = '0;
+
+        vc_prf_preload_en = 1'b0;
+        vc_prf_preload_data = '0;
+        vc_prf_preload_addr = '0;
+
+        wait (reset_ni === 1'b1);
+        @(posedge clk_i);
+
+    endtask : reset
     
 endinterface : top_tb_if_preload

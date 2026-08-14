@@ -8,9 +8,9 @@
 class top_tb_mon_dut_state extends uvm_monitor;
 
     virtual top_tb_if_dut_state vif_dut_state;
+    top_tb_run_status status;
 
     uvm_analysis_port #(top_tb_tr_dut_state) ap;
-    uvm_event test_complete;
 
     `uvm_component_utils(top_tb_mon_dut_state)
 
@@ -28,11 +28,12 @@ class top_tb_mon_dut_state extends uvm_monitor;
         super.build_phase(phase);
 
         if(!uvm_config_db#(virtual top_tb_if_dut_state)::get(this, "", "vif_dut_state", vif_dut_state))
-            `uvm_fatal("MON/NOVIF","Unable to get vif from UVM config DB for PRF final state monitor")
+            `uvm_fatal("MON/NOVIF","Unable to get vif from UVM config DB for DUT final state monitor")
 
+        if(!uvm_config_db#(top_tb_run_status)::get(this, "", "run_status", status))
+            `uvm_fatal("MON/NOSTATUS", "Unable to get run_status from UVM config DB for DUT final state monitor")
+        
         ap = new("ap", this);
-
-        test_complete = uvm_event_pool::get_global("test_complete");
 
     endfunction : build_phase
 
@@ -40,8 +41,9 @@ class top_tb_mon_dut_state extends uvm_monitor;
     virtual task run_phase(uvm_phase phase);
 
         forever begin
-            test_complete.wait_trigger();
+            status.ev_snapshot.wait_trigger();
             capture_snapshot();
+            status.snapshot_taken = 1'b1;
         end
 
     endtask : run_phase

@@ -54,10 +54,11 @@ class top_tb_mon_preload extends uvm_monitor;
 
     task sample_preload();
 
+        top_tb_tr_preload tr;
+
         if(!(vif_preload.imem_preload_en || vif_preload.dmem_preload_en ||
             vif_preload.sc_prf_preload_en || vif_preload.vc_prf_preload_en)) return;
 
-        top_tb_tr_preload tr;
         tr = top_tb_tr_preload::type_id::create("tr", this);
 
         tr.imem_en = vif_preload.imem_preload_en;
@@ -85,9 +86,10 @@ class top_tb_mon_preload extends uvm_monitor;
 
     task sample_compute();
 
+        top_tb_tr_compute tr;
+        
         if(vif_preload.compute === compute_prev) return;
 
-        top_tb_tr_compute tr;
         tr = top_tb_tr_compute::type_id::create("tr", this);
 
         tr.start = vif_preload.compute;

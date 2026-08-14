@@ -41,6 +41,18 @@ class top_tb_drv extends uvm_driver #(uvm_sequence_item);
         
     endtask : run_phase
 
+    virtual task reset_phase(uvm_phase phase);
+
+        phase.raise_objection(this, "top_tb_drv: driving preload interface to idle");
+        
+        super.reset_phase(phase);
+        vif_preload.reset();
+
+        phase.drop_objection(this, "top_tb_drv: preload interface idle");
+
+        
+    endtask : reset_phase
+
     //  -------------------------------------------------------------------------------------------
     //                                        wrapper tasks
     //  -------------------------------------------------------------------------------------------
