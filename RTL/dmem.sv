@@ -50,7 +50,7 @@ module dmem (
         .web0(write_enable[3]),
         .spare_wen0(1'b0),
         .addr0({1'b0, dmem_request_i.address}),
-        .din0({1'b0, dmem_request_i.data[127:96]}),
+        .din0({1'b0, dmem_request_i.data[3]}),
         .dout0(read[3])
     );
 
@@ -60,7 +60,7 @@ module dmem (
         .web0(write_enable[2]),
         .spare_wen0(1'b0),
         .addr0({1'b0, dmem_request_i.address}),
-        .din0({1'b0, dmem_request_i.data[95:64]}),
+        .din0({1'b0, dmem_request_i.data[2]}),
         .dout0(read[2])
     );
 
@@ -70,7 +70,7 @@ module dmem (
         .web0(write_enable[1]),
         .spare_wen0(1'b0),
         .addr0({1'b0, dmem_request_i.address}),
-        .din0({1'b0, dmem_request_i.data[63:32]}),
+        .din0({1'b0, dmem_request_i.data[1]}),
         .dout0(read[1])
     );
 
@@ -80,7 +80,7 @@ module dmem (
         .web0(write_enable[0]),
         .spare_wen0(1'b0),
         .addr0({1'b0, dmem_request_i.address}),
-        .din0({1'b0, dmem_request_i.data[31:0]}),
+        .din0({1'b0, dmem_request_i.data[0]}),
         .dout0(read[0])
     );
 

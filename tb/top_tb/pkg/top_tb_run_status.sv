@@ -9,13 +9,15 @@ class top_tb_run_status extends uvm_object;
     int unsigned retire_count;
     int unsigned idle_cycles;
 
-    uvm_event ev_snapshot;
+    uvm_event ev_dut_complete;
+    uvm_event ev_check_complete;
 
     `uvm_object_utils(top_tb_run_status)
 
     function new(string name = "top_tb_run_status");
         super.new(name);
-        ev_snapshot = new("ev_snapshot");
+        ev_dut_complete = new("ev_dut_complete");
+        ev_check_complete = new("ev_check_complete");
 
     endfunction : new
 

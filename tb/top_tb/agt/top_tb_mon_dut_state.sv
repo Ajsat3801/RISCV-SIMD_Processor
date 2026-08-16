@@ -41,9 +41,10 @@ class top_tb_mon_dut_state extends uvm_monitor;
     virtual task run_phase(uvm_phase phase);
 
         forever begin
-            status.ev_snapshot.wait_trigger();
+            status.ev_dut_complete.wait_trigger();
             capture_snapshot();
             status.snapshot_taken = 1'b1;
+            status.ev_check_complete.trigger();
         end
 
     endtask : run_phase

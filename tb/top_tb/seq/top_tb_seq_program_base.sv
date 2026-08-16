@@ -89,6 +89,7 @@ class top_tb_seq_program_base extends top_tb_seq_base;
     protected function signal_pkg::data_t random_instruction();
 
         // Todo: complete body
+        `uvm_fatal("SEQ/INVALID","Instruction randomization pending")
 
     endfunction : random_instruction
 

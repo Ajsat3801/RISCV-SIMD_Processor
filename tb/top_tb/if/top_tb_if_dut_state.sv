@@ -14,7 +14,7 @@ interface top_tb_if_dut_state (input logic clk_i);
         bit match = 1'b1;
 
         for(int i=0; i<config_pkg::PRF_DEPTH; i++) begin
-            match &= (dut.u_core.u_scalar_prf_replica0.regfile[i] ==
+            match &= (dut.u_core.u_scalar_prf_replica0.regfile[i] ===
                       dut.u_core.u_scalar_prf_replica1.regfile[i]);
         end
         sc_replicas_match = match;

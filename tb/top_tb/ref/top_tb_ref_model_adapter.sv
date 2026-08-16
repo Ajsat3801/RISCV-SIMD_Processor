@@ -27,17 +27,20 @@ class top_tb_ref_model_adapter;
         int dmem_preload_addr_i = tr.dmem_address;
 
         int unsigned dmem_preload_data_i[config_pkg::VECTOR_SIZE]; 
-        for(int i=0; i<config_pkg::VECTOR_SIZE; i++)
-            dmem_preload_data_i[i] = tr.dmem_data[i];
+        
 
         bit sc_prf_preload_en_i = bit'(tr.sc_prf_en);
-        int sc_prf_preload_addr_i = tr.sc_prf_address;
+        int sc_prf_preload_addr_i = tr.sc_prf_address.tag;
         int unsigned sc_prf_preload_data_i = tr.sc_prf_data;
 
         bit vc_prf_preload_en_i = bit'(tr.vc_prf_en);
-        int vc_prf_preload_addr_i = tr.vc_prf_address;
+        int vc_prf_preload_addr_i = tr.vc_prf_address.tag;
 
         int unsigned vc_prf_preload_data_i[config_pkg::VECTOR_SIZE];
+        
+        for(int i=0; i<config_pkg::VECTOR_SIZE; i++)
+            dmem_preload_data_i[i] = tr.dmem_data[i];
+
         for(int i=0; i<config_pkg::VECTOR_SIZE; i++)
             vc_prf_preload_data_i[i] = tr.vc_prf_data[i];
         

@@ -134,6 +134,9 @@ class top_funct_sim {
             uint32_t a = sc_registers[in.rs1];
             uint32_t b = sc_registers[in.rs2];
 
+            int32_t sa = (int32_t)a;
+            int32_t sb = (int32_t)b;
+
             switch ((in.opcode)){
             case 0b0110111: sc_registers[in.rd] = in.imm; break;      //lui
             case 0b0010111: sc_registers[in.rd] = in.imm + pc; break; //auipc (word-pc)
@@ -169,10 +172,9 @@ class top_funct_sim {
                         }
                         break;
                     case 0b0000001:
+
                         switch(in.funct3) { // R type MULDIV ops
-                            int32_t sa = (int32_t)a;
-                            int32_t sb = (int32_t)b;  
-                            
+                             
                             case 0b000: sc_registers[in.rd] = a * b; break;  // mul (low32)
                             case 0b001: sc_registers[in.rd] = (uint32_t)(((int64_t)sa * (int64_t)sb) >> 32); break; // mulh
                             case 0b010: sc_registers[in.rd] = (uint32_t)(((int64_t)sa * (int64_t)(uint32_t)b) >> 32); break; // mulhsu

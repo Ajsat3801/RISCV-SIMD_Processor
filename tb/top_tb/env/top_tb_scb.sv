@@ -126,7 +126,7 @@ class top_tb_scb extends uvm_scoreboard;
     );
         int unsigned mismatches = 0;
         for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
-            if(tr.sc_reg_sample[i]!= sc_reg_res[i]) begin
+            if(tr.sc_reg_sample[i]!== sc_reg_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/SC_REG_MISMATCH",
                             $sformatf(  "Mismatch @ idx: %d\texp:%h\tact:%h",
@@ -147,7 +147,7 @@ class top_tb_scb extends uvm_scoreboard;
         int unsigned mismatches = 0;
 
         for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
-            if(tr.vc_reg_sample[i] != vc_reg_res[i]) begin
+            if(tr.vc_reg_sample[i] !== vc_reg_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/VC_REG_MISMATCH",
                             $sformatf(  "Mismatch @ idx: %d\texp:%h %h %h %h\tact:%h %h %h %h",
@@ -171,7 +171,7 @@ class top_tb_scb extends uvm_scoreboard;
         int unsigned mismatches = 0;
 
         for(int i=0; i<config_pkg::DMEM_SIZE; i++) begin
-            if(tr.dmem_sample[i] != dmem_res[i]) begin
+            if(tr.dmem_sample[i] !== dmem_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/DMEM_MISMATCH",
                             $sformatf(  "Mismatch @ idx: %d\texp:%h\tact:%h",
