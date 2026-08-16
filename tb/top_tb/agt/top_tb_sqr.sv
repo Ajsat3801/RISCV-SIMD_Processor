@@ -2,12 +2,9 @@
  *                          Class for top-level system sequencer
  *  -----------------------------------------------------------------------------------------------
  *  <Todo: add additional documentation here>
- *  Base uvm_sequencer class is parameterized to accomodate both compute and preload transactions;
- *  use typecasting to choose
- *  Note: this class itself isnt parameterized, it extends a parameterized class
  */
 
-class top_tb_sqr extends uvm_sequencer #(uvm_sequence_item);
+class top_tb_sqr extends uvm_sequencer #(top_tb_tr_base);
 
     `uvm_component_utils(top_tb_sqr)
 

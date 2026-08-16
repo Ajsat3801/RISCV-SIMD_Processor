@@ -5,7 +5,7 @@
  *
  */
 
-class top_tb_drv extends uvm_driver #(uvm_sequence_item);
+class top_tb_drv extends uvm_driver #(top_tb_tr_base);
 
     virtual top_tb_if_preload vif_preload;
 
@@ -31,7 +31,7 @@ class top_tb_drv extends uvm_driver #(uvm_sequence_item);
 
     virtual task run_phase(uvm_phase phase);
 
-        uvm_sequence_item item;
+        top_tb_tr_base item;
 
         forever begin
             seq_item_port.get_next_item(item);
@@ -57,7 +57,7 @@ class top_tb_drv extends uvm_driver #(uvm_sequence_item);
     //                                        wrapper tasks
     //  -------------------------------------------------------------------------------------------
 
-    task drive_item(uvm_sequence_item item);
+    task drive_item(top_tb_tr_base item);
         /*  Wrapper for the functional part of run_phase  
          *  ->  Task that typecasts the item into the appropriate type and dispatches the to 
          *      the DUT through top_tb_if_preload interface

@@ -4,7 +4,7 @@
  *  <Todo: add additional documentation here>
  */
 
-class top_tb_tr_preload extends uvm_sequence_item;
+class top_tb_tr_preload extends top_tb_tr_base;
 
     /* --------------------------------------------------------------------------------------------
      * Declare UVM transaction elements 

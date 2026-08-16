@@ -1,4 +1,4 @@
-class top_tb_seq_base extends uvm_sequence #(uvm_sequence_item);
+class top_tb_seq_base extends uvm_sequence #(top_tb_tr_base);
 
     `uvm_object_utils(top_tb_seq_base)
 

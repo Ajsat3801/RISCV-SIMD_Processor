@@ -6,7 +6,7 @@
  *  <Todo: add additional documentation here>
  */
 
-class top_tb_tr_compute extends uvm_sequence_item;
+class top_tb_tr_compute extends top_tb_tr_base;
 
     /* --------------------------------------------------------------------------------------------
      * Declare UVM transaction elements 
