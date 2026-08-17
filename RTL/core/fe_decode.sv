@@ -62,6 +62,7 @@ module fe_decode(
     logic hold_en;
     logic [31:0] intermediate;
     logic in_to_out, hold_to_out, in_to_hold;
+    signal_pkg::pc_t link_pc;
 
     
     //assign decoded_instr_en_o = in_to_out || hold_to_out; // send to queue
@@ -160,13 +161,15 @@ module fe_decode(
                 end
                 7'b1101111: begin 
                     // Jump instructions (only jal supported for now)
+
                     intermediate = {{12{fetched_instr_i[31]}}, fetched_instr_i[19:12], fetched_instr_i[20], fetched_instr_i[30], fetched_instr_i[29:21], 1'b0};
                     intermediate = intermediate + fetched_pc_i;
 
+                    link_pc = fetched_pc_i + 1'b1;
+
                     input_instr.extend = intermediate[9:0];
                     input_instr.imm    = intermediate[21:10];
-                    input_instr.src2_address = intermediate[26:22];
-                    input_instr.src1_address = intermediate[31:27];
+                    {input_instr.src1_address, input_instr.src2_address} = {2'b00, link_pc};
 
                     input_instr.pre_calc  = 1'b1;
                     input_instr.is_branch = 1'b1;

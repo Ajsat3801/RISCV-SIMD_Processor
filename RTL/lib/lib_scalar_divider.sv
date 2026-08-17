@@ -23,8 +23,8 @@ divider_state_e state;
 logic[4:0] count;
 
 logic [63:0] result, result_next, dbg_shft, dbg_add;
-logic negative_output;
-logic [31:0] u_divisor, m;
+logic negative_quotient, negative_rem;
+logic [31:0] u_divisor, m, rem;
 
 always_comb begin
 
@@ -42,13 +42,16 @@ always_comb begin
 
     */
 
+    rem = (result_next[63]) ? (result_next[63:32] + u_divisor) : result_next[63:32];
+
 
 end
 always_ff @(posedge clk_i) begin
     if(!reset_ni) begin
         result <= '0;
         count <= '1;
-        negative_output <= 1'b0;
+        negative_quotient <= 1'b0;
+        negative_rem <= 1'b0;
         valid_o <= 1'b0;
         state <= READY;
         result_o <= '0;
@@ -70,7 +73,8 @@ always_ff @(posedge clk_i) begin
                 if(!unsigned_div) begin
                     u_divisor <= (divisor_i[31]) ? ((~divisor_i) + 1'b1) : divisor_i;
                     result <= (dividend_i[31]) ? {32'b0, (~dividend_i + 1'b1)} : {32'b0, dividend_i};
-                    negative_output <= dividend_i[31] ^ divisor_i[31];
+                    negative_quotient <= dividend_i[31] ^ divisor_i[31];
+                    negative_rem <= dividend_i[31];
                 end
                 else begin
                     u_divisor <= divisor_i;
@@ -85,8 +89,11 @@ always_ff @(posedge clk_i) begin
         end
 
         // reminder = reminder + divisor is negative
-        result_o[63:32] <= (result_next[63]) ? (result_next[63:32] + u_divisor) :result_next[63:32];
-        result_o[31:0]  <= (negative_output) ? (~result_next[31:0] + 1'b1) : result_next[31:0];
+        
+
+        result_o[63:32] <= (negative_rem) ? (~rem + 1'b1) : rem;
+
+        result_o[31:0]  <= (negative_quotient) ? (~result_next[31:0] + 1'b1) : result_next[31:0];
     end
 end
 

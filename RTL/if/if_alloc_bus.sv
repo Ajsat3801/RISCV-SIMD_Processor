@@ -60,7 +60,9 @@ interface if_alloc_bus;
                                         a_is_vector, b_is_vector,
                                         operand_a_ready, operand_b_ready
                                         };
-    assign precalc_data = { instr.src1_address, instr.src2_address, instr.imm, instr.extend};
+    assign precalc_data =   (instr.is_branch) ?
+                            {22'd0, instr.src1_address, instr.src2_address} :
+                            { instr.src1_address, instr.src2_address, instr.imm, instr.extend};
     assign chip_select = instr.chip_select;
     assign valid = sc_valid || vc_valid;
 
