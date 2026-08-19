@@ -1,3 +1,4 @@
+import pkg_instruction::*;
 
 class top_tb_seq_sanity_check_directed_tb extends top_tb_seq_program_base;
 

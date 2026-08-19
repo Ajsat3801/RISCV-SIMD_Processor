@@ -7,6 +7,7 @@ in EDAPlayground
 
 `include "top_tb_typedef_pkg.sv"
 `include "top_tb_config_pkg.sv"
+`include "pkg_instruction.sv"
 
 `include "top_tb_if_preload.sv"
 `include "top_tb_if_retirement.sv"

@@ -83,22 +83,26 @@ class top_tb_tr_dut_state extends uvm_sequence_item;
         s = super.convert2string();
 
         $sformat(s, "%s\n", s);
+        $sformat(s, "%sScalar Registers:\n",s);
 
         for (int i = 0; i < config_pkg::ARCH_REG_DEPTH; i += 4) begin
-            $sformat(s, "%sx%0d:%0h\tx%0d:%0h\tx%0d:%0h\tx%0d:%0h\n",
+            $sformat(s, "%sx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\n",
              s, i, sc_reg_sample[i], i+1, sc_reg_sample[i+1], i+2, sc_reg_sample[i+2], i+3, sc_reg_sample[i+3]);
         end
 
-        if(sc_replicas_match) $sformat(s,"%s\nReplicas Match\n",s);
-        else $sformat(s, "%s\nReplicas do not match", s);
+        if(sc_replicas_match) $sformat(s,"%sReplicas Match\n",s);
+        else $sformat(s, "%sReplicas do not match\n", s);
+
+        $sformat(s, "%s\nVector Registers:\n",s);
 
         for (int i = 0; i < config_pkg::ARCH_REG_DEPTH; i++) begin
-            $sformat(s, "%sx%0d:%0h %0h %0h %0h\n",
+            $sformat(s, "%sx%0d:%d %d %d %d\n",
              s, i, vc_reg_sample[i][0], vc_reg_sample[i][1], vc_reg_sample[i][2], vc_reg_sample[i][3]);
         end
 
+        $sformat(s, "%s\nDMEM:\n",s);
         for (int i = 0; i < config_pkg::DMEM_SIZE; i += 4) begin
-            $sformat(s, "%sx%0d:%0h\tx%0d:%0h\tx%0d:%0h\tx%0d:%0h\n",
+            $sformat(s, "%sx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\n",
              s, i, dmem_sample[i], i+1, dmem_sample[i+1], i+2, dmem_sample[i+2], i+3, dmem_sample[i+3]);
         end
 

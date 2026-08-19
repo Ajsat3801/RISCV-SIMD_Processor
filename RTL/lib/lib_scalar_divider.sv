@@ -2,6 +2,7 @@
 module lib_scalar_divider (
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
     input logic [31:0] dividend_i,
     input logic [31:0] divisor_i,
     input logic unsigned_div,
@@ -47,7 +48,7 @@ always_comb begin
 
 end
 always_ff @(posedge clk_i) begin
-    if(!reset_ni) begin
+    if(!reset_ni || flush_i) begin
         result <= '0;
         count <= '1;
         negative_quotient <= 1'b0;

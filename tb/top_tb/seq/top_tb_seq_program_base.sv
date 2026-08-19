@@ -50,7 +50,7 @@ class top_tb_seq_program_base extends top_tb_seq_base;
         `uvm_info("SEQ/PROGRAM", $sformatf("Program: %0d instructions", imem_preload.size()), UVM_LOW)
 
         foreach(imem_preload[i])
-            `uvm_info("SEQ/PROGRAM", $sformatf("[%3d] %08h", i, imem_preload[i]), UVM_MEDIUM)
+            `uvm_info("SEQ/PROGRAM", $sformatf("[%3d] %08h", i, imem_preload[i]), UVM_HIGH)
 
     endfunction : dump_program
 
@@ -85,23 +85,5 @@ class top_tb_seq_program_base extends top_tb_seq_base;
         random_vector = v;
 
     endfunction : random_vector
-
-    protected function signal_pkg::data_t random_instruction();
-
-        // Todo: complete body
-        `uvm_fatal("SEQ/INVALID","Instruction randomization pending")
-
-    endfunction : random_instruction
-
-    //  -------------------------------------------------------------------------------------------
-    //                                               Instructions
-    //  -------------------------------------------------------------------------------------------
-
-    `include "top_tb_instruction_encoding.sv"
-    `include "top_tb_instructions_alu.sv"
-    `include "top_tb_instructions_br.sv"
-    `include "top_tb_instructions_misc.sv"
-    `include "top_tb_instructions_muldiv.sv"
-    `include "top_tb_instructions_vector.sv"
 
 endclass : top_tb_seq_program_base

@@ -61,7 +61,7 @@ class top_tb_mon_retire extends uvm_monitor;
             status.complete = vif_retire.complete();
 
             if(status.complete && !complete_q) begin
-                `uvm_info("MON", "Idle treshold reach, terminating test", UVM_LOW)
+                `uvm_info("MON", "Idle threshold reach, terminating test", UVM_LOW)
                 status.ev_dut_complete.trigger();
             end
 

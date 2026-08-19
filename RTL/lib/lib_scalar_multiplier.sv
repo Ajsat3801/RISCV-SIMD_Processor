@@ -1,6 +1,7 @@
 module lib_scalar_multiplier(
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
 
     input signal_pkg::data_t multiplicand_i,
     input signal_pkg::data_t multiplier_i,
@@ -68,7 +69,7 @@ module lib_scalar_multiplier(
     end
 
     always_ff @(posedge clk_i) begin
-        if(!reset_ni) begin
+        if(!reset_ni || flush_i) begin
             result  <= '0;
             valid_o <= 1'b0;
             multiplicand <= '0;

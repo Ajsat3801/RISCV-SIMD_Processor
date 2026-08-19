@@ -213,6 +213,7 @@ module ooo_arr_unit (
             if(sc_retire_valid) begin
                 sc_free_list[sc_tail[FIFO_WIDTH-1:0]] <= sc_commit_table[retire_instr_i.dest_address];
                 sc_head <= sc_head_committed + 1'b1;
+                sc_head_committed <= sc_head_committed + 1'b1;
                 sc_tail <= sc_tail + 1'b1;
             end
             else begin
@@ -224,6 +225,7 @@ module ooo_arr_unit (
             if(vc_retire_valid) begin
                 vc_free_list[vc_tail[FIFO_WIDTH-1:0]] <= vc_commit_table[retire_instr_i.dest_address];
                 vc_head <= vc_head_committed + 1'b1;
+                vc_head_committed <= vc_head_committed + 1'b1;
                 vc_tail <= vc_tail + 1'b1;
             end
             else begin
@@ -294,23 +296,23 @@ module ooo_arr_unit (
             if(dispatched_instr_i.src1_vector) begin
                 alloc_instr_o.operand_a_tag   <= '{vector: 1'b1, tag: vc_operand_a_tag};
                 alloc_instr_o.operand_a_ready <= vc_ready[vc_operand_a_tag] || 
-                        (vc_alloc_valid && (vc_wb_instr_i.prf_tag.tag == vc_operand_a_tag));
+                        (vc_wb_instr_i.valid && (vc_wb_instr_i.prf_tag.tag == vc_operand_a_tag));
             end
             else begin
                 alloc_instr_o.operand_a_tag   <= '{vector: 1'b0, tag: sc_operand_a_tag};
                 alloc_instr_o.operand_a_ready <= sc_ready[sc_operand_a_tag] || 
-                        (sc_alloc_valid && (sc_wb_instr_i.prf_tag.tag == sc_operand_a_tag));
+                        (sc_wb_instr_i.valid && (sc_wb_instr_i.prf_tag.tag == sc_operand_a_tag));
             end
 
             if(dispatched_instr_i.src2_vector) begin
                 alloc_instr_o.operand_b_tag   <= '{vector: 1'b1, tag: vc_operand_b_tag};
                 alloc_instr_o.operand_b_ready <= vc_ready[vc_operand_b_tag] || 
-                        (vc_alloc_valid && (vc_wb_instr_i.prf_tag.tag == vc_operand_b_tag));
+                        (vc_wb_instr_i.valid && (vc_wb_instr_i.prf_tag.tag == vc_operand_b_tag));
             end
             else begin
                 alloc_instr_o.operand_b_tag   <= '{vector: 1'b0, tag: sc_operand_b_tag};
                 alloc_instr_o.operand_b_ready <= sc_ready[sc_operand_b_tag] || 
-                        (sc_alloc_valid && (sc_wb_instr_i.prf_tag.tag == sc_operand_b_tag));
+                        (sc_wb_instr_i.valid && (sc_wb_instr_i.prf_tag.tag == sc_operand_b_tag));
             end
 
             case(1) 

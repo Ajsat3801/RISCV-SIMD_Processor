@@ -210,14 +210,14 @@ class top_funct_sim {
 
             case 0b0000011: // scalar loads (only lw for now; others not supported)
                 switch(in.funct3) {
-                    case 0b010: sc_registers[in.rd] = dmem[a + in.imm]; break; // lw
+                    case 0b010: sc_registers[in.rd] = dmem[(a + in.imm)%dmem_size]; break; // lw
                     default: break;
                 }
                 break;
 
             case 0b0100011: // scalar stores (only sw for now; others not supported)
                 switch(in.funct3) {
-                    case 0b010: dmem[a + in.imm] = b; break; // sw
+                    case 0b010: dmem[(a + in.imm)%dmem_size] = b; break; // sw
                     default: break;
                 }
                 break;
@@ -256,13 +256,15 @@ class top_funct_sim {
 
             case 0b0000111: // vector load
                 if (in.funct3 == 0b110) { // vle32.v
-                    for (int l = 0; l < vlen; l++) vc_registers[in.rd][l] = dmem[a + l];
+                    uint32_t base = (a & (dmem_size - 1)) & ~(uint32_t)(vlen - 1);
+                    for (int l = 0; l < vlen; l++) vc_registers[in.rd][l] = dmem[base + l];
                 }
                 break;
 
             case 0b0100111: // vector store
                 if (in.funct3 == 0b110) { // vse32.v
-                    for (int l = 0; l < vlen; l++) dmem[a + l] = vc_registers[in.rd][l];
+                    uint32_t base = (a & (dmem_size - 1)) & ~(uint32_t)(vlen - 1);
+                    for (int l = 0; l < vlen; l++) dmem[base + l] = vc_registers[in.rd][l];
                 }
                 break;
 

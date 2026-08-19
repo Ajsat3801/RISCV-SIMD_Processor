@@ -129,7 +129,7 @@ class top_tb_scb extends uvm_scoreboard;
             if(tr.sc_reg_sample[i]!== sc_reg_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/SC_REG_MISMATCH",
-                            $sformatf(  "Mismatch @ idx: %d\texp:%h\tact:%h",
+                            $sformatf(  "Mismatch @ idx: %d\texp:%d\tact:%d",
                                         i, sc_reg_res[i], tr.sc_reg_sample[i])
                 )
             end
@@ -150,7 +150,7 @@ class top_tb_scb extends uvm_scoreboard;
             if(tr.vc_reg_sample[i] !== vc_reg_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/VC_REG_MISMATCH",
-                            $sformatf(  "Mismatch @ idx: %d\texp:%h %h %h %h\tact:%h %h %h %h",
+                            $sformatf(  "Mismatch @ idx: %d\texp:%d %d %d %d\tact:%d %d %d %d",
                                         i, vc_reg_res[i][0], vc_reg_res[i][1], vc_reg_res[i][2],
                                         vc_reg_res[i][3], tr.vc_reg_sample[i][0],
                                         tr.vc_reg_sample[i][1], tr.vc_reg_sample[i][2],

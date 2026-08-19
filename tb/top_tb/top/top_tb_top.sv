@@ -46,7 +46,8 @@ module top_tb_top;
         uvm_config_db #(virtual top_tb_if_retirement)::set(null, "*", "vif_retire", if_retire);
         uvm_config_db #(virtual top_tb_if_dut_state)::set(null, "*","vif_dut_state", if_dut_state);
 
-        run_test("top_tb_test_sanity_check_directed");
+        //run_test("top_tb_test_sanity_check_directed");
+        run_test("top_tb_test_random");
     end
 
 endmodule : top_tb_top

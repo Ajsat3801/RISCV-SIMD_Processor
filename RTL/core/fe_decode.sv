@@ -111,7 +111,8 @@ module fe_decode(
                     intermediate = {fetched_instr_i[31:12], 12'b000000000000};
                     intermediate = intermediate + fetched_pc_i;
 
-                    input_instr.imm = {intermediate[21:12], 2'b00};
+                    input_instr.extend = intermediate[9:0];
+                    input_instr.imm = intermediate[21:10];
                     input_instr.src2_address = intermediate[26:22];
                     input_instr.src1_address = intermediate[31:27];
 

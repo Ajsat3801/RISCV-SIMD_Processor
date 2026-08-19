@@ -68,6 +68,7 @@ signal_pkg::operations_e operation;
 lib_scalar_multiplier u_multiplier (
     .clk_i(clk_i),
     .reset_ni(reset_ni),
+    .flush_i(flush_i),
     .multiplicand_i(sc_ex_request_i.operand_a),
     .multiplier_i(sc_ex_request_i.operand_b),
     .unsigned_multiplicand_i(unsigned_multiplicand),
@@ -80,6 +81,7 @@ lib_scalar_multiplier u_multiplier (
 lib_scalar_divider u_divider (
     .clk_i(clk_i),
     .reset_ni(reset_ni),
+    .flush_i(flush_i),
     .dividend_i(sc_ex_request_i.operand_a),
     .divisor_i(sc_ex_request_i.operand_b),
     .unsigned_div(unsigned_div),
