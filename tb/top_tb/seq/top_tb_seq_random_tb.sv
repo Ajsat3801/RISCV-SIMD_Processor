@@ -31,6 +31,7 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
             else begin
                 if(!gen.randomize()) `uvm_error("SEQ/RAND", "instr_gen randomization failed")
                 imem_preload[i] = gen.instr;
+                `uvm_info("SEQ/INSTR",$sformatf("Generated instruction: %s",gen.convert2string()),UVM_HIGH)
             end
         end
 

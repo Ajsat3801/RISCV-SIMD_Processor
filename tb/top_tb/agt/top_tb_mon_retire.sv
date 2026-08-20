@@ -52,7 +52,7 @@ class top_tb_mon_retire extends uvm_monitor;
 
                 tr.snapshot = snap;
                 ap.write(tr);
-                `uvm_info("MON", $sformatf("Retirement sampled: %s",tr.convert2string()), UVM_HIGH)
+                `uvm_info("MON", $sformatf("Retirement sampled: %s",tr.convert2string()), UVM_DEBUG)
 
             end
 

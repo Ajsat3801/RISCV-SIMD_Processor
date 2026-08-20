@@ -50,7 +50,7 @@ class top_tb_seq_program_base extends top_tb_seq_base;
         `uvm_info("SEQ/PROGRAM", $sformatf("Program: %0d instructions", imem_preload.size()), UVM_LOW)
 
         foreach(imem_preload[i])
-            `uvm_info("SEQ/PROGRAM", $sformatf("[%3d] %08h", i, imem_preload[i]), UVM_HIGH)
+            `uvm_info("SEQ/PROGRAM", $sformatf("[%3d] %08h", i, imem_preload[i]), UVM_DEBUG)
 
     endfunction : dump_program
 

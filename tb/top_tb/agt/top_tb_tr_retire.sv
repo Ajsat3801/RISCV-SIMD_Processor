@@ -69,7 +69,7 @@ class top_tb_tr_retire extends uvm_sequence_item;
         string s;
         s = super.convert2string();
 
-        $sformat(s, "%s\n valid:%0b prf_tag:%0h rob_id:%0h data:%0h wr:%0b dest:%0h branch:%0b taken:%0b\n",
+        $sformat(s, "%svalid:%0b prf_tag:%0h rob_id:%0h data:%0h wr:%0b dest:%0h branch:%0b taken:%0b",
             s, snapshot.valid, snapshot.prf_tag, snapshot.rob_id, snapshot.data,
             snapshot.write_to_reg, snapshot.dest_address, snapshot.is_branch, snapshot.branch_taken);
 

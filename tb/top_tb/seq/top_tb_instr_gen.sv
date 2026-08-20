@@ -6,7 +6,7 @@ class top_tb_instr_gen extends uvm_object;
     // random fields
     rand instr_e op;
     rand logic [4:0] rs1, rs2, rd;
-    rand logic [3:0] imm;
+    rand logic [20:0] imm;
 
     signal_pkg::data_t instr;
 
@@ -34,14 +34,15 @@ class top_tb_instr_gen extends uvm_object;
 
     constraint c_imm_temp {
         imm > 2;
+        imm < 8;
     }
 
     function void post_randomize();
-        instr = pkg_instruction::encode_instr(.instr(op), .rs1(rs1), .rs2(rs2), .rd(rd), .imm({16'd0, imm}));
+        instr = pkg_instruction::encode_instr(.instr(op), .rs1(rs1), .rs2(rs2), .rd(rd), .imm({imm}));
     endfunction : post_randomize
 
     function string convert2string();
-        return $sformatf("%-10s rd=x%0d rs1=x%0d rs2=x%0d imm=%06h -> %08h",
+        return $sformatf("%-10s rd: x%02d\trs1: x%02d\trs2: x%02d\timm: %06h\t-> %08h",
                          op.name(), rd, rs1, rs2, imm, instr);
     endfunction : convert2string
 

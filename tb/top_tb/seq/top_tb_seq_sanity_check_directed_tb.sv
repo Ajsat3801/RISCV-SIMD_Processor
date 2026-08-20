@@ -15,13 +15,13 @@ class top_tb_seq_sanity_check_directed_tb extends top_tb_seq_program_base;
         sc_prf_preload = new[3];
         vc_prf_preload = new[3];
 
-        dmem_preload[0] = {    3,    2,    1,    0};
-        dmem_preload[1] = {    7,    6,    5,    4};
-        dmem_preload[2] = {  627,   -7,    4,   15};
-        dmem_preload[3] = {    3, -785,  814, -387};
-        dmem_preload[4] = {    4,    3,    2,    1};
-        dmem_preload[5] = {    0,    0,    0,    0};
-        dmem_preload[6] = {   40,   30,   20,   10};
+        dmem_preload[0] = {    32'd3,    32'd2,    32'd1,    32'd0};
+        dmem_preload[1] = {    32'd7,    32'd6,    32'd5,    32'd4};
+        dmem_preload[2] = {  32'd627,   -32'd7,    32'd4,   32'd15};
+        dmem_preload[3] = {    32'd3, -32'd785,  32'd814, -32'd387};
+        dmem_preload[4] = {    32'd4,    32'd3,    32'd2,    32'd1};
+        dmem_preload[5] = {    32'd0,    32'd0,    32'd0,    32'd0};
+        dmem_preload[6] = {   32'd40,   32'd30,   32'd20,   32'd10};
 
         sc_prf_preload[0] = 32'd0;
         sc_prf_preload[1] = 32'd1;

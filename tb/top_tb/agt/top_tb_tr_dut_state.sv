@@ -101,9 +101,10 @@ class top_tb_tr_dut_state extends uvm_sequence_item;
         end
 
         $sformat(s, "%s\nDMEM:\n",s);
-        for (int i = 0; i < config_pkg::DMEM_SIZE; i += 4) begin
-            $sformat(s, "%sx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\n",
-             s, i, dmem_sample[i], i+1, dmem_sample[i+1], i+2, dmem_sample[i+2], i+3, dmem_sample[i+3]);
+        for (int i = 0; i < config_pkg::DMEM_SIZE; i += 8) begin
+            $sformat(s, "%sx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\n",
+             s, i, dmem_sample[i], i+1, dmem_sample[i+1], i+2, dmem_sample[i+2], i+3, dmem_sample[i+3],
+             i+4, dmem_sample[i+4], i+5, dmem_sample[i+5], i+6, dmem_sample[i+6], i+7, dmem_sample[i+7]);
         end
 
         return s;

@@ -180,12 +180,14 @@ class top_funct_sim {
                             case 0b010: sc_registers[in.rd] = (uint32_t)(((int64_t)sa * (int64_t)(uint32_t)b) >> 32); break; // mulhsu
                             case 0b011: sc_registers[in.rd] = (uint32_t)(((uint64_t)a * (uint64_t)b) >> 32); break; // mulhu
                             case 0b100:  // div
-                                    if (sb == 0 || (sa == INT32_MIN && sb == -1) ) sc_registers[in.rd] = 0xFFFFFFFF; // illegal cases
+                                    if (sb == 0) sc_registers[in.rd] = 0xFFFFFFFF;
+                                    else if(sa == INT32_MIN && sb == -1) sc_registers[in.rd] = 0x80000000; // illegal cases
                                     else sc_registers[in.rd] = (uint32_t)(sa / sb);
                                     break;
                             case 0b101: sc_registers[in.rd] = (b == 0) ? 0xFFFFFFFF : (a / b); break; // divu
                             case 0b110: // rem
-                                    if (sb == 0 || (sa == INT32_MIN && sb == -1)) sc_registers[in.rd] = 0;
+                                    if (sb == 0) sc_registers[in.rd] = a;
+                                    else if (sa == INT32_MIN && sb == -1) sc_registers[in.rd] = 0;
                                     else  sc_registers[in.rd] = (uint32_t)(sa % sb);
                                     break;
                             case 0b111: sc_registers[in.rd] = (b == 0) ? a : (a % b); break; // remu

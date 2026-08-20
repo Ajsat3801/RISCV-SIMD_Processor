@@ -31,6 +31,8 @@ class top_tb_test_base extends uvm_test;
 
         phase.raise_objection(this, "top_tb_test_base: stimulus running");
 
+        `uvm_info("TEST/SEED", $sformatf("Simulator seed:%0d",$get_initial_random_seed()), UVM_LOW);
+
         create_sequence();
         if(seq == null) `uvm_fatal("TEST/NOSEQ", "no sequence created in test")
         seq.start(env.agt_preload.sqr); // returns when sequence is complete
@@ -50,6 +52,8 @@ class top_tb_test_base extends uvm_test;
         svr     = uvm_report_server::get_server();
         n_err   = svr.get_severity_count(UVM_ERROR);
         n_fatal = svr.get_severity_count(UVM_FATAL);
+
+        `uvm_info("TEST/STATUS", $sformatf("%s", status.convert2string()) ,UVM_NONE)
 
         if(n_err == 0 && n_fatal == 0)
             `uvm_info("TEST/RESULT", "\n\n\t****  TEST PASSED  ****\n", UVM_NONE)
