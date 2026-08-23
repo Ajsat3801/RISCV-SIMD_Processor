@@ -213,12 +213,12 @@ module fe_instruction_queue (
 
         else begin
             if (dequeue) begin
-                 dispatched_instr_q <= instr_fifo[head.address];
-                rs_slot_id_o  <= next_rs_slot[rs_index];
+                dispatched_instr_q <= instr_fifo[head.address];
+                rs_slot_id_o  <= (rs_index != IDX_NOP) ? next_rs_slot[rs_index] : '0;
                 head <= head_next;
             end
             else begin 
-                 dispatched_instr_q <= '0;
+                dispatched_instr_q <= '0;
                 rs_slot_id_o  <= '0;
             end
             if (enqueue) begin

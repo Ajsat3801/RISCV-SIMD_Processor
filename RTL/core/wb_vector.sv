@@ -57,7 +57,7 @@ module wb_vector (
     ) valu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push_i(ex_result_i[0].valid),
+        .push_i(ex_result_i[0].valid && !flush_i),
         .push_data_i(ex_result_i[0]),
         .pop_i(dequeue[0]),
         .data_o(fifo_heads[0]),
@@ -72,9 +72,9 @@ module wb_vector (
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push0_i(ex_result_i[1].valid),
+        .push0_i(ex_result_i[1].valid && !flush_i),
         .push0_data_i(ex_result_i[1]),
-        .push1_i(lsu_result_i.valid),
+        .push1_i(lsu_result_i.valid && !flush_i),
         .push1_data_i(lsu_result_i),
         .pop_i(dequeue[1]),
         .data_o(fifo_heads[1]),

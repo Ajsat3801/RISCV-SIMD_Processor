@@ -43,6 +43,7 @@
 module data_sc_regfile_3sc (
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
 
     if_alloc_bus.precalc precalc_i,
 
@@ -74,8 +75,19 @@ module data_sc_regfile_3sc (
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
-            for (int i=0; i<PRF_DEPTH; i++) begin
-                regfile[i] <= '0;
+            for (int i=0; i<PRF_DEPTH; i++) regfile[i] <= '0;
+
+            sc_ex_req0_o <= '0;
+            sc_ex_req1_o <= '0;
+            sc_ex_req2_o <= '0;
+        end
+        else if(flush_i) begin
+            sc_ex_req0_o <= '0;
+            sc_ex_req1_o <= '0;
+            sc_ex_req2_o <= '0;
+
+            if(precalc_i.precalc_valid) begin
+                regfile[precalc_i.precalc_prf_tag] <= precalc_i.precalc_data;
             end
         end
 
@@ -135,6 +147,7 @@ module data_sc_regfile_3sc (
                 operand_b2 : {{20{sc_rd_req2_i.imm[11]}},sc_rd_req2_i.imm};
             
         end
+
     end
 
 endmodule

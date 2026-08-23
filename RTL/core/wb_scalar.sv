@@ -65,7 +65,7 @@ module wb_scalar (
     ) alu0_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push_i(ex_result_i[0].valid),
+        .push_i(ex_result_i[0].valid && !flush_i),
         .push_data_i(ex_result_i[0]),
         .pop_i(dequeue_next[0]),
         .data_o(fifo_heads[0]),
@@ -80,7 +80,7 @@ module wb_scalar (
     ) alu1_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push_i(ex_result_i[1].valid),
+        .push_i(ex_result_i[1].valid && !flush_i),
         .push_data_i(ex_result_i[1]),
         .pop_i(dequeue_next[1]),
         .data_o(fifo_heads[1]),
@@ -95,7 +95,7 @@ module wb_scalar (
     ) muldiv_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push_i(ex_result_i[2].valid),
+        .push_i(ex_result_i[2].valid  && !flush_i),
         .push_data_i(ex_result_i[2]),
         .pop_i(dequeue_next[2]),
         .data_o(fifo_heads[2]),
@@ -110,9 +110,9 @@ module wb_scalar (
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
-        .push0_i(ex_result_i[3].valid),
+        .push0_i(ex_result_i[3].valid && !flush_i),
         .push0_data_i(ex_result_i[3]),
-        .push1_i(lsu_result_i.valid),
+        .push1_i(lsu_result_i.valid && !flush_i),
         .push1_data_i(lsu_result_i),
         .pop_i(dequeue_next[3]),
         .data_o(fifo_heads[3]),

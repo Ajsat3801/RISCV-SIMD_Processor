@@ -126,7 +126,8 @@ module fe_decode(
                 7'b0010011: begin
                     // i-type scalar ALU instructions
                     input_instr.chip_select = signal_pkg::CS_SALU;
-                    input_instr.operation   = {1'b0, fetched_instr_i[14:12]};   
+                    input_instr.operation   = {1'b0, fetched_instr_i[14:12]};
+                    input_instr.src2_address = '0;   
                 end
                 7'b0110011: begin 
                     // r-type scalar ALU instructions

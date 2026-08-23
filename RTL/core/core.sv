@@ -181,7 +181,7 @@ module core #()(
         sc_rs_ex_ready[0] = sc_ex_ready[0] && sc_wb_ready[0];
         sc_rs_ex_ready[1] = sc_ex_ready[1] && sc_wb_ready[1];
         sc_rs_ex_ready[2] = sc_ex_ready[2] && sc_wb_ready[2] && !(sc_rd_req[2].valid) && !(sc_ex_req[2].valid);
-        sc_rs_ex_ready[3] = sc_ex_ready[3] && sc_wb_ready[3];
+        sc_rs_ex_ready[3] = sc_ex_ready[3] && sc_wb_ready[3] && !(sc_rd_req[3].valid) && !(sc_ex_req[3].valid);
 
         vc_rs_ex_ready[0] = vc_ex_ready[0] && vc_wb_ready[0];
         vc_rs_ex_ready[1] = vc_ex_ready[1] && vc_wb_ready[1];
@@ -373,6 +373,7 @@ module core #()(
     data_dmem_controller u_dmem_controller (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
+        .flush_i(flush),
         .lsu_output(lsu_output),
         .dmem_dout_i(dmem_dout_i),
         .dmem_req_o(dmem_request_o),
@@ -383,6 +384,7 @@ module core #()(
     data_sc_regfile_3sc u_scalar_prf_replica0 (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
+        .flush_i(flush),
         .precalc_i(u_alloc_bus),
         .sc_wb_instr_i(u_sc_prf_input),
         .sc_rd_req0_i(sc_rd_req[0]),
@@ -396,6 +398,7 @@ module core #()(
     data_sc_regfile_br_valu_ls u_scalar_prf_replica1 (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
+        .flush_i(flush),
         .precalc_i(u_alloc_bus),
         .sc_wb_instr_i(u_sc_prf_input),
         .sc_br_rd_req_i(br_rd_req),
@@ -410,6 +413,7 @@ module core #()(
     data_vc_regfile_valu_ls u_vector_prf (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
+        .flush_i(flush),
         .vc_wb_instr_i(u_vc_prf_input),
         .vc_alu_rd_req_i(vc_alu_rd_req),
         .vc_alu_ex_req_o(vc_alu_ex_req),

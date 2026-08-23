@@ -42,6 +42,7 @@
 module data_sc_regfile_br_valu_ls (
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
 
     if_alloc_bus.precalc precalc_i,
 
@@ -73,11 +74,23 @@ module data_sc_regfile_br_valu_ls (
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
-            for (int i=0; i<PRF_DEPTH; i++) begin
-                regfile[i] <= '0;
+
+            for (int i=0; i<PRF_DEPTH; i++) regfile[i] <= '0;
+
+            sc_br_ex_req_o <= '0;
+            vc_alu_sc_operand_o <= '0;
+            ls_ex_req_o <= '0;
+            ls_store_data_o <= '0;
+        end
+        else if(flush_i) begin
+            sc_br_ex_req_o <= '0;
+            vc_alu_sc_operand_o <= '0;
+            ls_ex_req_o <= '0;
+            ls_store_data_o <= '0;
+            if(precalc_i.precalc_valid) begin
+                regfile[precalc_i.precalc_prf_tag] <= precalc_i.precalc_data;
             end
         end
-
         else begin
             // ------------------------------------------------------------------------------------
             //                                          WRITES

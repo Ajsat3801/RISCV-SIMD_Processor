@@ -203,18 +203,18 @@ module rs_scalar_2issue #(
 
             if(winner1_to_slot2) begin
                 sc_rd_req1_o.valid     <= 1'b1;
-                sc_rd_req1_o.prf_tag   <= buffer[choice1].prf_tag;
-                sc_rd_req1_o.rob_id    <= buffer[choice1].rob_id;
-                sc_rd_req1_o.operation <= buffer[choice1].operation;
-                sc_rd_req1_o.operand_a_tag <= buffer[choice1].operand_a_tag;
-                sc_rd_req1_o.operand_b_tag <= buffer[choice1].operand_b_tag;
-                sc_rd_req1_o.imm       <= buffer[choice1].imm;
-                sc_rd_req1_o.read_src2 <= buffer[choice1].read_src2;
+                sc_rd_req1_o.prf_tag   <= buffer[choice2].prf_tag;
+                sc_rd_req1_o.rob_id    <= buffer[choice2].rob_id;
+                sc_rd_req1_o.operation <= buffer[choice2].operation;
+                sc_rd_req1_o.operand_a_tag <= buffer[choice2].operand_a_tag;
+                sc_rd_req1_o.operand_b_tag <= buffer[choice2].operand_b_tag;
+                sc_rd_req1_o.imm       <= buffer[choice2].imm;
+                sc_rd_req1_o.read_src2 <= buffer[choice2].read_src2;
 
-                released_rs_slot_id_o[1] <= choice1;
+                released_rs_slot_id_o[1] <= choice2;
                 rs_slot_released_o[1] <= 1'b1;
 
-                buffer[choice1] <= '0;
+                buffer[choice2] <= '0;
             end
             else if(winner2_to_slot2) begin
                 sc_rd_req1_o.valid     <= 1'b1;

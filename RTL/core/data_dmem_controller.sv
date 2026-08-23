@@ -40,6 +40,7 @@
 module data_dmem_controller (
     input  logic clk_i,
     input  logic reset_ni,
+    input  logic flush_i,
 
     input  packet_pkg::load_store_entry_t lsu_output,
 
@@ -101,7 +102,7 @@ module data_dmem_controller (
          *  ->  stores values in registers from the input which is required by the output data
                 structures such as ROB ID, PRF tag etc
          */
-        if(!reset_ni) begin
+        if(!reset_ni || flush_i) begin
             rob_id_q <= '0;
             prf_tag_q <= '0;
             idx <= '0;

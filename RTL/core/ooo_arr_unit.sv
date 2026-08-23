@@ -175,7 +175,9 @@ module ooo_arr_unit (
             vc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH); 
 
             alloc_instr_o.sc_valid    <= 1'b0; 
-            alloc_instr_o.vc_valid    <= 1'b0;      
+            alloc_instr_o.vc_valid    <= 1'b0;
+            alloc_instr_o.precalc_valid <= 1'b0;
+
 
         end 
         else if (flush_i) begin
@@ -235,6 +237,7 @@ module ooo_arr_unit (
 
             alloc_instr_o.sc_valid    <= 1'b0; 
             alloc_instr_o.vc_valid    <= 1'b0;
+            alloc_instr_o.precalc_valid <= 1'b0;
 
         end 
         else begin

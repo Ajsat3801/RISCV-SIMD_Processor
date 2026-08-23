@@ -32,7 +32,7 @@ module lib_scalar_multiplier(
 
     always_comb begin
 
-        valid_input = valid_i && multiplicand_i != 32'h80000000;
+        valid_input = valid_i;
 
         multiplicand_2s_complement = ~multiplicand + 1'b1;
         sign_ext = multiplicand[32];

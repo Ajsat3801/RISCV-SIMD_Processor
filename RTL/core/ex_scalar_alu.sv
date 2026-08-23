@@ -56,7 +56,7 @@ module ex_scalar_alu(
             unique case (sc_ex_request_i.operation.alu)
                 signal_pkg::ALU_ADD  : alu_result.data <= sc_ex_request_i.operand_a + sc_ex_request_i.operand_b;
                 signal_pkg::ALU_SUB  : alu_result.data <= sc_ex_request_i.operand_a - sc_ex_request_i.operand_b;
-                signal_pkg::ALU_SLL  : alu_result.data <= sc_ex_request_i.operand_a << sc_ex_request_i.operand_b;
+                signal_pkg::ALU_SLL  : alu_result.data <= sc_ex_request_i.operand_a << sc_ex_request_i.operand_b[4:0];
                 signal_pkg::ALU_SLT  : begin
                     alu_result.data[0] <= ($signed(sc_ex_request_i.operand_a) < $signed(sc_ex_request_i.operand_b)) ? 1'b1 : 1'b0;
                     alu_result.data[31:1] <= '0;
@@ -66,7 +66,7 @@ module ex_scalar_alu(
                     alu_result.data[31:1] <= '0;
                 end
                 signal_pkg::ALU_XOR  : alu_result.data <= sc_ex_request_i.operand_a ^ sc_ex_request_i.operand_b;
-                signal_pkg::ALU_SRL  : alu_result.data <= sc_ex_request_i.operand_a >> sc_ex_request_i.operand_b;
+                signal_pkg::ALU_SRL  : alu_result.data <= sc_ex_request_i.operand_a >> sc_ex_request_i.operand_b[4:0];
                 signal_pkg::ALU_OR   : alu_result.data <= sc_ex_request_i.operand_a | sc_ex_request_i.operand_b;
                 signal_pkg::ALU_AND  : alu_result.data <= sc_ex_request_i.operand_a & sc_ex_request_i.operand_b;
                 default: alu_result.data <= '0;

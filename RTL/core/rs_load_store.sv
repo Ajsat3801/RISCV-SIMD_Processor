@@ -264,12 +264,12 @@ module rs_load_store (
                 buffer[rs_request_i.rs_slot_id].read_src2 <= rs_request_i.rs_entry.read_src2;
                 buffer[rs_request_i.rs_slot_id].a_is_vector <= rs_request_i.rs_entry.a_is_vector;
                 buffer[rs_request_i.rs_slot_id].b_is_vector <= rs_request_i.rs_entry.b_is_vector;
-                buffer[rs_request_i.rs_slot_id].operand_a_ready <=  rs_request_i.rs_entry.operand_a_ready ||
-                                                                    (sc_data_bus_i.valid &&
-                                                                    sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_a_tag);
-                buffer[rs_request_i.rs_slot_id].operand_b_ready <=  rs_request_i.rs_entry.operand_b_ready ||
-                                                                    (sc_data_bus_i.valid &&
-                                                                    sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_b_tag);
+                buffer[rs_request_i.rs_slot_id].operand_a_ready <=  rs_request_i.rs_entry.operand_a_ready || ((rs_request_i.rs_entry.a_is_vector) ?
+                                                                    (vc_data_bus_i.valid && vc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_a_tag) :
+                                                                    (sc_data_bus_i.valid && sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_a_tag));
+                buffer[rs_request_i.rs_slot_id].operand_b_ready <=  rs_request_i.rs_entry.operand_b_ready || ((rs_request_i.rs_entry.b_is_vector) ?
+                                                                    (vc_data_bus_i.valid && vc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_b_tag) :
+                                                                    (sc_data_bus_i.valid && sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_b_tag));
             
             end
         end

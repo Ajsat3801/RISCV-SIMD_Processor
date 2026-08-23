@@ -122,10 +122,10 @@ class top_tb_tr_preload extends top_tb_tr_base;
 
         $sformat(s, "%s\n", s);
 
-        $sformat(s, "%s imem [%0b (%0h) @ %0d] | dmem [%0b %0b (%0h) @ %0d]\n",
+        $sformat(s, "%s imem [%0b (%0h) @ %0d] | dmem [%0b %0b (%h) @ %0d]\n",
                 s, imem_en, imem_data, imem_address, dmem_en, dmem_write_enable, dmem_data, dmem_address);
 
-        $sformat(s, "%s sc_prf [%0b (%0h) @ %0d] | vc_prf [%0b (%0h) @ %0d]",
+        $sformat(s, "%s sc_prf [%0b (%0h) @ %0d] | vc_prf [%0b (%h) @ %0d]",
                 s, sc_prf_en, sc_prf_data, sc_prf_address, vc_prf_en, vc_prf_data, vc_prf_address);
 
         return s;

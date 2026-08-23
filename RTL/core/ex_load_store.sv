@@ -70,7 +70,7 @@
     packet_pkg::load_store_entry_t store_buffer[config_pkg::STORE_BUFFER_SIZE-1:0];
     packet_pkg::load_store_entry_t in, hold_reg;
     logic[config_pkg::STORE_BUFFER_SIZE-1:0] available, available_next;
-    logic store_out, hold;
+    logic store_out, hold, slot_free, accept_store;
 
     logic[$clog2(config_pkg::STORE_BUFFER_SIZE)-1:0] in_idx, out_idx, fwd_idx;
     logic send_store, send_hold, send_in, fwd_load, forward_load;
@@ -98,28 +98,34 @@
         fwd_idx = '0;
         fwd_load = 1'b0;
         store_out = 1'b0;
+        slot_free = 1'b0;
 
         for(int i=0; i<STORE_BUFFER_SIZE; i++) begin
-            if(!store_buffer[i].valid) in_idx = i;
-            if(store_buffer[i].rob_id == retire_instr_i.rob_id) begin
+            if(!store_buffer[i].valid) begin
+                in_idx = i;
+                slot_free = 1'b1;
+            end
+            if(store_buffer[i].valid && store_buffer[i].rob_id == retire_instr_i.rob_id) begin
                 out_idx = i;
                 store_out = 1'b1;
             end
-            if(store_buffer[i].mem_addr == in.mem_addr) begin
+            if(store_buffer[i].valid && store_buffer[i].mem_addr == in.mem_addr) begin
                 fwd_idx = i;
                 fwd_load = 1'b1;
             end
         end
 
         // intermediate logic variables
-        send_store = retire_instr_i.valid && store_out;
+        accept_store = in.valid && in.is_store && slot_free;
+        send_store =  retire_instr_i.valid && store_out;
         send_hold  = hold && !send_store;
-        send_in    = in.valid && !in.is_store && !hold && !send_store;
         forward_load = in.valid && !in.is_store && fwd_load;
+        send_in    = in.valid && !in.is_store && !hold && !send_store && !forward_load;
+        
 
         available_next = available;
-        available_next[in_idx] = in.valid && in.is_store;
-        available_next[out_idx] = send_store;
+        if(accept_store) available_next[in_idx] = 1'b0;
+        if(send_store) available_next[out_idx] = 1'b1;
         
     end
 
@@ -134,9 +140,12 @@
             end
             store_retire_req_o.valid  <= 1'b0;
             store_retire_req_o.rob_id <= '0;
+            sc_fwd_load_o <= '0;
+            vc_fwd_load_o <= '0;
+            lsu_output_o <= '0;
         end
         else begin
-            if(in.valid && in.is_store) begin
+            if(accept_store) begin
                 store_buffer[in_idx]  <= in;
                 available[in_idx]     <= 1'b0;
                 store_retire_req_o.valid  <= 1'b1;
@@ -166,7 +175,7 @@
                 send_in : lsu_output_o <= in;
                 default : lsu_output_o <= '0;
             endcase
-        end
+        
         sc_fwd_load_o <= '{ forward_load && !in.is_vector, 
                             lsu_request_i.prf_tag, 
                             lsu_request_i.rob_id,
@@ -177,6 +186,7 @@
                             lsu_request_i.rob_id,
                             store_buffer[fwd_idx].data
                         };
+        end
     end
 
     assign sc_ex_ready_o = |available_next && !hold;

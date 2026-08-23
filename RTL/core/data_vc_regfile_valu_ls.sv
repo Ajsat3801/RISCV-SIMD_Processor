@@ -29,6 +29,7 @@
 module data_vc_regfile_valu_ls (
     input logic clk_i,
     input logic reset_ni,
+    input logic flush_i,
 
     // snooping from CDB
     if_data_bus.prf vc_wb_instr_i,
@@ -53,7 +54,15 @@ module data_vc_regfile_valu_ls (
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
+
             for (int i=0; i<PRF_DEPTH; i++) regfile[i] <= '0;
+
+            vc_alu_ex_req_o <= '0;
+            vc_lsu_ex_req_o <= '0;
+        end
+        else if(flush_i) begin
+            vc_alu_ex_req_o <= '0;
+            vc_lsu_ex_req_o <= '0;
         end
 
         else begin

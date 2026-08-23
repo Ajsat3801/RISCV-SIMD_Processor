@@ -56,7 +56,7 @@ module ooo_reorder_buffer (
 
 packet_pkg::rob_entry_t rob_table[ROB_LEN-1:0];
 packet_pkg::rob_entry_t rob_input;
-signal_pkg::rob_address_t head, tail, head_next, tail_next, tail_add2;
+signal_pkg::rob_address_t head, tail, head_next, tail_next, tail_add2, occupancy;
 logic full, full_next, full_in2, empty;
 logic push_allowed, pop_allowed;
 int i;
@@ -89,9 +89,9 @@ always_comb begin
     push_allowed = !full && alloc_instr_io.valid;
     pop_allowed  = !empty && rob_table[head.address].ready;
 
-    rob_full_o = (tail_add2.epoch!= head.epoch) ? 
-                     (tail_add2.address >= head.address) : 
-                     (tail_add2.address < tail.address);
+    occupancy = (head.epoch == tail.epoch) ? (tail.address - head.address)
+                                       : (ROB_LEN + tail.address - head.address);
+    rob_full_o = (occupancy >= ROB_LEN - 2);
     
     alloc_instr_io.rob_id = tail;
     
