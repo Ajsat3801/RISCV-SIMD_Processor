@@ -54,10 +54,10 @@ module ooo_reorder_buffer (
     output logic flush_o
 );
 
-packet_pkg::rob_entry_t rob_table[ROB_LEN-1:0];
+packet_pkg::rob_entry_t rob_table[config_pkg::ROB_LEN-1:0];
 packet_pkg::rob_entry_t rob_input;
-signal_pkg::rob_address_t head, tail, head_next, tail_next, tail_add2, occupancy;
-logic full, full_next, full_in2, empty;
+signal_pkg::rob_address_t head, tail, occupancy;
+logic full, empty;
 logic push_allowed, pop_allowed;
 int i;
 
@@ -78,10 +78,7 @@ end
 
 always_comb begin
 
-    {head_next.epoch, head_next.address} = {head.epoch, head.address} + 1'b1;
-    {tail_next.epoch, tail_next.address} = {tail.epoch, tail.address} + 1'b1;
-
-    {tail_add2.epoch, tail_add2.address} = {tail.epoch, tail.address} + 2'b10;
+    // control signals
 
     full  = (head.address == tail.address) && (head.epoch != tail.epoch);
     empty = (head.address == tail.address) && (head.epoch == tail.epoch);
@@ -89,10 +86,11 @@ always_comb begin
     push_allowed = !full && alloc_instr_io.valid;
     pop_allowed  = !empty && rob_table[head.address].ready;
 
-    occupancy = (head.epoch == tail.epoch) ? (tail.address - head.address)
-                                       : (ROB_LEN + tail.address - head.address);
-    rob_full_o = (occupancy >= ROB_LEN - 2);
+    occupancy = (head.epoch == tail.epoch) ?
+                (tail.address - head.address) : (config_pkg::ROB_LEN + tail.address - head.address);
     
+    // outputs
+    rob_full_o = (occupancy >= config_pkg::ROB_LEN - 2);
     alloc_instr_io.rob_id = tail;
     
 end
@@ -100,7 +98,7 @@ end
 always_ff @(posedge clk_i) begin
     
     if(!reset_ni || flush_i) begin
-        for (i=0; i<ROB_LEN; i++) rob_table[i] <= '0;
+        for (i=0; i<config_pkg::ROB_LEN; i++) rob_table[i] <= '0;
         head <= '0;
         tail <= '0;
 
@@ -121,7 +119,7 @@ always_ff @(posedge clk_i) begin
         // adding to ROB
         if(push_allowed) begin
             rob_table[tail.address] <= rob_input;
-            tail <= tail_next;
+            {tail.epoch, tail.address} <= {tail.epoch, tail.address} + 1'b1;
         end
         
         // Snooping
@@ -151,13 +149,13 @@ always_ff @(posedge clk_i) begin
             retire_instr_o.branch_taken <= rob_table[head.address].branch_taken;
 
             if(rob_table[head.address].is_branch && rob_table[head.address].branch_taken) begin
-                for (i=0; i<ROB_LEN; i++) rob_table[i] <= '0;
+                for (i=0; i<config_pkg::ROB_LEN; i++) rob_table[i] <= '0;
                 head <= '0;
                 tail <= '0;
                 flush_o <= 1'b1;
             end 
             else begin
-                head <= head_next;
+                {head.epoch, head.address} <= {head.epoch, head.address} + 1'b1;
                 rob_table[head.address] <= '0;
                 flush_o <= 1'b0;
             end

@@ -27,12 +27,19 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
         imem_preload = new[n_instr];
 
         foreach(imem_preload[i]) begin
+
             if(i == n_instr-1) imem_preload[i] = pkg_instruction::terminate();
+            
             else begin
+                
+                gen.set_current_pc(i);
+
                 if(!gen.randomize()) `uvm_error("SEQ/RAND", "instr_gen randomization failed")
                 imem_preload[i] = gen.instr;
+
                 `uvm_info("SEQ/INSTR",$sformatf("Generated instruction: %s",gen.convert2string()),UVM_HIGH)
             end
+
         end
 
         dmem_preload = new[config_pkg::DMEM_NUM_WORDS];

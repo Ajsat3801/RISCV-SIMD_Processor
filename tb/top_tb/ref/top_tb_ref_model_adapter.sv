@@ -1,4 +1,3 @@
-import top_tb_dpi_pkg::*;
 
 class top_tb_ref_model_adapter;
 
