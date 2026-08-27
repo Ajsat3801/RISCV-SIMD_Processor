@@ -7,11 +7,13 @@ in EDAPlayground
 
 `include "top_tb_typedef_pkg.sv"
 `include "top_tb_config_pkg.sv"
-`include "pkg_instruction.sv"
+`include "pkg_instruction_encoding.sv"
+`include "pkg_instruction_decoding.sv"
 
 `include "top_tb_if_preload.sv"
 `include "top_tb_if_retirement.sv"
 `include "top_tb_if_dut_state.sv"
+`include "top_tb_if_alloc.sv"
 
 `include "top_tb_dpi_pkg.sv"
 `include "top_tb_pkg.sv"

@@ -6,9 +6,10 @@ class top_tb_env extends uvm_env;
     top_tb_agt_preload agt_preload;
     top_tb_agt_retire agt_retire;
     top_tb_agt_dut_state agt_dut_state;
+    top_tb_agt_alloc agt_alloc;
 
     top_tb_scb scb;
-    //top_tb_cov cov;
+    top_tb_cov cov;
     
 
     function new(string name="top_tb_env", uvm_component parent=null);
@@ -26,8 +27,9 @@ class top_tb_env extends uvm_env;
         agt_preload = top_tb_agt_preload::type_id::create("agt_preload", this);
         agt_retire  = top_tb_agt_retire::type_id::create("agt_retire", this);
         agt_dut_state = top_tb_agt_dut_state::type_id::create("agt_dut_state", this);
+        agt_alloc = top_tb_agt_alloc::type_id::create("agt_alloc", this);
 
-        //cov = top_tb_cov::type_id::create("cov", this);
+        cov = top_tb_cov::type_id::create("cov", this);
         scb = top_tb_scb::type_id::create("scb", this);
 
     endfunction : build_phase
@@ -41,10 +43,8 @@ class top_tb_env extends uvm_env;
         agt_preload.mon_preload.ap_compute.connect(scb.imp_compute);
         agt_dut_state.mon_dut_state.ap.connect(scb.imp_dut_state);
 
-        //agt_preload.mon_preload.ap_preload.connect(cov.imp_preload);
-        //agt_retire.mon_retire.ap.connect(cov.imp_retire);
-
-        // Note: cov logic pending, to remove comments once completelets
+        agt_alloc.mon_alloc.ap.connect(cov.imp_alloc);
+        agt_retire.mon_retire.ap.connect(cov.imp_retire);
     
     endfunction : connect_phase
     

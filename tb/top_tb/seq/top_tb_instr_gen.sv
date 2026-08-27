@@ -17,8 +17,9 @@ class top_tb_instr_gen extends uvm_object;
     signal_pkg::data_t instr;
 
     int unsigned current_pc;
-    rand int target_offset;
+    int random_small_no;
 
+    rand int target_offset;
     rand int reg_pool_size;
 
     function new(string name = "top_tb_instr_gen");
@@ -37,6 +38,7 @@ class top_tb_instr_gen extends uvm_object;
     }
     constraint c_reg_pool {
         rd  inside {[1 : reg_pool_size]};
+        !(rd inside {[top_tb_config_pkg::RESERVED_REG_LO : top_tb_config_pkg::RESERVED_REG_HI]});
         rs1 inside {[0 : reg_pool_size]};
         rs2 inside {[0 : reg_pool_size]};
     }
@@ -57,13 +59,21 @@ class top_tb_instr_gen extends uvm_object;
         }
     }
 
+    constraint c_dmem_target {
+        (op inside {{I_LW, I_SW, V_LE32, V_SE32}}) -> {
+            rs1 == 4;
+            imm + random_small_no >= 0;
+            imm + random_small_no < 1024;
+        }
+    }
+
     function void post_randomize();
 
         // overwrite imm for branches and jumps
         if (op inside {I_BEQ, I_BNE, I_BLT, I_BGE, I_BLTU, I_BGEU}) imm[12:0] = target_offset[12:0];
         else if (op == I_JAL) imm[20:0] = target_offset[20:0];
 
-        instr = pkg_instruction::encode_instr(.instr(op), .rs1(rs1), .rs2(rs2), .rd(rd), .imm({imm}));
+        instr = pkg_instruction_encoding::encode_instr(.instr(op), .rs1(rs1), .rs2(rs2), .rd(rd), .imm({imm}));
 
     endfunction : post_randomize
 
@@ -77,6 +87,8 @@ class top_tb_instr_gen extends uvm_object;
         current_pc = pc;
     endfunction : set_current_pc
 
-
+    function void set_random_small_no (int num);
+        random_small_no = num;
+    endfunction : set_random_small_no
 
 endclass : top_tb_instr_gen

@@ -24,11 +24,29 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
 
         gen = top_tb_instr_gen::type_id::create("gen");
 
+        dmem_preload = new[config_pkg::DMEM_NUM_WORDS];
+        foreach(dmem_preload[i]) dmem_preload[i] = random_vector();
+
+        sc_prf_preload = new[config_pkg::ARCH_REG_DEPTH];
+        foreach(sc_prf_preload[i]) sc_prf_preload[i] = '0;
+
+        // fixed values to get edge cases
+        sc_prf_preload[0] = 0;
+        sc_prf_preload[1] = 32'd1;
+        sc_prf_preload[2] = 32'h8000_0000; // int min
+        sc_prf_preload[3] = 32'h7fff_ffff; // int max
+        sc_prf_preload[4] = random_word();         // random small number
+
+        gen.set_random_small_no(sc_prf_preload[4]);
+
+        vc_prf_preload = new[config_pkg::ARCH_REG_DEPTH];  
+        foreach(vc_prf_preload[i]) vc_prf_preload[i] = '0;
+
         imem_preload = new[n_instr];
 
         foreach(imem_preload[i]) begin
 
-            if(i == n_instr-1) imem_preload[i] = pkg_instruction::terminate();
+            if(i == n_instr-1) imem_preload[i] = pkg_instruction_encoding::terminate();
             
             else begin
                 
@@ -42,14 +60,7 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
 
         end
 
-        dmem_preload = new[config_pkg::DMEM_NUM_WORDS];
-        foreach(dmem_preload[i]) dmem_preload[i] = random_vector();
-
-        sc_prf_preload = new[config_pkg::ARCH_REG_DEPTH];
-        foreach(sc_prf_preload[i]) sc_prf_preload[i] = '0;
-
-        vc_prf_preload = new[config_pkg::ARCH_REG_DEPTH];  
-        foreach(vc_prf_preload[i]) vc_prf_preload[i] = '0;
+        
 
     endfunction 
 

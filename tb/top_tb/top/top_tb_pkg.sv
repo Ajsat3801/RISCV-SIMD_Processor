@@ -15,6 +15,7 @@ package top_tb_pkg;
     `include "top_tb_tr_compute.sv"
     `include "top_tb_tr_retire.sv"
     `include "top_tb_tr_dut_state.sv"
+    `include "top_tb_tr_alloc.sv"
 
     // ---- reference model adapter (needs tr_preload) -----------------------------------------
     `include "top_tb_ref_model_adapter.sv"
@@ -25,11 +26,16 @@ package top_tb_pkg;
     `include "top_tb_mon_preload.sv"
     `include "top_tb_mon_retire.sv"
     `include "top_tb_mon_dut_state.sv"
+    `include "top_tb_mon_alloc.sv"
 
     // ---- agents ----------------------------------------------------------------------------
     `include "top_tb_agt_preload.sv"
     `include "top_tb_agt_retire.sv"
     `include "top_tb_agt_dut_state.sv"
+    `include "top_tb_agt_alloc.sv"
+
+    // ---- coverage ----------------------------------------------------------------------------
+    `include "top_tb_cov.sv"
 
     // ---- analysis components (scb carries its own uvm_analysis_imp_decl calls) ---------------
     `include "top_tb_scb.sv"

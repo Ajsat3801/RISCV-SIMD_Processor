@@ -1,10 +1,12 @@
-# Sanity check TB
+# Sanity Check Testbench
 
-* Directed Testbench for checking basic workings of the core
-* Contains at least 1 instance of each instruction to ensure that all instructions give the correct output and pipeline is functional.
-* Does not ensure complete coverage of all cases. future UVM environment will cover that.
+Directed testbench used for bring-up and debug, before the UVM environment existed.
 
-### Working
-* top_tb.sv is the main file of the testbench that loads the program and inputs into the core, runs the program and displays the output
-* display_tasks_*.sv files contain tasks that print inputs and outputs of each module used for debugging
-* test_program.sv contains the test program with the expected output of each instruction and pre-load input of the DMEM.
+* Runs a fixed program containing at least one instance of every supported instruction, then prints the final scalar PRF, vector PRF and DMEM state
+* Checking is by inspection - the expected result of each instruction is written alongside it in the program - so this catches gross breakage, not coverage. The UVM testbench does the functional checking
+
+## Files
+
+* `top_tb.sv` - loads the program and preload data, runs the core, prints retirements and the final state
+* `test_program.sv` - the instruction image, register and DMEM preloads, with the expected result commented per instruction
+* `display_tasks_*.sv` - per-stage tasks that print module inputs and outputs, one file per group of units (`fe`, `ooo`, `rs`, `ex`, `wb`, `prf`, `data`, `core`)

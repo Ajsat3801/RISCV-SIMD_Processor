@@ -19,6 +19,7 @@ module top_tb_top;
     top_tb_if_preload if_preload(.clk_i(clk), .reset_ni(reset_n));
     top_tb_if_retirement if_retire(.clk_i(clk));
     top_tb_if_dut_state if_dut_state(.clk_i(clk));
+    top_tb_if_alloc if_alloc(.clk_i(clk));
 
     top dut (
         .clk_i(clk),
@@ -45,6 +46,7 @@ module top_tb_top;
         uvm_config_db #(virtual top_tb_if_preload)::set(null, "*","vif_preload", if_preload);
         uvm_config_db #(virtual top_tb_if_retirement)::set(null, "*", "vif_retire", if_retire);
         uvm_config_db #(virtual top_tb_if_dut_state)::set(null, "*","vif_dut_state", if_dut_state);
+        uvm_config_db #(virtual top_tb_if_alloc)::set(null, "*","vif_alloc", if_alloc);
 
         //run_test("top_tb_test_sanity_check_directed");
         run_test("top_tb_test_random");

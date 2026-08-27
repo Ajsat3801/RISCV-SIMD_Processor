@@ -1,4 +1,4 @@
-import pkg_instruction::*;
+import pkg_instruction_encoding::*;
 
 class top_tb_seq_sanity_check_directed_tb extends top_tb_seq_program_base;
 

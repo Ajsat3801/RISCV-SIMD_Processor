@@ -113,4 +113,34 @@ package top_tb_typedef_pkg;
 
     } instr_e;
 
+    typedef struct packed {
+        logic valid;
+        logic sc_valid;
+        logic vc_valid;
+
+        signal_pkg::rob_address_t rob_id;
+        signal_pkg::prf_tag_t prf_tag;
+
+        signal_pkg::chip_select_e chip_select;
+        signal_pkg::operations_e operation;
+
+        signal_pkg::arf_address_t dest_address;
+        signal_pkg::arf_address_t src1_address;
+        signal_pkg::arf_address_t src2_address;
+
+        logic [11:0] imm;
+        logic [9:0] extend;
+
+        logic write_to_reg;
+        logic pre_calc;
+        logic is_branch;
+        logic read_src2;
+        logic src1_vector;
+        logic src2_vector;
+
+        logic a_is_vector;
+        logic b_is_vector;
+
+    } alloc_snapshot_t;
+
 endpackage

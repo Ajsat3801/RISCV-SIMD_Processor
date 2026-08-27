@@ -1,5 +1,5 @@
 
-package pkg_instruction;
+package pkg_instruction_encoding;
 
     import top_tb_typedef_pkg::*;
     
@@ -265,7 +265,7 @@ package pkg_instruction;
     // -------------------------------- MULDIV Instructions ---------------------------------------
 
     function automatic signal_pkg::data_t rv32m_mul (input logic [4:0] rd, rs1, rs2);
-        rv32m_mul  = enc_r(7'b0000001, rs2, rs1, 3'b000, rd, 7'b0110011);11
+        rv32m_mul  = enc_r(7'b0000001, rs2, rs1, 3'b000, rd, 7'b0110011);
     endfunction
 
     function automatic signal_pkg::data_t rv32m_mulh (input logic [4:0] rd, rs1, rs2);
@@ -362,4 +362,4 @@ package pkg_instruction;
         terminate = top_tb_config_pkg::TERMINATE;
     endfunction
 
-endpackage : pkg_instruction
+endpackage : pkg_instruction_encoding

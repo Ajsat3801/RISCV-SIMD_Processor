@@ -7,4 +7,7 @@ package top_tb_config_pkg;
 
     parameter signal_pkg::data_t TERMINATE = 32'h0000_0073;
 
+    parameter logic [4:0] RESERVED_REG_LO = 5'd0;
+    parameter logic [4:0] RESERVED_REG_HI = 5'd5;
+
 endpackage

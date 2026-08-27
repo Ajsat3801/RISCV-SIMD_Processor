@@ -1,68 +1,25 @@
-# OoO RISC-V processor with SIMD
+# Out of Order RISC-V core with integrated SIMD support
 
-**NOTE: Ongoing, not complete**  
-**Current Status:** RTL complete and is passing sanity check testbench. constrained random UVM testbench in progress for in-depth verification.
+**Current Status:** RTL and UVM constrained random testbench complete; extension in progress to incorporate cache and AXI4
 
-### Design
+## Design
 
-Goal to outperform a scalar + vector-coprocessor design whenever vector operations are short, irregular, tightly coupled to scalar control, or dependent on scalar-computed values
+Goal: outperform a scalar core + loosely-coupled vector coprocessor whenever vector work is short, irregular, tightly coupled to scalar control, or dependent on scalar-computed values.
 
-* Out of order pipeline with register renaming and in-order retirement
-* Multiple Ex units and reservation stations, each RS supports at most 2 ex units
-* Instruction queue keeps track of RS slots and assigns to decoded instructions on dispatch
-* RS uses tag matching and bus snooping for operand wakeup
-* Round Robin writeback arbitration for returning 1 executed instruction to CDB
-* Branching bypasses writeback arbitation directly into ROB. Unconditional branches are processed in decoder and written directly in ROB
-
-
-
-### Microarchitecture
-
-#### Overview
+* Scalar and vector share one in-order front end, rename unit and ROB, diverging only at the RS, PRF and EX units
+* Out of order execution with register renaming and in-order retirement
+* 6 EX units behind 5 reservation stations, each RS feeding at most 2 units
+* Instruction queue owns the free-slot list of every RS and binds a slot at dispatch
+* RS wakeup by PRF tag match while snooping the CDB
+* Round robin writeback arbitration, 1 scalar + 1 vector result to the CDB per cycle
+* Branches bypass writeback into the ROB; JAL/LUI/AUIPC resolved in decode, never occupying an EX unit
+* No branch predictor: all branches are assumed not taken on fetch and resolved at retirement
 
 ![Microarchitecture](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/block_diagram.drawio.svg)
 
-#### Pipeline Execution Paths
+## Supported Instructions
 
-<div align="left">
-  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/sc_alu_ops.drawio.svg" width="90%" alt="Arithmetic and Logic ops flow">
-  <p align="center">
-    <em>Pipeline Execution Path for Arithmetic & Logic Operations</em>
-  </p>
-</div>
-
-<div align="left">
-  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/load_ops.drawio.svg" width="100%" alt="loads flow">
-  <p align="center">
-    <em>Pipeline Execution Path for Load Operations</em>
-  </p>
-</div>
-
-<div align="left">
-  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/store_ops.drawio.svg" width="90%" alt="stores flow">
-  <p align="center">
-    <em>Pipeline Execution Path for Store Operations</em>
-  </p>
-</div>
-
-<div align="left">
-  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/branch_ops.drawio.svg" width="90%" alt="branches flow">
-  <p align="center">
-    <em>Pipeline Execution Path for Conditional Branch Operations</em>
-  </p>
-</div>
-
-<div align="left">
-  <img src="https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/ex_paths/ui_ops.drawio.svg" width="70%" alt="jumps and ui flow">
-  <p align="center">
-    <em>Pipeline Execution Path for Unconditional Branch and Upper Immediate Operations</em>
-  </p>
-</div>
-
-
-### Supported Instructions
-
-#### RV32I instructions
+### RV32I instructions
 
 | Instruction                                          | Processing Unit     |
 |------------------------------------------------------|---------------------|
@@ -72,14 +29,14 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 | JAL, LUI, AUIPC                                      | Procesed in decoder |
 | LW, SW                                               | LSU                 |
 
-#### RV32M instructions
+### RV32M instructions
 
 | Instruction                                          | Processing Unit     |
 |------------------------------------------------------|---------------------|
 | MUL, MULH, MULHSU, MULHU                             | Scalar MULDIV       |
 | DIV, DIVU, REM, REMU                                 | Scalar MULDIV       |
 
-#### RV32V (Vector Extension) instructions
+### RV32V (Vector Extension) instructions
 
 | Instruction                                          | Processing Unit     |
 |------------------------------------------------------|---------------------|
@@ -87,14 +44,35 @@ Goal to outperform a scalar + vector-coprocessor design whenever vector operatio
 | vadd.vx, vsub.vx, vand.vx, vor.vx, vxor.vx, vrsub.vx | Vector ALU          |
 | vle32.v, vse32.v                                     | LSU                 |
 
-### Decoded instruction format
+Note: Fixed configuration: `VLEN = 128`, `SEW = 32`, `LMUL = 1`. No `vsetvli`; vector length is not programmable.
 
-![Instruction decoding format](https://github.com/Ajsat3801/RISCV-SIMD_Processor/blob/main/doc/decoding.png 
-"Decoded instruction format")
+## Configuration
 
+| Parameter | Value | | Parameter | Value |
+|---|---|---|---|---|
+| Instruction queue | 16 | | ROB | 32 |
+| Scalar / vector PRF | 64 each | | Arch regs | 32 + 32 |
+| Scalar ALU RS (dual-issue) | 32 | | Other RS (x4) | 8 each |
+| Vector length | 4 lanes x 32b | | Store buffer | 4 |
+| IMEM | 256 x 32b | | DMEM | 4 banks x 256 x 32b |
 
-## Verification Strategy
+Five identical `sky130_sram_1kbyte_1rw_32x256_32` macros: one IMEM, four banked for 128-bit DMEM access.
 
-* **Stage 1:** Directed testbench for sanity check, to ensure functionality
-* **Stage 2:** UVM based global testbench for chip level verification
-* **Stage 3:** Unit level constrained random testbenches for each RTL module
+## Verification
+
+* Directed sanity testbench for bring-up, plus a UVM constrained-random environment scoreboarded against a C++ functional model of the core through DPI
+* Regressions run on VCS (UVM-1.2) across randomised seeds; see `tb/top_tb` for the environment
+
+## Directory Structure
+```
+├── doc                       // Block diagrams, execution path diagrams and result images
+├── rtl                       // RTL source. Top level holds top.sv, imem.sv and dmem.sv
+│   ├── core                  // The core pipeline, one module per stage/unit
+│   ├── if                    // SystemVerilog interfaces for the alloc, data and retirement buses
+│   ├── lib                   // Reusable blocks - FIFOs, free queues, multiplier, divider, ALU lane
+│   ├── macros                // SRAM macro, instanced 5 times (1 IMEM + 4 DMEM banks)
+│   └── pkg                   // Config parameters, packet structs and signal typedefs
+└── tb                        // Verification
+    ├── sanity_check_tb       // Directed testbench with per-unit display tasks, used for bring-up
+    └── top_tb                // UVM constrained random testbench for full chip verification
+```
