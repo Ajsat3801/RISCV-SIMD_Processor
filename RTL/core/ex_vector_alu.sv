@@ -3,7 +3,7 @@
  * ------------------------------------------------------------------------------------------------
  *
  *  Functions / Behavior
- *  ->  Top-level vector ALU execution unit. Instantiates VECTOR_SIZE parallel ALU lanes, one lane
+ *  ->  Top-level vector ALU execution unit. Instantiates VECTOR_LEN parallel ALU lanes, one lane
  *      per vector element.
  *  ->  Scalar operands replicated to perform vector operations for mixed scalar-vector operation. 
  *  ->  On reset or flush, the output cleared to zero and vc_ex_ready_o is driven high.
@@ -37,11 +37,11 @@ module ex_vector_alu (
 
     genvar i;
     signal_pkg::vector_data_t valu_operand_a, valu_operand_b, valu_output;
-    logic[config_pkg::VECTOR_SIZE-1:0] valid;
+    logic[config_pkg::VECTOR_LEN-1:0] valid;
 
     generate 
 
-        for(i=0; i<config_pkg::VECTOR_SIZE; i++) begin : gen_vector_lanes
+        for(i=0; i<config_pkg::VECTOR_LEN; i++) begin : gen_vector_lanes
             lib_vector_alu_lane alu_instance (
                 .operation(vc_ex_request_i.operation),
                 .operand_a(valu_operand_a[i]),
@@ -55,7 +55,7 @@ module ex_vector_alu (
     endgenerate
 
     always_comb begin
-        valu_operand_a = (vc_ex_request_i.a_is_vector) ? vc_ex_request_i.operand_a : {VECTOR_SIZE{sc_operand_i}};
+        valu_operand_a = (vc_ex_request_i.a_is_vector) ? vc_ex_request_i.operand_a : {VECTOR_LEN{sc_operand_i}};
     end
 
     always_ff @(posedge clk_i) begin

@@ -27,17 +27,17 @@ class top_tb_seq_preload extends top_tb_seq_base;
         if(sc_prf_preload.size() == 0) `uvm_fatal("SEQ/NO_PRELOAD","Scalar Register preload array empty")
         if(vc_prf_preload.size() == 0) `uvm_fatal("SEQ/NO_PRELOAD","Vector Register preload array empty")
 
-        if(imem_preload.size() > config_pkg::IMEM_NUM_WORDS) `uvm_fatal("SEQ/IMEM_OVERLOW", "Imem overflow")
+        if(imem_preload.size() > config_pkg::IMEM_DEPTH) `uvm_fatal("SEQ/IMEM_OVERLOW", "Imem overflow")
         if(imem_preload[imem_preload.size()-1]!= top_tb_config_pkg::TERMINATE) `uvm_fatal("SEQ/NO_TERMINATE","Missing terminate in instruction sequence")
         
-        if(dmem_preload.size() > config_pkg::DMEM_NUM_WORDS)  `uvm_fatal("SEQ/DMEM_OVERFLOW", "DMEM Overflow")
+        if(dmem_preload.size() > config_pkg::DMEM_BANK_DEPTH)  `uvm_fatal("SEQ/DMEM_OVERFLOW", "DMEM Overflow")
 
         if(sc_prf_preload.size() > config_pkg::ARCH_REG_DEPTH) `uvm_fatal("SEQ/REG_OVERFLOW", "Scalar registers overflow")
         if(vc_prf_preload.size() > config_pkg::ARCH_REG_DEPTH) `uvm_fatal("SEQ/REG_OVERFLOW", "Vector registers overflow")
 
         if(sc_prf_preload[0]!= 0) `uvm_warning("SEQ/INVALID_0_VAL", "non zero x0 value preload into scalar register")
 
-        n_cycles = config_pkg::IMEM_NUM_WORDS; // same as DMEM_NUM_WORDS and always greater than ARCH_REG_DEPTH
+        n_cycles = config_pkg::IMEM_DEPTH; // same as DMEM_BANK_DEPTH and always greater than ARCH_REG_DEPTH
 
         for(int unsigned i=0; i<n_cycles; i++) begin
             
@@ -106,7 +106,7 @@ class top_tb_seq_preload extends top_tb_seq_base;
 
         req.dmem_en = dmem_en;
         req.dmem_address = dmem_address;
-        req.dmem_write_enable = {config_pkg::DMEM_NUM_BANKS{dmem_en}};
+        req.dmem_write_enable = {config_pkg::DMEM_BANKS_N{dmem_en}};
         req.dmem_data = dmem_data;
 
         req.sc_prf_en = sc_prf_en;

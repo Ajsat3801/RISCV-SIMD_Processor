@@ -47,7 +47,7 @@ class top_tb_instr_gen extends uvm_object;
         (op inside {I_BEQ, I_BNE, I_BLT, I_BGE, I_BLTU, I_BGEU}) -> {
             target_offset inside {[-4096 : 4095]};
             target_offset[0] == 1'b0;
-            (current_pc + target_offset) inside {[0 : config_pkg::IMEM_NUM_WORDS-1]};
+            (current_pc + target_offset) inside {[0 : config_pkg::IMEM_DEPTH-1]};
         }
     }
 
@@ -55,7 +55,7 @@ class top_tb_instr_gen extends uvm_object;
         (op == I_JAL) -> {
             target_offset inside {[-1048576 : 1048575]};
             target_offset[0] == 1'b0;
-            (current_pc + target_offset) inside {[0 : config_pkg::IMEM_NUM_WORDS-1]};
+            (current_pc + target_offset) inside {[0 : config_pkg::IMEM_DEPTH-1]};
         }
     }
 

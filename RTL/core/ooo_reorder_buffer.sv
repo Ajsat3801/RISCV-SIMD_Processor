@@ -54,7 +54,7 @@ module ooo_reorder_buffer (
     output logic flush_o
 );
 
-packet_pkg::rob_entry_t rob_table[config_pkg::ROB_LEN-1:0];
+packet_pkg::rob_entry_t rob_table[config_pkg::ROB_DEPTH-1:0];
 packet_pkg::rob_entry_t rob_input;
 signal_pkg::rob_address_t head, tail, occupancy;
 logic full, empty;
@@ -87,10 +87,10 @@ always_comb begin
     pop_allowed  = !empty && rob_table[head.address].ready;
 
     occupancy = (head.epoch == tail.epoch) ?
-                (tail.address - head.address) : (config_pkg::ROB_LEN + tail.address - head.address);
+                (tail.address - head.address) : (config_pkg::ROB_DEPTH + tail.address - head.address);
     
     // outputs
-    rob_full_o = (occupancy >= config_pkg::ROB_LEN - 2);
+    rob_full_o = (occupancy >= config_pkg::ROB_DEPTH - 2);
     alloc_instr_io.rob_id = tail;
     
 end
@@ -98,7 +98,7 @@ end
 always_ff @(posedge clk_i) begin
     
     if(!reset_ni || flush_i) begin
-        for (i=0; i<config_pkg::ROB_LEN; i++) rob_table[i] <= '0;
+        for (i=0; i<config_pkg::ROB_DEPTH; i++) rob_table[i] <= '0;
         head <= '0;
         tail <= '0;
 
@@ -149,7 +149,7 @@ always_ff @(posedge clk_i) begin
             retire_instr_o.branch_taken <= rob_table[head.address].branch_taken;
 
             if(rob_table[head.address].is_branch && rob_table[head.address].branch_taken) begin
-                for (i=0; i<config_pkg::ROB_LEN; i++) rob_table[i] <= '0;
+                for (i=0; i<config_pkg::ROB_DEPTH; i++) rob_table[i] <= '0;
                 head <= '0;
                 tail <= '0;
                 flush_o <= 1'b1;

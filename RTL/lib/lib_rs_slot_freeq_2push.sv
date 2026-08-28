@@ -74,7 +74,7 @@ module lib_rs_slot_freeq_2push #(
 
         if (!reset_ni) begin
             for (int j=0; j<BUFFER_SIZE; j++) begin
-                main_fifo[j] <= config_pkg::DATA_SIZE'(j);
+                main_fifo[j] <= config_pkg::DATA_W'(j);
             end
             main_fifo[BUFFER_SIZE] <= '0;
             head <= '0;

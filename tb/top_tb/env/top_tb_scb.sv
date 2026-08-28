@@ -86,7 +86,7 @@ class top_tb_scb extends uvm_scoreboard;
 
         signal_pkg::data_t sc_reg_res[config_pkg::ARCH_REG_DEPTH];
         signal_pkg::vector_data_t vc_reg_res[config_pkg::ARCH_REG_DEPTH];
-        signal_pkg::data_t dmem_res[config_pkg::DMEM_SIZE];
+        signal_pkg::data_t dmem_res[config_pkg::DMEM_DEPTH];
 
         int unsigned sc_regs_mismatches, vc_regs_mismatches, dmem_mismatches;
         bit sc_regs_pass, vc_regs_pass, dmem_pass;
@@ -165,12 +165,12 @@ class top_tb_scb extends uvm_scoreboard;
 
     function int unsigned compare_dmem(
         top_tb_tr_dut_state tr,
-        signal_pkg::data_t dmem_res[config_pkg::DMEM_SIZE]
+        signal_pkg::data_t dmem_res[config_pkg::DMEM_DEPTH]
     );
 
         int unsigned mismatches = 0;
 
-        for(int i=0; i<config_pkg::DMEM_SIZE; i++) begin
+        for(int i=0; i<config_pkg::DMEM_DEPTH; i++) begin
             if(tr.dmem_sample[i] !== dmem_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/DMEM_MISMATCH",

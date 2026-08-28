@@ -1,14 +1,15 @@
 
 class top_tb_ref_model_adapter;
 
-    localparam int VC_REG_NUM_ELEM = config_pkg::ARCH_REG_DEPTH*config_pkg::VECTOR_SIZE;
-    localparam int VLEN = config_pkg::VECTOR_SIZE;
+    localparam int VLEN = config_pkg::VECTOR_LEN;
+    localparam int VC_REG_NUM_ELEM = config_pkg::ARCH_REG_DEPTH*VLEN;
+    
     function void create_model();
 
         top_tb_ref_model_init (
-            config_pkg::IMEM_NUM_WORDS,
-            config_pkg::DMEM_NUM_WORDS,
-            config_pkg::VECTOR_SIZE
+            config_pkg::IMEM_DEPTH,
+            config_pkg::DMEM_BANK_DEPTH,
+            VLEN
         );
 
     endfunction : create_model
@@ -25,7 +26,7 @@ class top_tb_ref_model_adapter;
         int dmem_preload_write_enable_i = tr.dmem_write_enable; // ignored because used only during operation
         int dmem_preload_addr_i = tr.dmem_address;
 
-        int unsigned dmem_preload_data_i[config_pkg::VECTOR_SIZE]; 
+        int unsigned dmem_preload_data_i[VLEN]; 
         
 
         bit sc_prf_preload_en_i = bit'(tr.sc_prf_en);
@@ -35,12 +36,12 @@ class top_tb_ref_model_adapter;
         bit vc_prf_preload_en_i = bit'(tr.vc_prf_en);
         int vc_prf_preload_addr_i = tr.vc_prf_address.tag;
 
-        int unsigned vc_prf_preload_data_i[config_pkg::VECTOR_SIZE];
+        int unsigned vc_prf_preload_data_i[VLEN];
         
-        for(int i=0; i<config_pkg::VECTOR_SIZE; i++)
+        for(int i=0; i<VLEN; i++)
             dmem_preload_data_i[i] = tr.dmem_data[i];
 
-        for(int i=0; i<config_pkg::VECTOR_SIZE; i++)
+        for(int i=0; i<VLEN; i++)
             vc_prf_preload_data_i[i] = tr.vc_prf_data[i];
         
         top_tb_ref_model_preload (
@@ -67,12 +68,12 @@ class top_tb_ref_model_adapter;
     function void simulate(
         output signal_pkg::data_t sc_reg_res[config_pkg::ARCH_REG_DEPTH],
         output signal_pkg::vector_data_t vc_reg_res[config_pkg::ARCH_REG_DEPTH],
-        output signal_pkg::data_t dmem_res[config_pkg::DMEM_SIZE]
+        output signal_pkg::data_t dmem_res[config_pkg::DMEM_DEPTH]
     );
 
         int unsigned sc_reg_res_o[config_pkg::ARCH_REG_DEPTH];
         int unsigned vc_reg_res_o[VC_REG_NUM_ELEM];
-        int unsigned dmem_res_o[config_pkg::DMEM_SIZE];
+        int unsigned dmem_res_o[config_pkg::DMEM_DEPTH];
         
         top_tb_ref_model_simulate(
             .sc_regs_final(sc_reg_res_o),
@@ -89,7 +90,7 @@ class top_tb_ref_model_adapter;
                                 vc_reg_res_o[(VLEN*i)]};
         end
 
-        for(int i=0; i<config_pkg::DMEM_SIZE; i++) dmem_res[i] = dmem_res_o[i];
+        for(int i=0; i<config_pkg::DMEM_DEPTH; i++) dmem_res[i] = dmem_res_o[i];
 
     endfunction : simulate
 

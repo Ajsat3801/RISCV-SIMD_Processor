@@ -55,8 +55,8 @@ module fe_instruction_queue (
 
     input packet_pkg::decoded_instr_t decoded_instr_i,
     input logic decoded_instr_en_i,
-    input signal_pkg::rs_slot_id_t released_rs_slot_id_i [RS_DISPATCH_COUNT-1:0],
-    input logic rs_slot_released_i [RS_DISPATCH_COUNT-1:0],
+    input signal_pkg::rs_slot_id_t released_rs_slot_id_i [config_pkg::RS_TOT_DISPATCH_N-1:0],
+    input logic rs_slot_released_i [config_pkg::RS_TOT_DISPATCH_N-1:0],
     
     input logic rob_full_i,
     input logic arr_full_i,
@@ -68,15 +68,15 @@ module fe_instruction_queue (
 
     typedef enum logic[2:0] {IDX_ALU, IDX_MULDIV, IDX_LSU, IDX_BRANCH, IDX_VALU, IDX_NOP} rs_index_e;
     
-    localparam int unsigned INSTRUCTION_QUEUE_PTR_LEN = $clog2(INSTRUCTION_QUEUE_LEN);
+    localparam int unsigned INSTRUCTION_QUEUE_PTR_LEN = $clog2(config_pkg::INSTR_QUEUE_DEPTH);
     typedef struct packed {logic epoch; logic[INSTRUCTION_QUEUE_PTR_LEN-1:0] address;} q_ptr_t;
 
     // RS Slot tracking buffer
-    signal_pkg::rs_slot_id_t next_rs_slot[RS_COUNT-1:0];
-    logic[RS_COUNT-1:0] rs_full, rs_empty, dequeue_rs_fifo;
+    signal_pkg::rs_slot_id_t next_rs_slot[config_pkg::RS_TOT_N-1:0];
+    logic[config_pkg::RS_TOT_N-1:0] rs_full, rs_empty, dequeue_rs_fifo;
 
     // Instruction FIFO
-    packet_pkg::decoded_instr_t instr_fifo[INSTRUCTION_QUEUE_LEN-1:0];
+    packet_pkg::decoded_instr_t instr_fifo[config_pkg::INSTR_QUEUE_DEPTH-1:0];
     q_ptr_t head, tail, head_next, tail_next, tail_next_next;
     logic full, empty, enqueue, dequeue, upstream_ready, full_next, in_valid;
 
@@ -87,7 +87,7 @@ module fe_instruction_queue (
 
     lib_rs_slot_freeq_2push #(
         .BUFFER_SIZE(16),
-        .T(logic[RS_ADDR_W-1:0])
+        .T(logic[config_pkg::RS_ADDR_W-1:0])
     ) alu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -103,7 +103,7 @@ module fe_instruction_queue (
 
     lib_rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
-        .T(logic[RS_ADDR_W-1:0])
+        .T(logic[config_pkg::RS_ADDR_W-1:0])
     ) muldiv_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -117,7 +117,7 @@ module fe_instruction_queue (
     
     lib_rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
-        .T(logic[RS_ADDR_W-1:0])
+        .T(logic[config_pkg::RS_ADDR_W-1:0])
     ) lsu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -131,7 +131,7 @@ module fe_instruction_queue (
 
     lib_rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
-        .T(logic[RS_ADDR_W-1:0])
+        .T(logic[config_pkg::RS_ADDR_W-1:0])
     ) branch_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -145,7 +145,7 @@ module fe_instruction_queue (
     
     lib_rs_slot_freeq_1push #(
         .BUFFER_SIZE(8),
-        .T(logic[RS_ADDR_W-1:0])
+        .T(logic[config_pkg::RS_ADDR_W-1:0])
     ) valu_fifo (
         .clk_i(clk_i),
         .reset_ni(reset_wb_n),
@@ -203,7 +203,7 @@ module fe_instruction_queue (
     always_ff @(posedge clk_i) begin
         if (!reset_ni || flush_i) begin
 
-            for (int i=0; i<INSTRUCTION_QUEUE_LEN; i++) instr_fifo[i] <= '0;
+            for (int i=0; i<config_pkg::INSTR_QUEUE_DEPTH; i++) instr_fifo[i] <= '0;
 
             dispatched_instr_q <= '0;
             rs_slot_id_o  <= '0;

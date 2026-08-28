@@ -2,3 +2,4 @@
 *.xlsx
 .claudeignore
 .vscode/*
+doc/block_diagram_exp.drawio.svg

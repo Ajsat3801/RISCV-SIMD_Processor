@@ -16,7 +16,7 @@ class top_tb_tr_preload extends top_tb_tr_base;
     rand signal_pkg::data_t imem_data;
 
     rand logic dmem_en;
-    rand logic [config_pkg::DMEM_NUM_BANKS-1:0] dmem_write_enable;
+    rand logic [config_pkg::DMEM_BANKS_N-1:0] dmem_write_enable;
     rand signal_pkg::dmem_word_address_t dmem_address;
     rand signal_pkg::vector_data_t dmem_data;
 

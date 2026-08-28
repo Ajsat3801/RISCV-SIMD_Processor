@@ -6,7 +6,7 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
     rand int unsigned n_instr;
 
     int unsigned n_instr_min = 16;
-    int unsigned n_instr_max = config_pkg::IMEM_NUM_WORDS;
+    int unsigned n_instr_max = config_pkg::IMEM_DEPTH;
 
     constraint c_n_instr { n_instr inside {[n_instr_min : n_instr_max]}; }
     
@@ -24,7 +24,7 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
 
         gen = top_tb_instr_gen::type_id::create("gen");
 
-        dmem_preload = new[config_pkg::DMEM_NUM_WORDS];
+        dmem_preload = new[config_pkg::DMEM_BANK_DEPTH];
         foreach(dmem_preload[i]) dmem_preload[i] = random_vector();
 
         sc_prf_preload = new[config_pkg::ARCH_REG_DEPTH];

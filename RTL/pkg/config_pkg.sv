@@ -1,57 +1,51 @@
 package config_pkg;
 
-    //------------------------------------------
-    // GLOBAL PARAMETERS
-    //------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------
+    //                                          GLOBAL CONFIG PARAMETERS 
+    // ----------------------------------------------------------------------------------------------------------------
 
-    // General architecture config
-    parameter int unsigned INSTRUCTION_QUEUE_LEN = 16;
-    parameter int unsigned EX_COUNT = 6;
-    parameter int unsigned SCALAR_EX_COUNT = 4;
-    parameter int unsigned VECTOR_EX_COUNT = 2;
-    parameter int unsigned ROB_LEN = 32;
+    parameter int unsigned DATA_W = 32;                     // Number of bits in a single element
+    parameter int unsigned VECTOR_LEN = 4;                  // Number of elements in a vector
+    
+    parameter int unsigned SCALAR_EX_N = 4;                 // Number of scalar ex units
+    parameter int unsigned VECTOR_EX_N = 2;                 // Number of vector ex units
+    parameter int unsigned RS_SINGLE_DISPATCH_N = 4;        // Number of reservation stations with 1 dispatch slot
+    parameter int unsigned RS_DUAL_DISPATCH_N = 1;          // Number of reservation stations with 2 dispatch slots
 
-    // Reservation station config
-    parameter int unsigned RS_COUNT = 5;
-    parameter int unsigned SINGLE_SLOT_RS_COUNT = 4;
-    parameter int unsigned DUAL_SLOT_RS_COUNT = 1;
-    parameter int unsigned SINGLE_SLOT_RS_LEN = 8;
-    parameter int unsigned DUAL_SLOT_RS_LEN = 32;
+    parameter int unsigned INSTR_QUEUE_DEPTH = 16;          // Number of entries in instruction queue
+    parameter int unsigned ROB_DEPTH = 32;                  // Number of entries in ROB
+    parameter int unsigned RS_SINGLE_DISPATCH_DEPTH = 8;    // Number of entries in an RS with 1 dispatch slot
+    parameter int unsigned RS_DUAL_DISPATCH_DEPTH = 32;     // Number of entries in an RS with 2 dispatch slots
+    parameter int unsigned STORE_BUFFER_DEPTH = 4;          // Number of entries in store buffer
 
-    // Data/Storage config
-    parameter int unsigned DATA_SIZE = 32;
-    parameter int unsigned VECTOR_SIZE = 4;
-    parameter int unsigned ARCH_REG_DEPTH = 32;
-    parameter int unsigned PRF_DEPTH = 64;
-    parameter int unsigned STORE_BUFFER_SIZE = 4;
+    parameter int unsigned ARCH_REG_DEPTH = 32;             // Number of registers in the core
+    parameter int unsigned PRF_DEPTH = 64;                  // Number of physical registers in the core
 
-    // Memory config
-    parameter int unsigned IMEM_WORD_SIZE = 32;
-    parameter int unsigned IMEM_NUM_WORDS = 256;
-    parameter int unsigned DMEM_WORD_SIZE = 32;
-    parameter int unsigned DMEM_NUM_WORDS = 256;
+    parameter int unsigned IMEM_DEPTH = 256;                // Number of entries in IMEM
+    parameter int unsigned DMEM_BANK_DEPTH = 256;           // Number of entries in a single bank of DMEM
+    parameter int unsigned PC_W = 16;                       // Width of program counter
+    parameter int unsigned PHY_MEM_ADDR_W = 16;             // Width of memory address
+    parameter int unsigned CACHE_LINE_DEPTH = 4;            // Number of words in a single cache line
 
-    // We are using 5 identical SRAMs, each with 1 R/W port. one for IMEM and 4 for banked DMEM
+    // ----------------------------------------------------------------------------------------------------------------
+    //                                          DERIVED CONFIG PARAMETERS 
+    // ----------------------------------------------------------------------------------------------------------------
 
-    //-------------------------------------------
-    // DERIVED PARAMETERS
-    //-------------------------------------------
-
-    localparam int unsigned RS_MAX_LEN = (DUAL_SLOT_RS_LEN>SINGLE_SLOT_RS_LEN) ? DUAL_SLOT_RS_LEN : SINGLE_SLOT_RS_LEN;
-    localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_LEN);
-    localparam int unsigned RS_IDX_W = (RS_COUNT>1) ? $clog2(RS_COUNT) : 1;
-    localparam int unsigned ROB_ADDR_W = $clog2(ROB_LEN);
-    localparam int unsigned DUAL_SLOT_RS_IDX_W =$clog2(DUAL_SLOT_RS_LEN);
-    localparam int unsigned SINGLE_SLOT_RS_IDX_W = $clog2(SINGLE_SLOT_RS_LEN);
-    localparam int unsigned EX_IDX_W = $clog2(EX_COUNT);
-    localparam int unsigned REG_ADDR_W = $clog2(ARCH_REG_DEPTH);
-    localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
-    localparam int unsigned RS_DISPATCH_COUNT = 2*DUAL_SLOT_RS_COUNT + SINGLE_SLOT_RS_COUNT;
-    localparam int unsigned IMEM_ADDR_SIZE = $clog2(IMEM_NUM_WORDS);
-    localparam int unsigned DMEM_NUM_BANKS = VECTOR_SIZE;
-    localparam int unsigned DMEM_SIZE = DMEM_NUM_WORDS * DMEM_NUM_BANKS;
-    localparam int unsigned DMEM_ADDR_SIZE = $clog2(DMEM_SIZE);
-    localparam int unsigned DMEM_WORD_ADDR_SIZE = $clog2(DMEM_NUM_WORDS);
+    localparam int unsigned EX_TOT_N = SCALAR_EX_N + VECTOR_EX_N; // Total number of ex units
+    
+    // Total number of reservation stations & RS select signal width calculation
+    localparam int unsigned RS_TOT_N = RS_SINGLE_DISPATCH_N + RS_DUAL_DISPATCH_N;
+    localparam int unsigned RS_SEL_W = (RS_TOT_N>1) ? $clog2(RS_TOT_N) : 1;
+    // Total number of instructions that can be dispatched in a single cycle (== EX_TOT_N)
+    localparam int unsigned RS_TOT_DISPATCH_N = 2*RS_DUAL_DISPATCH_N + RS_SINGLE_DISPATCH_N;
+    
+    // Reservation station address width calculation
+    localparam int unsigned RS_MAX_DEPTH = (RS_DUAL_DISPATCH_DEPTH>RS_SINGLE_DISPATCH_DEPTH) ? 
+                                            RS_DUAL_DISPATCH_DEPTH : RS_SINGLE_DISPATCH_DEPTH;
+    localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_DEPTH);
+    
+    localparam int unsigned DMEM_BANKS_N = VECTOR_LEN;      // Number of banks in DMEM (= Vector length)
+    localparam int unsigned DMEM_DEPTH = IMEM_DEPTH * DMEM_BANKS_N; // Total depth of banked DMEM
 
 endpackage
 

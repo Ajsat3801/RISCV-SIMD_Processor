@@ -106,11 +106,11 @@ interface top_tb_if_dut_state (input logic clk_i);
 
 
     function automatic void dump_dmem(
-        output signal_pkg::data_t arr[config_pkg::DMEM_SIZE]
+        output signal_pkg::data_t arr[config_pkg::DMEM_DEPTH]
     );
         // dumps full DMEM values
         // note: output data is not banked
-        for(int i=0; i<config_pkg::DMEM_NUM_WORDS; i++) begin
+        for(int i=0; i<config_pkg::DMEM_BANK_DEPTH; i++) begin
             signal_pkg::vector_data_t row = get_dmem_row(i);
             arr[4*i] = row[0];
             arr[(4*i)+1] = row[1];

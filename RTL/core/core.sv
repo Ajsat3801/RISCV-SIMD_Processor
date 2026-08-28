@@ -95,13 +95,13 @@ module core #()(
     logic queue_ready, decode_ready, decoded_instr_en;
 
     // signals from RS to Queue with freed RS Slot IDs
-    signal_pkg::rs_slot_id_t released_rs_slot_id_arr [RS_DISPATCH_COUNT-1:0];
-    logic rs_slot_released_arr[RS_DISPATCH_COUNT-1:0];
+    signal_pkg::rs_slot_id_t released_rs_slot_id_arr [config_pkg::RS_TOT_DISPATCH_N-1:0];
+    logic rs_slot_released_arr[config_pkg::RS_TOT_DISPATCH_N-1:0];
 
     logic rob_full, arr_full;
 
     // signals from reservation stations to prf 
-    packet_pkg::read_request_t sc_rd_req[SCALAR_EX_COUNT-1:0];
+    packet_pkg::read_request_t sc_rd_req[config_pkg::SCALAR_EX_N-1:0];
     packet_pkg::read_request_t br_rd_req;
     packet_pkg::read_request_t vc_alu_rd_req;
     
@@ -109,7 +109,7 @@ module core #()(
     signal_pkg::prf_tag_t vc_alu_rd_req_tag;
     
     // PRF -> EX signals
-    packet_pkg::sc_ex_request_t sc_ex_req[SCALAR_EX_COUNT-1:0];
+    packet_pkg::sc_ex_request_t sc_ex_req[config_pkg::SCALAR_EX_N-1:0];
     packet_pkg::sc_ex_request_t br_ex_req;
     packet_pkg::vc_alu_ex_request_t vc_alu_ex_req;
     packet_pkg::vc_lsu_ex_request_t vc_lsu_ex_req;
@@ -121,9 +121,9 @@ module core #()(
     // functional units output signals
     // EX -> WB
     
-    packet_pkg::sc_ex_result_t sc_ex_result[SCALAR_EX_COUNT-1:0];
+    packet_pkg::sc_ex_result_t sc_ex_result[config_pkg::SCALAR_EX_N-1:0];
     packet_pkg::br_result_t br_ex_result;
-    packet_pkg::vc_ex_result_t vc_ex_result[VECTOR_EX_COUNT-1:0];
+    packet_pkg::vc_ex_result_t vc_ex_result[config_pkg::VECTOR_EX_N-1:0];
     packet_pkg::sc_ex_result_t sc_lsu_result;
     packet_pkg::vc_ex_result_t vc_lsu_result;
 
@@ -134,19 +134,19 @@ module core #()(
     // SCALAR: EX -> RS
     // VECTOR: EX -> PRF
 
-    logic sc_ex_ready[SCALAR_EX_COUNT-1:0];
+    logic sc_ex_ready[config_pkg::SCALAR_EX_N-1:0];
     logic br_ex_ready;
-    logic vc_ex_ready[VECTOR_EX_COUNT-1:0];
+    logic vc_ex_ready[config_pkg::VECTOR_EX_N-1:0];
     logic lsu_ready;
 
     // ready signals from WB
     // WB -> RS
-    logic sc_wb_ready[SCALAR_EX_COUNT-1:0];
-    logic vc_wb_ready[VECTOR_EX_COUNT-1:0];
+    logic sc_wb_ready[config_pkg::SCALAR_EX_N-1:0];
+    logic vc_wb_ready[config_pkg::VECTOR_EX_N-1:0];
 
     // ready inputs into RS, bitwise and of sc_ex_ready and sc_wb_ready
-    logic sc_rs_ex_ready[SCALAR_EX_COUNT-1:0];
-    logic vc_rs_ex_ready[VECTOR_EX_COUNT-1:0];
+    logic sc_rs_ex_ready[config_pkg::SCALAR_EX_N-1:0];
+    logic vc_rs_ex_ready[config_pkg::VECTOR_EX_N-1:0];
 
     /*  Naming Convention
         Fetched OP -> fetched_instr

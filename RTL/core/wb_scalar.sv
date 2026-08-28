@@ -40,21 +40,23 @@ module wb_scalar (
     input logic flush_i,
 
     // EX units
-    input packet_pkg::sc_ex_result_t ex_result_i[SCALAR_EX_COUNT-1:0],
+    input packet_pkg::sc_ex_result_t ex_result_i[config_pkg::SCALAR_EX_N-1:0],
     input packet_pkg::sc_ex_result_t lsu_result_i,
-    output logic wb_ready_o[SCALAR_EX_COUNT-1:0],
+    output logic wb_ready_o[config_pkg::SCALAR_EX_N-1:0],
 
     if_data_bus.writeback data_bus_o
 );
 
-    packet_pkg::sc_ex_result_t fifo_heads[SCALAR_EX_COUNT-1:0]; 
+    localparam int unsigned EX_IDX_W = $clog2(config_pkg::EX_TOT_N);
+
+    packet_pkg::sc_ex_result_t fifo_heads[config_pkg::SCALAR_EX_N-1:0]; 
 
     logic[EX_IDX_W-1:0] choice;
-    logic[SCALAR_EX_COUNT-1:0] empty, full, next_full, eligible;
-    logic[SCALAR_EX_COUNT-1:0] dequeue, dequeue_next;
-    logic[SCALAR_EX_COUNT-1:0] mask, mask_upper, mask_next;
-    logic[SCALAR_EX_COUNT-1:0] candidates1, candidates2_upper, candidates2_lower;
-    logic[SCALAR_EX_COUNT-1:0] winner_upper, winner_lower, winner1, winner2;
+    logic[config_pkg::SCALAR_EX_N-1:0] empty, full, next_full, eligible;
+    logic[config_pkg::SCALAR_EX_N-1:0] dequeue, dequeue_next;
+    logic[config_pkg::SCALAR_EX_N-1:0] mask, mask_upper, mask_next;
+    logic[config_pkg::SCALAR_EX_N-1:0] candidates1, candidates2_upper, candidates2_lower;
+    logic[config_pkg::SCALAR_EX_N-1:0] winner_upper, winner_lower, winner1, winner2;
 
     logic reset_wb_n;
     // circular FIFOs with FWFT, so we know what the head of the queue is immediately
@@ -128,7 +130,7 @@ module wb_scalar (
         eligible = ~empty;
 
         mask_upper = mask[0];
-        for(int i=1;i<SCALAR_EX_COUNT; i++) begin
+        for(int i=1;i<config_pkg::SCALAR_EX_N; i++) begin
             mask_upper[i] = mask_upper[i-1] | mask[i];
         end
 
@@ -145,10 +147,10 @@ module wb_scalar (
         winner2 = (|candidates2_upper) ? winner_upper : winner_lower;
 
         if(|winner1) begin // something is full
-            for(int i=0; i<SCALAR_EX_COUNT; i++) begin
+            for(int i=0; i<config_pkg::SCALAR_EX_N; i++) begin
                 if(winner1[i]) choice = i[EX_IDX_W-1:0];
             end
-            mask_next = {winner1[SCALAR_EX_COUNT-2:0], winner1[SCALAR_EX_COUNT-1]};
+            mask_next = {winner1[config_pkg::SCALAR_EX_N-2:0], winner1[config_pkg::SCALAR_EX_N-1]};
             dequeue_next = winner1;
             data_bus_o.valid   = 1'b1;
             data_bus_o.prf_tag = fifo_heads[choice].prf_tag;
@@ -156,10 +158,10 @@ module wb_scalar (
             data_bus_o.data    = fifo_heads[choice].data;
         end
         else if(|winner2) begin // nothing full but something empty
-            for(int i=0; i<SCALAR_EX_COUNT; i++) begin
+            for(int i=0; i<config_pkg::SCALAR_EX_N; i++) begin
                 if(winner2[i]) choice = i[EX_IDX_W-1:0];
             end
-            mask_next = {winner2[SCALAR_EX_COUNT-2:0], winner2[SCALAR_EX_COUNT-1]};
+            mask_next = {winner2[config_pkg::SCALAR_EX_N-2:0], winner2[config_pkg::SCALAR_EX_N-1]};
             dequeue_next = winner2;
             data_bus_o.valid   = 1'b1;
             data_bus_o.prf_tag = fifo_heads[choice].prf_tag;
@@ -185,7 +187,7 @@ module wb_scalar (
     always_ff @(posedge clk_i) begin
 
         if(!reset_ni || flush_i) begin
-            mask <= {{SCALAR_EX_COUNT-1{1'b0}},1'b1};
+            mask <= {{config_pkg::SCALAR_EX_N-1{1'b0}},1'b1};
             dequeue <= '0;
         end
 

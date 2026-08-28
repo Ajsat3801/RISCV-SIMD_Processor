@@ -53,11 +53,11 @@ module rs_load_store (
     output logic rs_slot_released_o
 );
 
-    packet_pkg::rs_entry_t buffer[SINGLE_SLOT_RS_LEN-1:0];
+    packet_pkg::rs_entry_t buffer[config_pkg::RS_SINGLE_DISPATCH_DEPTH-1:0];
     logic instr_valid, dispatch, bypass;
     
-    logic [SINGLE_SLOT_RS_LEN-1:0] eligible, mask, mask_next, winner;
-    logic [SINGLE_SLOT_RS_LEN-1:0] mask_upper, upper_canditates, lower_canditates, winner_upper, winner_lower;
+    logic [config_pkg::RS_SINGLE_DISPATCH_DEPTH-1:0] eligible, mask, mask_next, winner;
+    logic [config_pkg::RS_SINGLE_DISPATCH_DEPTH-1:0] mask_upper, upper_canditates, lower_canditates, winner_upper, winner_lower;
     signal_pkg::rs_slot_id_t choice;
 
 
@@ -77,7 +77,7 @@ module rs_load_store (
                         rs_request_i.chip_select == signal_pkg::CS_VLSU ||
                         rs_request_i.chip_select == signal_pkg::CS_SLSU );
 
-        for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
+        for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
             eligible[i] =   buffer[i].occupied && 
                             buffer[i].operand_a_ready && 
                             buffer[i].operand_b_ready;
@@ -94,7 +94,7 @@ module rs_load_store (
         if (dispatch) begin
             mask_upper[0] = mask[0];
 
-            for (int i=1; i<SINGLE_SLOT_RS_LEN; i++) begin
+            for (int i=1; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
                 mask_upper[i] = mask_upper[i-1] | mask[i];
             end
 
@@ -106,12 +106,12 @@ module rs_load_store (
 
             winner = (|upper_canditates) ? winner_upper : winner_lower;
 
-            mask_next = {winner[SINGLE_SLOT_RS_LEN-2:0], winner[SINGLE_SLOT_RS_LEN-1]};
+            mask_next = {winner[config_pkg::RS_SINGLE_DISPATCH_DEPTH-2:0], winner[config_pkg::RS_SINGLE_DISPATCH_DEPTH-1]};
 
             choice = '0;
 
-            for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
-                if (winner[i]) choice = i[RS_ADDR_W-1:0];
+            for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
+                if (winner[i]) choice = i[config_pkg::RS_ADDR_W-1:0];
             end
         end
         else begin
@@ -146,11 +146,11 @@ module rs_load_store (
     always_ff @(posedge clk_i) begin
         
         if (!reset_ni || flush_i) begin
-            for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) buffer[i] <= '0;
+            for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) buffer[i] <= '0;
 
             released_rs_slot_id_o <= '0;
             dispatch_q <= '0;
-            mask <= {{SINGLE_SLOT_RS_LEN-1{1'b0}},1'b1};
+            mask <= {{config_pkg::RS_SINGLE_DISPATCH_DEPTH-1{1'b0}},1'b1};
 
         end
         
@@ -158,7 +158,7 @@ module rs_load_store (
 
             // snoop data from scalar CDB and update if needed
             if (sc_data_bus_i.valid) begin
-                for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
+                for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
                     if ( buffer[i].occupied) begin
                         if ( 
                             !buffer[i].operand_a_ready && 
@@ -180,7 +180,7 @@ module rs_load_store (
 
             // snoop data from vector CDB
             if (vc_data_bus_i.valid) begin
-                for (int i=0; i<SINGLE_SLOT_RS_LEN; i++) begin
+                for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
                     if ( buffer[i].occupied) begin
                         if ( 
                             !buffer[i].operand_a_ready && 

@@ -32,7 +32,7 @@ class top_funct_sim {
     private:
 
         // config variables set during construction    
-        const int vlen; // lanes per vector register (VECTOR_SIZE)
+        const int vlen; // lanes per vector register (VECTOR_LEN)
         const int imem_num_words;
         const int dmem_num_words;
         const int dmem_size; // dmem_size * vlen (vlen == number of banks)

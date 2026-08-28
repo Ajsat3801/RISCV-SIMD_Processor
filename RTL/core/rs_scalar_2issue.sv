@@ -50,17 +50,17 @@ module rs_scalar_2issue #(
     output logic rs_slot_released_o[1:0]
 );
 
-    packet_pkg::rs_entry_t buffer[DUAL_SLOT_RS_LEN-1:0];
+    packet_pkg::rs_entry_t buffer[config_pkg::RS_DUAL_DISPATCH_DEPTH-1:0];
     signal_pkg::rs_slot_id_t choice1, choice2;
 
     logic bypass_to_slot1, bypass_to_slot2;
     logic winner1_to_slot1, winner1_to_slot2, winner2_to_slot2;
     logic instr_valid, bypass_valid;
     logic winner1_valid, winner2_valid;
-    logic [DUAL_SLOT_RS_LEN-1:0] mask, mask_next, mask_upper;
-    logic [DUAL_SLOT_RS_LEN-1:0] upper_canditates, lower_canditates, canditates2;
-    logic [DUAL_SLOT_RS_LEN-1:0] winner_lower, winner_upper, winner1, winner2;
-    logic [DUAL_SLOT_RS_LEN-1:0] eligible;
+    logic [config_pkg::RS_DUAL_DISPATCH_DEPTH-1:0] mask, mask_next, mask_upper;
+    logic [config_pkg::RS_DUAL_DISPATCH_DEPTH-1:0] upper_canditates, lower_canditates, canditates2;
+    logic [config_pkg::RS_DUAL_DISPATCH_DEPTH-1:0] winner_lower, winner_upper, winner1, winner2;
+    logic [config_pkg::RS_DUAL_DISPATCH_DEPTH-1:0] eligible;
     
 
     always_comb begin
@@ -75,7 +75,7 @@ module rs_scalar_2issue #(
                         rs_request_i.rs_entry.operand_a_ready &&
                         rs_request_i.rs_entry.operand_b_ready;
         
-        for (int i=0; i<DUAL_SLOT_RS_LEN; i++) begin
+        for (int i=0; i<config_pkg::RS_DUAL_DISPATCH_DEPTH; i++) begin
             eligible[i] =   buffer[i].occupied &&
                             buffer[i].operand_a_ready &&
                             buffer[i].operand_b_ready;
@@ -83,7 +83,7 @@ module rs_scalar_2issue #(
 
         mask_upper[0] = mask[0];
 
-        for (int i=1; i<DUAL_SLOT_RS_LEN; i++) begin
+        for (int i=1; i<config_pkg::RS_DUAL_DISPATCH_DEPTH; i++) begin
             mask_upper[i] = mask_upper[i-1] | mask[i];
         end
 
@@ -114,22 +114,22 @@ module rs_scalar_2issue #(
         mask_next = mask;
 
         if (winner1_to_slot1) begin
-            for(int i=0;i<DUAL_SLOT_RS_LEN; i++) begin
-                if(winner1[i]) choice1 = i[RS_ADDR_W-1:0];
+            for(int i=0;i<config_pkg::RS_DUAL_DISPATCH_DEPTH; i++) begin
+                if(winner1[i]) choice1 = i[config_pkg::RS_ADDR_W-1:0];
             end
-            mask_next = {winner1[DUAL_SLOT_RS_LEN-2:0], winner1[DUAL_SLOT_RS_LEN-1]};
+            mask_next = {winner1[config_pkg::RS_DUAL_DISPATCH_DEPTH-2:0], winner1[config_pkg::RS_DUAL_DISPATCH_DEPTH-1]};
         end
         if (winner1_to_slot2) begin
-            for (int i=0;i<DUAL_SLOT_RS_LEN; i++) begin
-                if (winner1[i]) choice2 = i[RS_ADDR_W-1:0];
+            for (int i=0;i<config_pkg::RS_DUAL_DISPATCH_DEPTH; i++) begin
+                if (winner1[i]) choice2 = i[config_pkg::RS_ADDR_W-1:0];
             end
-            mask_next = {winner1[DUAL_SLOT_RS_LEN-2:0], winner1[DUAL_SLOT_RS_LEN-1]};
+            mask_next = {winner1[config_pkg::RS_DUAL_DISPATCH_DEPTH-2:0], winner1[config_pkg::RS_DUAL_DISPATCH_DEPTH-1]};
         end
         if (winner2_to_slot2) begin
-            for(int i=0;i<DUAL_SLOT_RS_LEN; i++) begin
-                if(winner2[i]) choice2 = i[RS_ADDR_W-1:0];
+            for(int i=0;i<config_pkg::RS_DUAL_DISPATCH_DEPTH; i++) begin
+                if(winner2[i]) choice2 = i[config_pkg::RS_ADDR_W-1:0];
             end
-            mask_next = {winner2[DUAL_SLOT_RS_LEN-2:0], winner2[DUAL_SLOT_RS_LEN-1]};
+            mask_next = {winner2[config_pkg::RS_DUAL_DISPATCH_DEPTH-2:0], winner2[config_pkg::RS_DUAL_DISPATCH_DEPTH-1]};
         end
         
     end
@@ -138,7 +138,7 @@ module rs_scalar_2issue #(
         
         if (!reset_ni || flush_i) begin
             
-            for (int i=0; i<DUAL_SLOT_RS_LEN; i++) buffer[i] <= '0;
+            for (int i=0; i<config_pkg::RS_DUAL_DISPATCH_DEPTH; i++) buffer[i] <= '0;
 
             rs_slot_released_o[0] <= 1'b0;
             rs_slot_released_o[1] <= 1'b0;
@@ -149,14 +149,14 @@ module rs_scalar_2issue #(
             sc_rd_req0_o <= '0;
             sc_rd_req1_o <= '0;
 
-            mask <= {{DUAL_SLOT_RS_LEN-1{1'b0}}, 1'b1};
+            mask <= {{config_pkg::RS_DUAL_DISPATCH_DEPTH-1{1'b0}}, 1'b1};
 
         end
         else begin
 
             // snoop data from CDB and update if needed
             if (sc_data_bus_i.valid) begin
-                for (int i=0; i<DUAL_SLOT_RS_LEN; i++) begin
+                for (int i=0; i<config_pkg::RS_DUAL_DISPATCH_DEPTH; i++) begin
                     if (buffer[i].occupied && sc_data_bus_i.prf_tag == buffer[i].operand_a_tag && !buffer[i].operand_a_ready) begin 
                         buffer[i].operand_a_ready <= 1'b1;
                     end

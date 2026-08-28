@@ -67,12 +67,12 @@
         output logic vc_ex_ready_o
     );
 
-    packet_pkg::load_store_entry_t store_buffer[config_pkg::STORE_BUFFER_SIZE-1:0];
+    packet_pkg::load_store_entry_t store_buffer[config_pkg::STORE_BUFFER_DEPTH-1:0];
     packet_pkg::load_store_entry_t in, hold_reg;
-    logic[config_pkg::STORE_BUFFER_SIZE-1:0] available, available_next;
+    logic[config_pkg::STORE_BUFFER_DEPTH-1:0] available, available_next;
     logic store_out, hold, slot_free, accept_store;
 
-    logic[$clog2(config_pkg::STORE_BUFFER_SIZE)-1:0] in_idx, out_idx, fwd_idx;
+    logic[$clog2(config_pkg::STORE_BUFFER_DEPTH)-1:0] in_idx, out_idx, fwd_idx;
     logic send_store, send_hold, send_in, fwd_load, forward_load;
 
     always_comb begin
@@ -100,7 +100,7 @@
         store_out = 1'b0;
         slot_free = 1'b0;
 
-        for(int i=0; i<STORE_BUFFER_SIZE; i++) begin
+        for(int i=0; i<config_pkg::STORE_BUFFER_DEPTH; i++) begin
             if(!store_buffer[i].valid) begin
                 in_idx = i;
                 slot_free = 1'b1;
@@ -131,7 +131,7 @@
 
     always_ff @(posedge clk_i) begin
         if(!reset_ni || flush_i) begin
-            for(int i=0; i<STORE_BUFFER_SIZE; i++) begin
+            for(int i=0; i<config_pkg::STORE_BUFFER_DEPTH; i++) begin
                 store_buffer[i] <= '0;
                 available[i]    <= '1;
                 hold <= 1'b0;
