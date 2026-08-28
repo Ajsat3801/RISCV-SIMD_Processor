@@ -53,7 +53,7 @@ class top_tb_seq_preload extends top_tb_seq_base;
             preload_single(
 
                 .imem_en(1'b1),
-                .imem_address(signal_pkg::imem_address_t'(i)),
+                .imem_address(signal_pkg::pc_t'(i)),
                 .imem_data(imem_data),
 
                 .dmem_en(1'b1),
@@ -77,7 +77,7 @@ class top_tb_seq_preload extends top_tb_seq_base;
     protected task preload_single(
 
         input logic imem_en = 1'b0,
-        input signal_pkg::imem_address_t imem_address = '0,
+        input signal_pkg::pc_t imem_address = '0,
         input signal_pkg::data_t imem_data = '0,
 
         input logic dmem_en = 1'b0,

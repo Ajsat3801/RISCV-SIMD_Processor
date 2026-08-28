@@ -65,7 +65,7 @@ module data_dmem_controller (
          */ 
 
         dmem_req_o.data = lsu_output.data;
-        dmem_req_o.address = lsu_output.mem_addr[9:2];
+        dmem_req_o.address = lsu_output.mem_addr;
 
         if (!lsu_output.valid || !lsu_output.is_store) dmem_req_o.write_enable = '0;
         else if (lsu_output.is_vector) dmem_req_o.write_enable = '1;

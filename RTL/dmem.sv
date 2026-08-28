@@ -40,16 +40,27 @@ module dmem (
     
     output signal_pkg::vector_data_t data_o
 );
+    // Phase 2 address generation;
+    // 16 bit address generation, 10bits DMEM address 6 bit tag
+
+    localparam TAG_SIZE = config_pkg::PHY_MEM_ADDR_W - config_pkg::DMEM_ADDR_W;
+    localparam OFFSET_SIZE = $clog2(config_pkg::DMEM_BANKS_N);
+    localparam BANK_OFFSET_SIZE = config_pkg::DMEM_ADDR_W - OFFSET_SIZE + 1;
     
     logic[32:0] read[3:0];
+    log
     logic[3:0]  write_enable;
+
+    logic [BANK_OFFSET_SIZE:0] dmem_address;
+    assign dmem_address = {1'b0, dmem_request_i.address[(config_pkg::DMEM_ADDR_W)-1:OFFSET_SIZE]};
+
     
     sky130_sram_1kbyte_1rw_32x256_32 u_dmem3(
         .clk0(clk_i),
         .csb0(1'b0),
         .web0(write_enable[3]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, dmem_request_i.address}),
+        .addr0(),
         .din0({1'b0, dmem_request_i.data[3]}),
         .dout0(read[3])
     );
@@ -59,7 +70,7 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[2]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, dmem_request_i.address}),
+        .addr0({1'b0, dmem_request_i.address[(config_pkg::DMEM_ADDR_W)-1:OFFSET_SIZE]}),
         .din0({1'b0, dmem_request_i.data[2]}),
         .dout0(read[2])
     );
@@ -69,7 +80,7 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[1]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, dmem_request_i.address}),
+        .addr0({1'b0, dmem_request_i.address[(config_pkg::DMEM_ADDR_W)-1:OFFSET_SIZE]}),
         .din0({1'b0, dmem_request_i.data[1]}),
         .dout0(read[1])
     );
@@ -79,7 +90,7 @@ module dmem (
         .csb0(1'b0),
         .web0(write_enable[0]),
         .spare_wen0(1'b0),
-        .addr0({1'b0, dmem_request_i.address}),
+        .addr0({1'b0, dmem_request_i.address[(config_pkg::DMEM_ADDR_W)-1:OFFSET_SIZE]}),
         .din0({1'b0, dmem_request_i.data[0]}),
         .dout0(read[0])
     );

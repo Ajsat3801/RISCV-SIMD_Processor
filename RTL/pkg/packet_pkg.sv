@@ -111,16 +111,30 @@ package packet_pkg;
 
     typedef struct packed {
         logic [config_pkg::DMEM_BANKS_N-1:0] write_enable;
-        signal_pkg::dmem_word_address_t address;
+        //signal_pkg::dmem_word_address_t address;
+        signal_pkg::mem_address_t address;
         signal_pkg::vector_data_t data;
     } dmem_request_t;
 
     typedef struct packed {
         logic read_enable;
         logic write_enable;
-        signal_pkg::imem_address_t address;
+        signal_pkg::pc_t address;
         signal_pkg::data_t data;
     } imem_request_t;
+
+    typedef struct packed {
+        logic valid;
+        logic write;                       // 1 = dirty evict, 0 = fill
+        signal_pkg::mem_addr_t addr;       // line-aligned, addr_WIDTH=16
+        signal_pkg::vector_data_t data;    // whole 16B line (evict only)
+    } mem_req_t;
+
+    typedef struct packed {
+        logic valid;
+        logic last;
+        signal_pkg::vector_data_t data;           // one 32b R beat
+    } mem_resp_t;
 
 // ------------------------------------------------------------------------------------------------
 //                                   FUNCTIONAL UNIT RESULTS
@@ -201,7 +215,7 @@ package packet_pkg;
         signal_pkg::prf_tag_t prf_tag;
         signal_pkg::rob_address_t rob_id;
         
-        signal_pkg::dmem_address_t mem_addr;
+        signal_pkg::mem_address_t mem_addr;
 
         signal_pkg::vector_data_t data;
 

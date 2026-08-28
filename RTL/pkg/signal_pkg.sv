@@ -72,9 +72,8 @@ package signal_pkg;
         vlsu_operations_e vlsu;
     } operations_e;
 
-    localparam int unsigned DMEM_ADDR_W = $clog2(DMEM_DEPTH);
+    
     localparam int unsigned DMEM_LCL_ADDR_W = $clog2(DMEM_BANK_DEPTH);
-    localparam int unsigned IMEM_ADDR_W = $clog2(IMEM_DEPTH);
     localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
     localparam int unsigned REG_ADDR_W = $clog2(ARCH_REG_DEPTH);
     localparam int unsigned ROB_ADDR_W = $clog2(ROB_DEPTH);
@@ -88,10 +87,9 @@ package signal_pkg;
     typedef logic [RS_ADDR_W-1:0]  rs_slot_id_t;
     
     typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
-    typedef logic [(DMEM_ADDR_W)-1:0] dmem_address_t;
+    typedef logic [(DMEM_ADDR_W)-1:0] mem_address_t;
     typedef logic [(DMEM_LCL_ADDR_W)-1:0] dmem_word_address_t;
-    typedef logic [(IMEM_ADDR_W)-1:0] imem_address_t;
-    typedef logic [(IMEM_ADDR_W)-1:0] pc_t;
+    typedef logic [(PC_W)-1:0] pc_t;
     
 /*
  * tag of an instruction used for snoop etc

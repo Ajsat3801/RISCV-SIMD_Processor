@@ -12,7 +12,7 @@ class top_tb_tr_preload extends top_tb_tr_base;
      */
 
     rand logic imem_en;
-    rand signal_pkg::imem_address_t imem_address;
+    rand signal_pkg::pc_t imem_address;
     rand signal_pkg::data_t imem_data;
 
     rand logic dmem_en;

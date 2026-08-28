@@ -31,19 +31,23 @@ module imem (
     output logic[31:0] data_o,
     output logic[7:0] address_o
 );
+    localparam TAG_SIZE = config_pkg::PC_W - config_pkg::IMEM_ADDR_W;
+    
     logic[32:0] read;
+    logic [config_pkg::IMEM_ADDR_W:0] imem_address;
 
     sky130_sram_1kbyte_1rw_32x256_32 u_imem(
         .clk0(clk_i),
         .csb0(1'b0),
         .web0(~imem_request_i.write_enable),
         .spare_wen0(1'b0),
-        .addr0({1'b0, imem_request_i.address}),
+        .addr0(imem_address),
         .din0({1'b0, imem_request_i.data}),
         .dout0(read)
     );
 
     assign data_o = read[31:0];
+    assign imem_address = {1'b0, imem_request_i.address[config_pkg::IMEM_ADDR_W-1:0]};
     always @(posedge clk_i) begin
         address_o <= imem_request_i.address;
     end

@@ -20,7 +20,7 @@ interface top_tb_if_preload (input logic clk_i, input logic reset_ni);
 
     task automatic drive_preload(
         input logic imem_en = 1'b0,
-        input signal_pkg::imem_address_t imem_address = '0,
+        input signal_pkg::pc_t imem_address = '0,
         input signal_pkg::data_t imem_data = '0,
 
         input logic dmem_en = 1'b0,

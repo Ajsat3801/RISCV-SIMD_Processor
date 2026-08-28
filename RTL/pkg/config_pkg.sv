@@ -45,7 +45,10 @@ package config_pkg;
     localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_DEPTH);
     
     localparam int unsigned DMEM_BANKS_N = VECTOR_LEN;      // Number of banks in DMEM (= Vector length)
-    localparam int unsigned DMEM_DEPTH = IMEM_DEPTH * DMEM_BANKS_N; // Total depth of banked DMEM
+    localparam int unsigned DMEM_DEPTH = DMEM_BANK_DEPTH * DMEM_BANKS_N; // Total depth of banked DMEM
+    localparam int unsigned DMEM_ADDR_W = $clog2(DMEM_DEPTH); // Number of bits required for DMEM address
+
+    localparam int unsigned IMEM_ADDR_W = $clog2(IMEM_DEPTH);
 
 endpackage
 
