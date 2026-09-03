@@ -22,7 +22,7 @@ package config_pkg;
     parameter int unsigned PRF_DEPTH = 64;                  // Number of physical registers in the core
 
     parameter int unsigned IMEM_DEPTH = 256;                // Number of entries in IMEM
-    parameter int unsigned DMEM_BANK_DEPTH = 256;           // Number of entries in a single bank of DMEM
+    parameter int unsigned DCACHE_BANK_DEPTH = 256;           // Number of entries in a single bank of DCACHE
     parameter int unsigned PC_W = 16;                       // Width of program counter
     parameter int unsigned PHY_MEM_ADDR_W = 16;             // Width of memory address
     parameter int unsigned CACHE_LINE_DEPTH = 4;            // Number of words in a single cache line
@@ -44,10 +44,6 @@ package config_pkg;
                                             RS_DUAL_DISPATCH_DEPTH : RS_SINGLE_DISPATCH_DEPTH;
     localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_DEPTH);
     
-    localparam int unsigned DMEM_BANKS_N = VECTOR_LEN;      // Number of banks in DMEM (= Vector length)
-    localparam int unsigned DMEM_DEPTH = DMEM_BANK_DEPTH * DMEM_BANKS_N; // Total depth of banked DMEM
-    localparam int unsigned DMEM_ADDR_W = $clog2(DMEM_DEPTH); // Number of bits required for DMEM address
-
     localparam int unsigned IMEM_ADDR_W = $clog2(IMEM_DEPTH);
 
 endpackage

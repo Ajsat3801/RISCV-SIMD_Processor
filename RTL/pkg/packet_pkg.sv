@@ -124,17 +124,20 @@ package packet_pkg;
     } imem_request_t;
 
     typedef struct packed {
-        logic valid;
-        logic write;                       // 1 = dirty evict, 0 = fill
-        signal_pkg::mem_addr_t addr;       // line-aligned, addr_WIDTH=16
-        signal_pkg::vector_data_t data;    // whole 16B line (evict only)
-    } mem_req_t;
+        logic valid;                     // 1 = dirty evict, 0 = fill
+        signal_pkg::mem_address_t addr;       // line-aligned, addr_WIDTH=1   // whole 16B line (evict only)
+    } mem_read_request_t;
 
     typedef struct packed {
         logic valid;
-        logic last;
+        signal_pkg::mem_address_t addr;       // line-aligned, addr_WIDTH=16
+        signal_pkg::vector_data_t data;    // whole 16B line (evict only)
+    } mem_write_request_t;
+
+    typedef struct packed {
+        logic valid;
         signal_pkg::vector_data_t data;           // one 32b R beat
-    } mem_resp_t;
+    } mem_read_response_t;
 
 // ------------------------------------------------------------------------------------------------
 //                                   FUNCTIONAL UNIT RESULTS
