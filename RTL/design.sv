@@ -12,6 +12,9 @@
 `include "if_alloc_bus.sv"
 `include "if_data_bus.sv"
 `include "if_retirement_bus.sv"
+`include "if_axi.sv"
+
+`include "axi_controller.sv"
 
 `include "lib_fifo_fwft_1push.sv"
 `include "lib_fifo_fwft_2push.sv"
@@ -30,7 +33,7 @@
 `include "ooo_arr_unit.sv"
 `include "ooo_reorder_buffer.sv"
 
-`include "data_dmem_controller.sv"
+`include "data_l1_dcache.sv"
 `include "data_sc_regfile_3sc.sv"
 `include "data_sc_regfile_br_valu_ls.sv"
 `include "data_vc_regfile_valu_ls.sv"
@@ -51,6 +54,5 @@
 
 `include "core.sv"
 `include "imem.sv"
-`include "dmem.sv"
 
 `include "top.sv"

@@ -61,20 +61,11 @@ module core #()(
 
     input  logic compute_i,
 
-    input  logic sc_prf_preload_en_i,
-    input  signal_pkg::data_t sc_prf_preload_data_i,
-    input  signal_pkg::prf_tag_t sc_prf_preload_addr_i, 
-
-    input  logic vc_prf_preload_en_i,
-    input  signal_pkg::vector_data_t vc_prf_preload_data_i,
-    input  signal_pkg::prf_tag_t vc_prf_preload_addr_i, 
-
     input  signal_pkg::data_t imem_dout_i,
     input  logic [7:0] imem_addr_i,
     output packet_pkg::imem_request_t imem_request_o,
 
-    input  logic [127:0] dmem_dout_i,
-    output packet_pkg::dmem_request_t dmem_request_o
+    if_axi.master axi_connection
 
 );
 
@@ -129,6 +120,12 @@ module core #()(
 
     packet_pkg::load_store_entry_t lsu_output;
     packet_pkg::store_retire_request_t store_retire_req;
+
+    // Dcache <-> AXI controller signals
+    packet_pkg::mem_read_request_t mem_rd_req;
+    packet_pkg::mem_read_response_t mem_rd_res;
+    packet_pkg::mem_write_request_t mem_wrt_req;
+    logic mem_rd_rdy, mem_wrt_done, mem_wrt_rdy;
 
     // ready signals from FUs
     // SCALAR: EX -> RS
@@ -189,34 +186,21 @@ module core #()(
 
     assign lsu_ready = sc_rs_ex_ready[3] && vc_rs_ex_ready[1];
 
-    always_comb begin
-        /*
-         * Handling pre-loading of PRF
-         */
+//  -----------------------------------------------------------------------------------------------
+//                                          INPUT/OUTPUT
+//  -----------------------------------------------------------------------------------------------
 
-        if (sc_prf_preload_en_i) begin
-            u_sc_prf_input.valid   =  sc_prf_preload_en_i;
-            u_sc_prf_input.prf_tag =  sc_prf_preload_addr_i;
-            u_sc_prf_input.data    =  sc_prf_preload_data_i;
-        end
-        else begin
-            u_sc_prf_input.valid   = u_sc_data_bus.valid;
-            u_sc_prf_input.prf_tag = u_sc_data_bus.prf_tag;
-            u_sc_prf_input.data    = u_sc_data_bus.data;
-        end
-
-        if (vc_prf_preload_en_i) begin
-            u_vc_prf_input.valid   = vc_prf_preload_en_i;
-            u_vc_prf_input.prf_tag = vc_prf_preload_addr_i;
-            u_vc_prf_input.data    = vc_prf_preload_data_i;
-        end
-        else begin
-            u_vc_prf_input.valid = u_vc_data_bus.valid;
-            u_vc_prf_input.prf_tag = u_vc_data_bus.prf_tag;
-            u_vc_prf_input.data = u_vc_data_bus.data;
-        end 
-
-    end
+    axi_controller u_axi_controller(
+        .clk_i(clk_i),
+        .reset_ni(reset_ni),
+        .dcache_mem_rd_req_i(mem_rd_req),
+        .dcache_mem_rd_res_o(mem_rd_res),
+        .dcache_mem_rd_rdy_o(mem_rd_rdy),
+        .dcache_mem_wrt_req_i(mem_wrt_req),
+        .dcache_mem_wrt_done_o(mem_wrt_done),
+        .dcache_mem_wrt_rdy_o(mem_wrt_rdy),
+        .axi_connection(axi_connection)
+    );
 
 // ------------------------------------------------------------------------------------------------
 //                                        IN ORDER FRONT END
@@ -370,15 +354,20 @@ module core #()(
 //                                              DATA
 // ------------------------------------------------------------------------------------------------
 
-    data_dmem_controller u_dmem_controller (
+    data_l1_dcache u_dcache (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .lsu_output(lsu_output),
-        .dmem_dout_i(dmem_dout_i),
-        .dmem_req_o(dmem_request_o),
+        .lsu_output_i(lsu_output),
+        .l1_dcache_ready_o(),
         .sc_wb_o(sc_ex_result[3]),
-        .vc_wb_o(vc_ex_result[1])
+        .vc_wb_o(vc_ex_result[1]),
+        .mem_rd_req_o(mem_rd_req),
+        .mem_rd_res_i(mem_rd_res),
+        .mem_rd_rdy_i(mem_rd_rdy),
+        .mem_wrt_req_o(mem_wrt_req),
+        .mem_wrt_done_i(mem_wrt_done),
+        .mem_wrt_rdy_i(mem_wrt_rdy)
     );
     
     data_sc_regfile_3sc u_scalar_prf_replica0 (
