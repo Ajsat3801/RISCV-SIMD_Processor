@@ -25,7 +25,6 @@ package config_pkg;
     parameter int unsigned DCACHE_BANK_DEPTH = 256;           // Number of entries in a single bank of DCACHE
     parameter int unsigned PC_W = 16;                       // Width of program counter
     parameter int unsigned PHY_MEM_ADDR_W = 16;             // Width of memory address
-    parameter int unsigned CACHE_LINE_DEPTH = 4;            // Number of words in a single cache line
 
     // ----------------------------------------------------------------------------------------------------------------
     //                                          DERIVED CONFIG PARAMETERS 
@@ -45,6 +44,9 @@ package config_pkg;
     localparam int unsigned RS_ADDR_W = $clog2(RS_MAX_DEPTH);
     
     localparam int unsigned IMEM_ADDR_W = $clog2(IMEM_DEPTH);
+
+    // Notes
+    //  -> the number of banks in a cache will always be equal to the number of elements in a vector
 
 endpackage
 

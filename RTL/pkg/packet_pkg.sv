@@ -110,13 +110,6 @@ package packet_pkg;
     } store_retire_request_t;
 
     typedef struct packed {
-        logic [config_pkg::DMEM_BANKS_N-1:0] write_enable;
-        //signal_pkg::dmem_word_address_t address;
-        signal_pkg::mem_address_t address;
-        signal_pkg::vector_data_t data;
-    } dmem_request_t;
-
-    typedef struct packed {
         logic read_enable;
         logic write_enable;
         signal_pkg::pc_t address;
@@ -217,6 +210,7 @@ package packet_pkg;
 
         signal_pkg::prf_tag_t prf_tag;
         signal_pkg::rob_address_t rob_id;
+        signal_pkg::operations_e operation;
         
         signal_pkg::mem_address_t mem_addr;
 
