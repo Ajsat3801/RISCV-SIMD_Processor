@@ -24,6 +24,8 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
 
         gen = top_tb_instr_gen::type_id::create("gen");
 
+        gen.set_program_length(n_instr);
+
         dmem_preload = new[config_pkg::DMEM_BANK_DEPTH];
         foreach(dmem_preload[i]) dmem_preload[i] = random_vector();
 
