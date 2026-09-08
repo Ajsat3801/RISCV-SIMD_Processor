@@ -62,16 +62,7 @@ class top_funct_sim {
             switch (in.opcode) {
                 case 0b0010011: // I type
                 case 0b0000011: // lw
-                case 0b0000111: // vle
-                    // sign-extend inst[31:20]
-                    in.imm = ((int32_t)raw_instr) >> 20;
-                    break;
-
                 case 0b0100011: // sw
-                case 0b0100111: // vse
-                    in.imm = (((int32_t)raw_instr >> 25) << 5)   // imm[11:5] (sign-ext)
-                           | ((raw_instr >> 7) & 0x1F);          // imm[4:0]
-                    break;
 
                 case 0b1100011: // branches
                     in.imm = ((int32_t)(raw_instr & 0x80000000) >> 19) // imm[12] + sign

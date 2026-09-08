@@ -63,6 +63,7 @@ module fe_decode(
     logic [31:0] intermediate;
     logic in_to_out, hold_to_out, in_to_hold;
     signal_pkg::pc_t link_pc;
+    logic legal;
 
     
     //assign decoded_instr_en_o = in_to_out || hold_to_out; // send to queue
@@ -79,7 +80,7 @@ module fe_decode(
     
     always_comb begin
         if (fetch_valid_i) begin
-            
+
             input_instr.valid = fetch_valid_i;
             input_instr.chip_select = signal_pkg::NONE;
             input_instr.operation   = '0;
@@ -98,7 +99,12 @@ module fe_decode(
             input_instr.src1_vector  = 1'b0;
             input_instr.src2_vector  = 1'b0;
 
+            intermediate = '0;
+            link_pc = '0;
+            legal = 1'b1;
+
             case(fetched_instr_i[6:0]) 
+
                 7'b0110111: begin 
                     // lui instruction
                     input_instr.src1_address = fetched_instr_i[31:27];
@@ -106,6 +112,7 @@ module fe_decode(
                     input_instr.imm = {fetched_instr_i[21:12], 2'b00};
                     input_instr.pre_calc = 1'b1;
                 end
+
                 7'b0010111: begin 
                     // auipc instruction
                     intermediate = {fetched_instr_i[31:12], 12'b000000000000};
@@ -118,23 +125,32 @@ module fe_decode(
 
                     input_instr.pre_calc = 1'b1;
                 end
+
                 7'b0000011: begin
-                    // scalar load instructions (only LW supported for now)
+                    // scalar load instructions
                     input_instr.chip_select = signal_pkg::CS_SLSU;
                     input_instr.operation   = {fetched_instr_i[5], fetched_instr_i[14:12]};
+                    case (fetched_instr_i[14:12])
+                        3'b000, 3'b001, 3'b010, 3'b100, 3'b101 : legal = 1'b1;
+                        default : legal = 1'b0;
+                    endcase
+                    input_instr.src2_address = '0;
                 end
+
                 7'b0010011: begin
                     // i-type scalar ALU instructions
                     input_instr.chip_select = signal_pkg::CS_SALU;
                     input_instr.operation   = {1'b0, fetched_instr_i[14:12]};
                     input_instr.src2_address = '0;   
                 end
+
                 7'b0110011: begin 
                     // r-type scalar ALU instructions
                     input_instr.chip_select = (fetched_instr_i[25]) ? signal_pkg::CS_MULDIV : signal_pkg::CS_SALU;
                     input_instr.operation = {fetched_instr_i[30], fetched_instr_i[14:12]}; 
                     input_instr.read_src2   = 1'b1;
                 end 
+
                 7'b1100011: begin
                     // branch instructions
                     input_instr.chip_select = signal_pkg::CS_BRANCH;
@@ -145,22 +161,27 @@ module fe_decode(
 
                     input_instr.extend = intermediate[9:0];
                     input_instr.imm = intermediate[21:10];
-                    //input_instr.src2_address = intermediate[26:22];
-                    //input_instr.src1_address = intermediate[31:27];
+                    // Target supports upto 22 bits. Not an issue since PC is 16 bits anyway
                     
                     input_instr.write_to_reg = 1'b0;
                     input_instr.pre_calc  = 1'b1;
                     input_instr.is_branch = 1'b1;
                 end
+
                 7'b0100011: begin 
-                    // scalar store instructions (only SW supported for now)
+                    // scalar store instructions
                     input_instr.chip_select = signal_pkg::CS_SLSU;
                     input_instr.operation   = {fetched_instr_i[5],fetched_instr_i[14:12]};
                     input_instr.imm = {fetched_instr_i[31:25], fetched_instr_i[11:7]};
                     input_instr.write_to_reg = 1'b0;
                     input_instr.read_src2    = 1'b0;
                     // NOTE: src2 actually read, but we send operand b as imm in stores
+                    case (fetched_instr_i[14:12])
+                        3'b000, 3'b001, 3'b010 : legal = 1'b1;
+                        default : legal = 1'b0;
+                    endcase
                 end
+
                 7'b1101111: begin 
                     // Jump instructions (only jal supported for now)
 
@@ -176,6 +197,7 @@ module fe_decode(
                     input_instr.pre_calc  = 1'b1;
                     input_instr.is_branch = 1'b1;
                 end
+
                 7'b1010111: begin 
                     // vector ALU instructions
                     input_instr.chip_select = signal_pkg::CS_VALU;
@@ -183,14 +205,16 @@ module fe_decode(
                     input_instr.read_src2   = 1'b1;
                     input_instr.src1_vector = !fetched_instr_i[14];
                     input_instr.src2_vector = 1'b1;
-
                 end
+
                 7'b0000111: begin 
                     // vector load instructions (only vle32.v supported for now)
                     input_instr.chip_select = signal_pkg::CS_VLSU;
                     input_instr.operation   = {fetched_instr_i[5],fetched_instr_i[14:12]};
-                    
+                    input_instr.imm = '0;
+                    legal = (fetched_instr_i[31:20] == 12'h020);
                 end
+
                 7'b0100111: begin 
                     // vector store instructions (only vse32.v supported for now)
                     input_instr.chip_select  = signal_pkg::CS_VLSU;
@@ -198,11 +222,17 @@ module fe_decode(
                     input_instr.src2_address = fetched_instr_i[11:7];
                     input_instr.write_to_reg = 1'b0;
                     input_instr.src2_vector  = 1'b1;
+                    input_instr.imm = '0;
+                    legal = (fetched_instr_i[31:20] == 12'h020);
                 end
+
                 default:
-                    input_instr.valid = 1'b0;
+                    legal = 1'b0;
             endcase
+
+            if(!legal) input_instr = '0;
         end
+
         else input_instr = '0;
     end
 

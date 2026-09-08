@@ -92,7 +92,10 @@ module ooo_arr_unit (
         sc_instr_valid = dispatched_instr_i.valid && (dispatched_instr_i.chip_select[2] == 1'b0);
         vc_instr_valid = dispatched_instr_i.valid && (dispatched_instr_i.chip_select[2] == 1'b1);
 
-        sc_store_valid = sc_instr_valid && (dispatched_instr_i.operation.lsu == signal_pkg::LSU_SW);
+        sc_store_valid  = sc_instr_valid
+                        && (dispatched_instr_i.chip_select == signal_pkg::CS_SLSU)
+                        && dispatched_instr_i.operation.lsu[3];
+                        
         vc_store_valid = vc_instr_valid && (dispatched_instr_i.operation.vlsu == signal_pkg::VLSU_VSE32);
 
         // Allocation valid

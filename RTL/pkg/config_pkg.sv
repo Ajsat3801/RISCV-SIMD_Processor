@@ -22,8 +22,8 @@ package config_pkg;
     parameter int unsigned PRF_DEPTH = 64;                  // Number of physical registers in the core
 
     parameter int unsigned IMEM_DEPTH = 256;                // Number of entries in IMEM
-    parameter int unsigned DCACHE_BANK_DEPTH = 256;           // Number of entries in a single bank of DCACHE
-    parameter int unsigned PC_W = 16;                       // Width of program counter
+    parameter int unsigned DCACHE_BANK_DEPTH = 256;         // Number of entries in a single bank of DCACHE
+    parameter int unsigned PC_W = 16;                       // Width of program counter (Max 22)
     parameter int unsigned PHY_MEM_ADDR_W = 16;             // Width of memory address
 
     // ----------------------------------------------------------------------------------------------------------------

@@ -85,6 +85,7 @@ package signal_pkg;
     } operations_e;
 
 //  -----------------------------------------------------------------------------------------------
+//                                          Signals 
 //  -----------------------------------------------------------------------------------------------
     localparam int unsigned PRF_ADDR_W = $clog2(PRF_DEPTH);
     localparam int unsigned REG_ADDR_W = $clog2(ARCH_REG_DEPTH);
@@ -128,11 +129,11 @@ package signal_pkg;
         logic [15:0] hword_sel;
 
         byte_sel = w[8*addr[1:0] +: 8]; // byte from word slected by addr[1:0]
-        hword_sel = w[8*addr[1] +: 16]; // halfword from word selected by addr[1]
+        hword_sel = w[16*addr[1] +: 16]; // halfword from word selected by addr[1]
 
         case (o.lsu)
-            LSU_LB:  return {24{byte_sel[7]}, byte_sel};
-            LSU_LH:  return {24{hword_sel[15]}, hword_sel};
+            LSU_LB:  return {{24{byte_sel[7]}}, byte_sel};
+            LSU_LH:  return {{16{hword_sel[15]}}, hword_sel};
             LSU_LBU: return {24'b0, byte_sel};
             LSU_LHU: return {16'b0, hword_sel};
             default: return w;
