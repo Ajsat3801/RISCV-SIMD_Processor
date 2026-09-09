@@ -93,18 +93,6 @@ package packet_pkg;
     } read_request_t;
 
     typedef struct packed {
-        signal_pkg::prf_tag_t store_data_tag;
-        logic a_is_vector;
-        logic b_is_vector;
-    } vc_lsu_read_request_t;
-
-    typedef struct packed {
-        signal_pkg::vector_data_t store_data;
-        logic a_is_vector;
-        logic b_is_vector;
-    } vc_lsu_ex_request_t;
-
-    typedef struct packed {
         signal_pkg::rob_address_t rob_id;
         logic valid;
     } store_retire_request_t;

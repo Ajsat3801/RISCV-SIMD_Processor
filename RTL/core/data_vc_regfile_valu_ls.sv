@@ -36,11 +36,11 @@ module data_vc_regfile_valu_ls (
 
     // inputs from RS for instruction ready to be executed
     input packet_pkg::read_request_t vc_alu_rd_req_i,
-    input packet_pkg::vc_lsu_read_request_t vc_lsu_rd_req_i,
+    input signal_pkg::prf_tag_t vc_lsu_rd_req_i,
 
     // sending operands and instruction data to ex
     output packet_pkg::vc_alu_ex_request_t vc_alu_ex_req_o,
-    output packet_pkg::vc_lsu_ex_request_t vc_lsu_ex_req_o
+    output signal_pkg::vector_data_t vc_lsu_ex_req_o
 );
 
     signal_pkg::vector_data_t regfile[PRF_DEPTH-1:0];
@@ -49,7 +49,7 @@ module data_vc_regfile_valu_ls (
     always_comb begin
         operand_a0 = regfile[vc_alu_rd_req_i.operand_a_tag.tag];
         operand_b0 = regfile[vc_alu_rd_req_i.operand_b_tag.tag];
-        operand_sd = regfile[vc_lsu_rd_req_i.store_data_tag.tag];
+        operand_sd = regfile[vc_lsu_rd_req_i.tag];
     end
 
     always_ff @(posedge clk_i) begin
@@ -79,8 +79,7 @@ module data_vc_regfile_valu_ls (
                                 };
 
             // read LSU operands
-            vc_lsu_ex_req_o <= {operand_sd, vc_lsu_rd_req_i.a_is_vector, vc_lsu_rd_req_i.b_is_vector};
-
+            vc_lsu_ex_req_o <= operand_sd;
         end
     end
 

@@ -45,7 +45,7 @@ module rs_load_store (
     if_data_bus.snoop vc_data_bus_i,
     
     output packet_pkg::read_request_t ls_read_request_o,
-    output packet_pkg::vc_lsu_read_request_t vc_lsu_rd_req_o,
+    output signal_pkg::prf_tag_t vc_lsu_rd_req_o,
     
     input  logic lsu_ready_i,
 
@@ -136,10 +136,7 @@ module rs_load_store (
         ls_read_request_o.a_is_vector = dispatch_q.a_is_vector;
         ls_read_request_o.b_is_vector = dispatch_q.b_is_vector;
         
-        vc_lsu_rd_req_o.store_data_tag = dispatch_q.operand_b_tag;
-        
-        vc_lsu_rd_req_o.a_is_vector  = dispatch_q.a_is_vector;
-        vc_lsu_rd_req_o.b_is_vector  = dispatch_q.b_is_vector;
+        vc_lsu_rd_req_o = dispatch_q.operand_b_tag;
 
     end
 

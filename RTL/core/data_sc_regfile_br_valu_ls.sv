@@ -23,7 +23,7 @@
  *  ->  ls_ex_req_o — Registered execution packet for the load-store unit. operand_a is RS1 (base
  *      address); operand_b is the sign-extended 12-bit immediate (address offset for loads/scalar
  *      stores). Metadata is forwarded from ls_rd_req_i.
- *  ->  ls_store_data_o — Store data scalar store word operations.
+ *  ->  ls_store_data_o — Store data scalar store operations.
  *  
  *  Notes
  *  ->  Flush does not affect the physical register file contents.
@@ -129,7 +129,7 @@ module data_sc_regfile_br_valu_ls (
             /* Port 2: Scalar operands for Load-store unit
              *  ->  operand_a is RS1, for both scalar and vector ops
              *  ->  operand_b is imm, used to calculate dest address for scalar ops
-             *  ->  ls_store_data is store data used for scalar store word operations only
+             *  ->  ls_store_data is store data used for scalar store operations only
              */  
             
             ls_ex_req_o.valid     <= ls_rd_req_i.valid;
