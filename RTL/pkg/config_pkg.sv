@@ -14,17 +14,23 @@ package config_pkg;
 
     parameter int unsigned INSTR_QUEUE_DEPTH = 16;          // Number of entries in instruction queue
     parameter int unsigned ROB_DEPTH = 32;                  // Number of entries in ROB
-    parameter int unsigned RS_SINGLE_DISPATCH_DEPTH = 8;    // Number of entries in an RS with 1 dispatch slot
-    parameter int unsigned RS_DUAL_DISPATCH_DEPTH = 32;     // Number of entries in an RS with 2 dispatch slots
-    parameter int unsigned STORE_BUFFER_DEPTH = 4;          // Number of entries in store buffer
-
     parameter int unsigned ARCH_REG_DEPTH = 32;             // Number of registers in the core
     parameter int unsigned PRF_DEPTH = 64;                  // Number of physical registers in the core
+
+    parameter int unsigned RS_SINGLE_DISPATCH_DEPTH = 8;    // Number of entries in an RS with 1 dispatch slot
+    parameter int unsigned RS_DUAL_DISPATCH_DEPTH = 16;     // Number of entries in an RS with 2 dispatch slots
+    
+    parameter int unsigned RS_LSU_LOAD_DEPTH  = 8;          // Number of load entries in LSU reservation station
+    parameter int unsigned RS_LSU_STORE_DEPTH = 4;          // Number of store entries in LSU reservation station
+
+    parameter int unsigned STORE_BUFFER_DEPTH = 4;          // Number of entries in store buffer
 
     parameter int unsigned IMEM_DEPTH = 256;                // Number of entries in IMEM
     parameter int unsigned DCACHE_BANK_DEPTH = 256;         // Number of entries in a single bank of DCACHE
     parameter int unsigned PC_W = 16;                       // Width of program counter (Max 22)
     parameter int unsigned PHY_MEM_ADDR_W = 16;             // Width of memory address
+
+    // Notes: All RS depths must be powers of 2.
 
     // ----------------------------------------------------------------------------------------------------------------
     //                                          DERIVED CONFIG PARAMETERS 

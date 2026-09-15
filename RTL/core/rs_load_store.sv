@@ -3,34 +3,23 @@
  * ------------------------------------------------------------------------------------------------
  *
  *  Functions / Behavior
- *  ->  Implements reservation station to schedule load/store instructions destined for load-store
- *      unit until both operands and functional unit are ready.
- *  ->  Snoops both scalar & vector CDB to mark buffered operands ready when PRF tag matches
- *      broadcast result.
- *  ->  Supports bypass if buffer is empty and LSU is ready.
- *  ->  Mask-based round-robin arbitration scheme.
- *  ->  On dispatch, selected buffer slot is cleared and dispatched entry is sent to output.
- *  ->  On reset or flush, all buffer entries, dispatch_q, and the arbitration mask are cleared.
- *
+ *  <TODO>
  *  Inputs
  *  ->  clk, reset_n & flush
- *  ->  rs_request_i — Allocation bus carrying the incoming RS entry.
+ *  ->  rs_req_i — Allocation bus carrying the incoming RS entry.
  *  ->  sc_data_bus_i — Scalar common data bus snoop port.
  *  ->  vc_data_bus_i — Vector common data bus snoop port.
- *  ->  lsu_ready_i — Handshake from LSU indicating it can accept a new instruction.
+ *  ->  lsu_rdy_i — Handshake from LSU indicating LSU can accept a new instruction.
  *
  *  Outputs
- *  ->  ls_read_request_o — Scalar LSU read request driven to PRF
+ *  ->  ls_read_req_o — Scalar LSU read request driven to PRF
  *  ->  vc_lsu_rd_req_o — Vector LSU read request driven to PRF
- *  ->  released_rs_slot_id_o — Slot ID of the entry dispatched this cycle.
- *  ->  rs_slot_released_o — Signal to indicate that an RS slot has been freed
+ *  ->  lsu_rs_rdy_o — Handshake with Instruction queue indicating RS an accept new instruction. 
  *
  *  Notes
- *  ->  On a bypass cycle no buffer slot is consumed, but outputs are treated similar to when
- *      a slot has been released
- *  ->  Both scalar & vector read requests are valid after dispatch; The respective PRFs 
- *      process the data and sends them to the LSU. LSU handles the data and gating.
- *
+ *  ->  Priority order when load and store is ready to dispatch -> if(load or store is full), the
+ *      buffer that is full gets dispatched. else load gets priority over store
+ *  <TODO>
  * ------------------------------------------------------------------------------------------------
  */
 
@@ -39,239 +28,360 @@ module rs_load_store (
     input reset_ni,
     input flush_i,
 
-    if_alloc_bus.rs rs_request_i,
+    //  RS <- ARR connection
+    if_alloc_bus.rs rs_req_i,
 
+    //  RS <- WB connection
     if_data_bus.snoop sc_data_bus_i,
     if_data_bus.snoop vc_data_bus_i,
     
-    output packet_pkg::read_request_t ls_read_request_o,
+    //  RS -> PRF connection
+    output packet_pkg::read_request_t ls_read_req_o,
     output signal_pkg::prf_tag_t vc_lsu_rd_req_o,
-    
-    input  logic lsu_ready_i,
 
-    output signal_pkg::rs_slot_id_t released_rs_slot_id_o,
-    output logic rs_slot_released_o
+    //  RS <- LSU ready connection for backpressure
+    input  logic lsu_rdy_i,
+    
+    // RS -> Instruction Queue connection for backpressure
+    output logic lsu_rs_rdy_o
+
 );
 
-    packet_pkg::rs_entry_t buffer[config_pkg::RS_SINGLE_DISPATCH_DEPTH-1:0];
-    logic instr_valid, dispatch, bypass;
+    //  -------------------------------------------------------------------------------------------
+    //      Types & local params
+
+    localparam int unsigned RS_LSU_LDQ_ADDR_W = $clog2(config_pkg::RS_LSU_LOAD_DEPTH);
+    localparam int unsigned RS_LSU_STQ_ADDR_W = $clog2(config_pkg::RS_LSU_STORE_DEPTH);
+
+    typedef struct packed {
+        logic epoch;
+        logic[RS_LSU_STQ_ADDR_W-1:0] addr;
+    } lsu_rs_store_q_addr_t;
+
+    typedef logic[RS_LSU_LDQ_ADDR_W-1:0] lsu_rs_load_addr_t;
+
+
+    //  -------------------------------------------------------------------------------------------
+    //      Input Output declaration
     
-    logic [config_pkg::RS_SINGLE_DISPATCH_DEPTH-1:0] eligible, mask, mask_next, winner;
-    logic [config_pkg::RS_SINGLE_DISPATCH_DEPTH-1:0] mask_upper, upper_canditates, lower_canditates, winner_upper, winner_lower;
-    signal_pkg::rs_slot_id_t choice;
+    function automatic logic tag_match( // CDB snoop
+        input logic rs_is_vec, input signal_pkg::prf_tag_t rs_tag ,
+        input logic sc_cdb_valid, input signal_pkg::prf_tag_t sc_cdb_tag,
+        input logic vc_cdb_valid, input signal_pkg::prf_tag_t vc_cdb_tag
+    );
+        if(rs_is_vec) tag_match = vc_cdb_valid && (rs_tag == vc_cdb_tag);
+        else tag_match = sc_cdb_valid && (rs_tag == sc_cdb_tag);
 
+    endfunction
 
-    packet_pkg::rs_entry_t dispatch_q;
+    logic in_valid, in_is_store, in_ready;
+    packet_pkg::rs_entry_t in_entry_d;
 
+    assign in_valid =   rs_req_i.valid
+                    && (rs_req_i.chip_select == signal_pkg::CS_SLSU
+                    ||  rs_req_i.chip_select == signal_pkg::CS_VLSU);
 
-    always_comb begin
-
-        mask_upper       = '0;
-        upper_canditates = '0;
-        lower_canditates = '0;
-        winner_upper     = '0;
-        winner_lower     = '0;
-        winner           = '0;
-
-        instr_valid =   rs_request_i.valid && (
-                        rs_request_i.chip_select == signal_pkg::CS_VLSU ||
-                        rs_request_i.chip_select == signal_pkg::CS_SLSU );
-
-        for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
-            eligible[i] =   buffer[i].occupied && 
-                            buffer[i].operand_a_ready && 
-                            buffer[i].operand_b_ready;
-        end
-        
-        bypass =    instr_valid && 
-                    rs_request_i.rs_entry.operand_a_ready &&
-                    rs_request_i.rs_entry.operand_b_ready && 
-                    !(|eligible) &&
-                    lsu_ready_i;
-
-        dispatch =  |eligible && lsu_ready_i;
-
-        if (dispatch) begin
-            mask_upper[0] = mask[0];
-
-            for (int i=1; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
-                mask_upper[i] = mask_upper[i-1] | mask[i];
-            end
-
-            upper_canditates = eligible & mask_upper;
-            lower_canditates = eligible & ~mask_upper;
-
-            winner_upper = upper_canditates & (~upper_canditates + 1'b1);
-            winner_lower = lower_canditates & (~lower_canditates + 1'b1);
-
-            winner = (|upper_canditates) ? winner_upper : winner_lower;
-
-            mask_next = {winner[config_pkg::RS_SINGLE_DISPATCH_DEPTH-2:0], winner[config_pkg::RS_SINGLE_DISPATCH_DEPTH-1]};
-
-            choice = '0;
-
-            for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
-                if (winner[i]) choice = i[config_pkg::RS_ADDR_W-1:0];
-            end
-        end
-        else begin
-            mask_next = mask;
-            choice = (bypass) ? rs_request_i.rs_slot_id : '0;
-        end
-    end 
+    assign in_is_store = rs_req_i.rs_entry.operation[3];
 
     always_comb begin
+        in_entry_d = rs_req_i.rs_entry;
+        in_entry_d.operand_a_ready = rs_req_i.rs_entry.operand_a_ready || tag_match (
+                                    rs_req_i.rs_entry.a_is_vector, rs_req_i.rs_entry.operand_a_tag,
+                                    sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
+                                    vc_data_bus_i.valid, vc_data_bus_i.prf_tag );
+        in_entry_d.operand_b_ready = rs_req_i.rs_entry.operand_b_ready || tag_match (
+                                    rs_req_i.rs_entry.b_is_vector, rs_req_i.rs_entry.operand_b_tag,
+                                    sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
+                                    vc_data_bus_i.valid, vc_data_bus_i.prf_tag );
+        in_ready = in_entry_d.operand_a_ready && in_entry_d.operand_b_ready;
+    end
 
-        ls_read_request_o.valid     = dispatch_q.occupied;
-        ls_read_request_o.prf_tag   = dispatch_q.prf_tag;
-        ls_read_request_o.rob_id    = dispatch_q.rob_id;
-        ls_read_request_o.operation = dispatch_q.operation;
+    //  -------------------------------------------------------------------------------------------
+    //      Store queue
 
-        ls_read_request_o.operand_a_tag = dispatch_q.operand_a_tag;
-        ls_read_request_o.operand_b_tag = dispatch_q.operand_b_tag;
+    packet_pkg::rs_entry_t store_queue [config_pkg::RS_LSU_STORE_DEPTH];
+    
+    lsu_rs_store_q_addr_t stq_head, stq_tail;
+    logic st_eligible, store_q_empty, store_q_full;
 
-        ls_read_request_o.imm = dispatch_q.imm;
-        ls_read_request_o.read_src2 = dispatch_q.read_src2;
+    assign store_q_full  =  (stq_head.addr == stq_tail.addr) 
+                        &&  (stq_head.epoch != stq_tail.epoch);
 
-        ls_read_request_o.a_is_vector = dispatch_q.a_is_vector;
-        ls_read_request_o.b_is_vector = dispatch_q.b_is_vector;
+    assign store_q_empty =  (stq_head.addr == stq_tail.addr)
+                        &&  (stq_head.epoch == stq_tail.epoch);
+
+    assign st_eligible =  !store_q_empty
+                        &&  store_queue [stq_head.addr].operand_a_ready
+                        &&  store_queue [stq_head.addr].operand_b_ready;
+
+    //  -------------------------------------------------------------------------------------------
+    //      Load Buffer
+
+    packet_pkg::rs_entry_t load_buf [config_pkg::RS_LSU_LOAD_DEPTH];
+    lsu_rs_store_q_addr_t alloc_tail [config_pkg::RS_LSU_LOAD_DEPTH]; // tail when load was allocated
+    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] occupied, ld_eligible;
+    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] no_prev_store_q, no_prev_store_d;
+
+    logic ld_buf_full, ld_buf_empty;
+
+    assign ld_buf_full  = (occupied == '1);
+    assign ld_buf_empty = (occupied == '0);
+
+    always_comb begin
+        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+            ld_eligible[i] = occupied[i] && no_prev_store_q[i]
+                            && load_buf[i].operand_a_ready && load_buf[i].operand_b_ready;
+        end
+    end
+
+    //  -------------------------------------------------------------------------------------------
+    //      Dispatch, allocate and bypass decisions
+
+    logic eligible_bypass;  
+    logic store_alloc, store_dispatch, store_bypass;
+    logic load_alloc, load_dispatch, load_bypass;
+
+    always_comb begin
+        /*  Decisions to dispatch, allocate or bypass.
+            Scenarios possible
+            1) Load dispatched - a load is eligible and no prior store present
+            2) Store dispatched - head of store is ready and no load dispatched
+            3) Load bypassed - load input, store queue is empty and no loads eligible
+            4) Store bypassed - store input, store queue is empty and no loads eligible
+            5) Load Allocated - load input and not eligible to bypass
+            6) Store Allocated - store input and not eligible to bypass
+        */
+
+        eligible_bypass = store_q_empty && !(|ld_eligible);
+
+        load_bypass  = lsu_rdy_i && in_valid && in_ready && !(in_is_store) && eligible_bypass;
+        store_bypass = lsu_rdy_i && in_valid && in_ready && in_is_store && eligible_bypass;
+
+        store_dispatch = lsu_rdy_i && st_eligible && (store_q_full || !(|ld_eligible));
+        load_dispatch  = lsu_rdy_i && (|ld_eligible) && !store_dispatch;
         
-        vc_lsu_rd_req_o = dispatch_q.operand_b_tag;
+        load_alloc = in_valid && !in_is_store && !load_bypass;
+        store_alloc = in_valid && in_is_store && !store_bypass;    
+    end
+
+    //  -------------------------------------------------------------------------------------------
+    //      Load allocate and dispatch arbitration
+
+    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] rr_mask_q, rr_mask_d;
+    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] mask_upper, rr_upper, rr_lower, ld_winner;
+    lsu_rs_load_addr_t load_dispatch_addr, load_alloc_addr;
+
+        // helper functions
+    function automatic lsu_rs_load_addr_t oneHot_to_binary(
+        input logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] addr_oh
+    );
+        lsu_rs_load_addr_t addr;
+        addr = '0;
+        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+                if(addr_oh[i]) addr = i;
+        end
+        return addr;
+    endfunction
+    
+    function automatic lsu_rs_load_addr_t find_ld_push_addr();
+        lsu_rs_load_addr_t push_addr;
+        if (!load_dispatch) begin
+            push_addr = '0;
+            for (int i = config_pkg::RS_LSU_LOAD_DEPTH-1; i >= 0; i--) begin
+                if (!occupied[i]) push_addr = i;
+            end
+        end
+        else push_addr = load_dispatch_addr;
+        return push_addr;
+    endfunction
+
+    always_comb begin
+        // round robin arbitation
+
+        mask_upper[0] = rr_mask_q[0];
+        for(int i=1; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+            mask_upper[i] = mask_upper[i-1] | rr_mask_q[i];
+        end
+
+        rr_upper = ld_eligible & mask_upper;
+        rr_lower = ld_eligible & ~mask_upper;
+
+        ld_winner = (|rr_upper)
+                  ? (rr_upper & (~rr_upper + 1'b1))
+                  : (rr_lower & (~rr_lower + 1'b1));
+
+        rr_mask_d = load_dispatch
+                  ? { ld_winner[config_pkg::RS_LSU_LOAD_DEPTH-2:0],
+                      ld_winner[config_pkg::RS_LSU_LOAD_DEPTH-1]}
+                  : rr_mask_q;
 
     end
 
     always_ff @(posedge clk_i) begin
-        
-        if (!reset_ni || flush_i) begin
-            for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) buffer[i] <= '0;
+        if(!reset_ni || flush_i) rr_mask_q <= {{(config_pkg::RS_LSU_LOAD_DEPTH-1){1'b0}}, 1'b1};
+        else rr_mask_q <= rr_mask_d;
 
-            released_rs_slot_id_o <= '0;
-            dispatch_q <= '0;
-            mask <= {{config_pkg::RS_SINGLE_DISPATCH_DEPTH-1{1'b0}},1'b1};
+    end
+
+    always_comb load_dispatch_addr = oneHot_to_binary(ld_winner);
+    always_comb load_alloc_addr = find_ld_push_addr();
+    
+    //  -------------------------------------------------------------------------------------------
+    //      CDB Snoop
+
+    logic [config_pkg::RS_LSU_STORE_DEPTH-1:0] st_op_a_ready_d, st_op_b_ready_d;
+    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] ld_op_a_ready_d, ld_op_b_ready_d;
+
+    always_comb begin
+        // snoop for store queue entries
+        for(int i=0; i<config_pkg::RS_LSU_STORE_DEPTH; i++) begin
+            st_op_a_ready_d[i] = store_queue[i].occupied && (store_queue[i].operand_a_ready || 
+                                tag_match ( store_queue[i].a_is_vector, store_queue[i].operand_a_tag,
+                                            sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
+                                            vc_data_bus_i.valid, vc_data_bus_i.prf_tag ));
+            st_op_b_ready_d[i] = store_queue[i].occupied && (store_queue[i].operand_b_ready ||
+                                tag_match ( store_queue[i].b_is_vector, store_queue[i].operand_b_tag,
+                                            sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
+                                            vc_data_bus_i.valid, vc_data_bus_i.prf_tag ));
+        end
+    end
+
+    always_comb begin
+        // snoop for load buffer entries
+        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+            ld_op_a_ready_d[i] = occupied[i] && (load_buf[i].operand_a_ready ||
+                                tag_match ( load_buf[i].a_is_vector, load_buf[i].operand_a_tag,
+                                            sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
+                                            vc_data_bus_i.valid, vc_data_bus_i.prf_tag ));
+            ld_op_b_ready_d[i] = occupied[i] && (load_buf[i].operand_b_ready ||
+                                tag_match ( load_buf[i].b_is_vector, load_buf[i].operand_b_tag,
+                                            sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
+                                            vc_data_bus_i.valid, vc_data_bus_i.prf_tag ));
 
         end
-        
+    end
+
+    //  -------------------------------------------------------------------------------------------
+    //      Store queue - next state
+    
+    packet_pkg::rs_entry_t store_out;
+    
+    assign store_out = store_queue[stq_head.addr];
+    
+    always_ff @(posedge clk_i) begin
+        if(!reset_ni || flush_i) begin
+            stq_head <= '0;
+            stq_tail <= '0;
+            for(int i=0; i<config_pkg::RS_LSU_STORE_DEPTH; i++) begin
+                store_queue[i].occupied <= '0;
+                store_queue[i].operand_a_ready <= '0;
+                store_queue[i].operand_b_ready <= '0;
+            end
+        end
         else begin
-
-            // snoop data from scalar CDB and update if needed
-            if (sc_data_bus_i.valid) begin
-                for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
-                    if ( buffer[i].occupied) begin
-                        if ( 
-                            !buffer[i].operand_a_ready && 
-                            !buffer[i].a_is_vector && 
-                            (sc_data_bus_i.prf_tag == buffer[i].operand_a_tag)
-                        ) begin 
-                            buffer[i].operand_a_ready <= 1'b1;
-                        end
-                        if (
-                            !buffer[i].operand_b_ready &&
-                            !buffer[i].b_is_vector &&
-                            (sc_data_bus_i.prf_tag == buffer[i].operand_b_tag)
-                        ) begin
-                            buffer[i].operand_b_ready <= 1'b1;
-                        end
-                    end
-                end
+            // update snoop results
+            for(int i=0; i<config_pkg::RS_LSU_STORE_DEPTH; i++) begin
+                store_queue[i].operand_a_ready <= st_op_a_ready_d[i];
+                store_queue[i].operand_b_ready <= st_op_b_ready_d[i];
+            end
+            if(store_dispatch) begin // pop_queue (read combinational)
+                store_queue[stq_head.addr].occupied <= 1'b0;
+                stq_head  <= stq_head + 1'b1;
             end
 
-            // snoop data from vector CDB
-            if (vc_data_bus_i.valid) begin
-                for (int i=0; i<config_pkg::RS_SINGLE_DISPATCH_DEPTH; i++) begin
-                    if ( buffer[i].occupied) begin
-                        if ( 
-                            !buffer[i].operand_a_ready && 
-                            buffer[i].a_is_vector && 
-                            (vc_data_bus_i.prf_tag == buffer[i].operand_a_tag)
-                        ) begin 
-                            buffer[i].operand_a_ready <= 1'b1;
-                        end
-
-                        if(
-                            !buffer[i].operand_b_ready &&
-                            buffer[i].b_is_vector && 
-                            (vc_data_bus_i.prf_tag == buffer[i].operand_b_tag)
-                        ) begin
-                            buffer[i].operand_b_ready <= 1'b1;
-                        end
-                    end
-                end
-            end
-
-            // dequeue instructions
-            if(bypass) begin
-                // send slice of RS input to output, removing the tags and ready
-                dispatch_q.occupied  <= rs_request_i.rs_entry.occupied;
-                dispatch_q.prf_tag   <= rs_request_i.rs_entry.prf_tag;
-                dispatch_q.rob_id    <= rs_request_i.rs_entry.rob_id;
-
-                dispatch_q.operation   <= rs_request_i.rs_entry.operation;
-
-                dispatch_q.operand_a_tag   <= rs_request_i.rs_entry.operand_a_tag;
-                dispatch_q.operand_b_tag   <= rs_request_i.rs_entry.operand_b_tag;
-
-                dispatch_q.imm <= rs_request_i.rs_entry.imm;
-                dispatch_q.read_src2 <= rs_request_i.rs_entry.read_src2;
-
-                dispatch_q.a_is_vector <= rs_request_i.rs_entry.a_is_vector;
-                dispatch_q.b_is_vector <= rs_request_i.rs_entry.b_is_vector;
-
-                dispatch_q.operand_a_ready <= rs_request_i.rs_entry.operand_a_ready;
-                dispatch_q.operand_b_ready <= rs_request_i.rs_entry.operand_b_ready;
-            end
-            
-            else if(dispatch) begin
-                // send slice of ROB entry to output, removing the tags and ready
-                dispatch_q.occupied  <= buffer[choice].occupied;
-                dispatch_q.prf_tag   <= buffer[choice].prf_tag;
-                dispatch_q.rob_id    <= buffer[choice].rob_id;
-
-                dispatch_q.operation   <= buffer[choice].operation;
-
-                dispatch_q.operand_a_tag   <= buffer[choice].operand_a_tag;
-                dispatch_q.operand_b_tag   <= buffer[choice].operand_b_tag;
-
-                dispatch_q.imm <= buffer[choice].imm;
-                dispatch_q.read_src2 <= buffer[choice].read_src2;
-
-                dispatch_q.a_is_vector <= buffer[choice].a_is_vector;
-                dispatch_q.b_is_vector <= buffer[choice].b_is_vector;
-
-                dispatch_q.operand_a_ready <= buffer[choice].operand_a_ready;
-                dispatch_q.operand_b_ready <= buffer[choice].operand_b_ready;
-                
-                // clearing buffer entry and sending released value
-                buffer[choice] <= '0;
-            end
-            else dispatch_q <= '0;
-            
-            released_rs_slot_id_o <= choice;
-            mask <= mask_next;
-
-            // instruction added to RS
-            if (instr_valid && !bypass) begin
-                buffer[rs_request_i.rs_slot_id].occupied <= rs_request_i.rs_entry.occupied;
-                buffer[rs_request_i.rs_slot_id].prf_tag <= rs_request_i.rs_entry.prf_tag;
-                buffer[rs_request_i.rs_slot_id].rob_id <= rs_request_i.rs_entry.rob_id;
-                buffer[rs_request_i.rs_slot_id].operation <= rs_request_i.rs_entry.operation;
-                
-                buffer[rs_request_i.rs_slot_id].operand_a_tag <= rs_request_i.rs_entry.operand_a_tag;
-                buffer[rs_request_i.rs_slot_id].operand_b_tag <= rs_request_i.rs_entry.operand_b_tag;
-                buffer[rs_request_i.rs_slot_id].imm <= rs_request_i.rs_entry.imm;
-                buffer[rs_request_i.rs_slot_id].read_src2 <= rs_request_i.rs_entry.read_src2;
-                buffer[rs_request_i.rs_slot_id].a_is_vector <= rs_request_i.rs_entry.a_is_vector;
-                buffer[rs_request_i.rs_slot_id].b_is_vector <= rs_request_i.rs_entry.b_is_vector;
-                buffer[rs_request_i.rs_slot_id].operand_a_ready <=  rs_request_i.rs_entry.operand_a_ready || ((rs_request_i.rs_entry.a_is_vector) ?
-                                                                    (vc_data_bus_i.valid && vc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_a_tag) :
-                                                                    (sc_data_bus_i.valid && sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_a_tag));
-                buffer[rs_request_i.rs_slot_id].operand_b_ready <=  rs_request_i.rs_entry.operand_b_ready || ((rs_request_i.rs_entry.b_is_vector) ?
-                                                                    (vc_data_bus_i.valid && vc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_b_tag) :
-                                                                    (sc_data_bus_i.valid && sc_data_bus_i.prf_tag == rs_request_i.rs_entry.operand_b_tag));
-            
+            if(store_alloc) begin // push_queue
+                store_queue[stq_tail.addr] <= in_entry_d;
+                store_queue[stq_tail.addr].occupied <= 1'b1;
+                stq_tail <= stq_tail + 1'b1;
             end
         end
     end
 
-    assign rs_slot_released_o = dispatch_q.occupied;
+    //  -------------------------------------------------------------------------------------------
+    //      Load buffer - next state
+
+    packet_pkg::rs_entry_t load_out;
+    lsu_rs_store_q_addr_t stq_head_d;
+    
+    assign stq_head_d = store_dispatch ? stq_head + 1'b1 : stq_head;
+
+    assign load_out = load_buf[load_dispatch_addr];
+
+    always_comb begin
+        // ensure there is no older store waiting to be dispatched
+        for (int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++)
+            no_prev_store_d[i] = occupied[i] ? no_prev_store_q[i] | (stq_head_d == alloc_tail[i]): 1'b0;
+
+        if (load_alloc) no_prev_store_d[load_alloc_addr] = (stq_head_d == stq_tail);
+
+    end
+
+    always_ff @(posedge clk_i) begin
+        if(!reset_ni || flush_i) begin
+            occupied <= '0;
+            no_prev_store_q <= '0;
+        end
+        else begin
+            // snoop
+            for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+                load_buf[i].operand_a_ready <= ld_op_a_ready_d[i];
+                load_buf[i].operand_b_ready <= ld_op_b_ready_d[i];
+            end
+
+            if(load_dispatch) begin // remove from buffer (read combinational)
+                occupied[load_dispatch_addr] <= 1'b0;
+            end
+
+            if(load_alloc) begin // add to buffer
+                load_buf[load_alloc_addr] <= in_entry_d;
+                alloc_tail[load_alloc_addr] <= stq_tail;
+                occupied[load_alloc_addr] <= 1'b1;
+            end
+
+            no_prev_store_q <= no_prev_store_d;
+        end
+    end
+
+    //  -------------------------------------------------------------------------------------------
+    //      Output
+    
+    packet_pkg::rs_entry_t out_d, out_q;
+    logic out_valid_d, out_valid_q;
+
+    always_comb begin
+        out_valid_d = (load_bypass || store_bypass || load_dispatch || store_dispatch);
+        if(load_bypass || store_bypass) out_d = in_entry_d;
+        else if(load_dispatch) out_d = load_out;
+        else if(store_dispatch) out_d = store_out;
+        else out_d = '0;
+    end
+
+    always_ff @(posedge clk_i) begin
+        if(!reset_ni || flush_i) begin
+            out_q <= '0;
+            out_valid_q <= '0;
+        end
+        else begin
+            out_q <= out_d;
+            out_valid_q <= out_valid_d;
+        end
+    end
+
+    assign ls_read_req_o = '{
+        valid   : out_valid_q,
+        prf_tag : out_q.prf_tag,
+        rob_id  : out_q.rob_id,
+        operation : out_q.operation,
+        operand_a_tag : out_q.operand_a_tag,
+        operand_b_tag : out_q.operand_b_tag,
+        imm : out_q.imm,
+        read_src2   : out_q.read_src2,
+        a_is_vector : out_q.a_is_vector,
+        b_is_vector : out_q.b_is_vector
+    };
+    
+    assign vc_lsu_rd_req_o = out_q.operand_b_tag;
+
+    assign lsu_rs_rdy_o = (!store_q_full || store_dispatch) && (!ld_buf_full || load_dispatch);
 
 endmodule

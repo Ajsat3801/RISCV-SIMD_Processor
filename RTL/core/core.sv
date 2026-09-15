@@ -88,7 +88,7 @@ module core #()(
     // signals from RS to Queue with freed RS Slot IDs
     signal_pkg::rs_slot_id_t released_rs_slot_id_arr [config_pkg::RS_TOT_DISPATCH_N-1:0];
     logic rs_slot_released_arr[config_pkg::RS_TOT_DISPATCH_N-1:0];
-
+    logic lsu_rs_ready;
     logic rob_full, arr_full;
 
     // signals from reservation stations to prf 
@@ -96,7 +96,7 @@ module core #()(
     packet_pkg::read_request_t br_rd_req;
     packet_pkg::read_request_t vc_alu_rd_req;
     
-    packet_pkg::vc_lsu_read_request_t vc_lsu_rd_req;
+    packet_pkg::prf_tag_t vc_lsu_rd_req;
     signal_pkg::prf_tag_t vc_alu_rd_req_tag;
     
     // PRF -> EX signals
@@ -233,7 +233,7 @@ module core #()(
         .decoded_instr_en_o(decoded_instr_en)
     );
 
-    fe_instruction_queue u_instr_q (
+    fe_instruction_queue u_instr_q ( // TODO: integrate with refactored LSU ports
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
@@ -313,14 +313,13 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .rs_request_i(u_alloc_bus),
+        .rs_req_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
-        .ls_read_request_o(sc_rd_req[3]),
+        .ls_read_req_o(sc_rd_req[3]),
         .vc_lsu_rd_req_o(vc_lsu_rd_req),
-        .lsu_ready_i(lsu_ready),
-        .released_rs_slot_id_o(released_rs_slot_id_arr[3]),
-        .rs_slot_released_o(rs_slot_released_arr[3])
+        .lsu_rdy_i(lsu_ready),
+        .lsu_rs_rdy_o(lsu_rs_ready)
     );
 
     rs_scalar_1issue #(.CHIP_SELECT(signal_pkg::CS_BRANCH)) u_branch_rs (
