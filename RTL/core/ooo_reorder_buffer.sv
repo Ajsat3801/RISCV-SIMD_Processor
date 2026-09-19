@@ -35,6 +35,7 @@
  *
  * ------------------------------------------------------------------------------------------------
  */
+ 
 module ooo_reorder_buffer (
     input logic clk_i,
     input logic reset_ni,
@@ -56,10 +57,10 @@ module ooo_reorder_buffer (
 
 packet_pkg::rob_entry_t rob_table[config_pkg::ROB_DEPTH-1:0];
 packet_pkg::rob_entry_t rob_input;
-signal_pkg::rob_address_t head, tail, occupancy;
+signal_pkg::rob_address_t head, tail;
 logic full, empty;
 logic push_allowed, pop_allowed;
-int i;
+logic [$clog2(ROB_DEPTH+1)-1:0]  occupancy;
 
 always_comb begin
     // compiling instruction into rob entry
@@ -98,7 +99,7 @@ end
 always_ff @(posedge clk_i) begin
     
     if(!reset_ni || flush_i) begin
-        for (i=0; i<config_pkg::ROB_DEPTH; i++) rob_table[i] <= '0;
+        for(int unsigned i=0; i<config_pkg::ROB_DEPTH; i++) rob_table[i] <= '0;
         head <= '0;
         tail <= '0;
 
@@ -149,7 +150,7 @@ always_ff @(posedge clk_i) begin
             retire_instr_o.branch_taken <= rob_table[head.address].branch_taken;
 
             if(rob_table[head.address].is_branch && rob_table[head.address].branch_taken) begin
-                for (i=0; i<config_pkg::ROB_DEPTH; i++) rob_table[i] <= '0;
+                for(int unsigned i=0; i<config_pkg::ROB_DEPTH; i++) rob_table[i] <= '0;
                 head <= '0;
                 tail <= '0;
                 flush_o <= 1'b1;

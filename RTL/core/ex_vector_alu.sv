@@ -55,7 +55,7 @@ module ex_vector_alu (
     endgenerate
 
     always_comb begin
-        valu_operand_a = (vc_ex_request_i.a_is_vector) ? vc_ex_request_i.operand_a : {VECTOR_LEN{sc_operand_i}};
+        valu_operand_a = (vc_ex_request_i.a_is_vector) ? vc_ex_request_i.operand_a : {config_pkg::VECTOR_LEN{sc_operand_i}};
     end
 
     always_ff @(posedge clk_i) begin

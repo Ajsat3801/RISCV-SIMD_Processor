@@ -46,7 +46,7 @@
         before a new memory instruction is dispatched.
  *  ->	The ECALL instruction is used as the program termination signal.
  *  ->	Fetch is the current I/O boundary
- *  ->	Flush is driven directly from the ROB output with no additional register stage. All 
+ *  ->	Flush is driven directly from the ROB output with no additional register stage in core. All 
         submodules must tolerate a same-cycle flush.
  *
  * ------------------------------------------------------------------------------------------------
@@ -69,57 +69,74 @@ module core #()(
 
 );
 
+// ------------------------------------------------------------------------------------------------
+//                                   Localparams and Typedefs
+// ------------------------------------------------------------------------------------------------
+
+    localparam int unsigned POOL_DEPTH [config_pkg::RS_POOL_N] = '{
+        config_pkg::RS_SC_ALU_DEPTH,  config_pkg::RS_MULDIV_DEPTH,
+        config_pkg::RS_LSU_LOAD_DEPTH, config_pkg::RS_LSU_STORE_DEPTH,
+        config_pkg::RS_BRANCH_DEPTH, config_pkg::RS_VC_ALU_DEPTH 
+    };
+
+    localparam int unsigned POOL_CREDITS [config_pkg::RS_POOL_N] = '{
+        config_pkg::EX_SC_ALU_N, config_pkg::EX_MULDIV_N,
+        config_pkg::EX_LSU_N, config_pkg::EX_LSU_N,
+        config_pkg::EX_BRANCH_N, config_pkg::EX_VC_ALU_N};
+
+// ------------------------------------------------------------------------------------------------
+//                                      Signal Declarations
+// ------------------------------------------------------------------------------------------------
     // broadcast signals
     logic flush;
 
-    // fetch output signals
+    // Fetch <-> Decode signals
     signal_pkg::data_t fetched_instr;
     signal_pkg::pc_t   fetched_pc;
     logic fetch_valid;
-
-    // decode output signals
-    packet_pkg::decoded_instr_t decoded_instr;
-
-    // dispatched instruction signals
-    packet_pkg::decoded_instr_t dispatched_instr;
-    signal_pkg::rs_slot_id_t dispatched_instr_rs_slot_id;
-    logic queue_ready, decode_ready, decoded_instr_en;
-
-    // signals from RS to Queue with freed RS Slot IDs
-    signal_pkg::rs_slot_id_t released_rs_slot_id_arr [config_pkg::RS_TOT_DISPATCH_N-1:0];
-    logic rs_slot_released_arr[config_pkg::RS_TOT_DISPATCH_N-1:0];
-    logic lsu_rs_ready;
-    logic rob_full, arr_full;
-
-    // signals from reservation stations to prf 
-    packet_pkg::read_request_t sc_rd_req[config_pkg::SCALAR_EX_N-1:0];
-    packet_pkg::read_request_t br_rd_req;
-    packet_pkg::read_request_t vc_alu_rd_req;
+    logic decode_rdy; // (b)
     
-    packet_pkg::prf_tag_t vc_lsu_rd_req;
-    signal_pkg::prf_tag_t vc_alu_rd_req_tag;
+    // Decode <-> Queue signals
+    packet_pkg::decoded_instr_t decoded_instr;
+    logic decoded_instr_en;
+    logic queue_rdy; // (b)
+
+    // Queue <-> RS signals (dispatch via ARR and Alloc bus)
+    packet_pkg::decoded_instr_t dispatched_instr;
+    logic instr_dispatched[config_pkg::RS_DISPATCH_N];
+    logic rob_full, arr_full; // (b)
+
+    // RS -> PRF signals
+    packet_pkg::read_request_t sc_rd_req[config_pkg::SCALAR_EX_N-1:0]; 
+    packet_pkg::read_request_t br_rd_req;
+    packet_pkg::read_request_t vc_alu_rd_req; 
+    
+    signal_pkg::prf_tag_t vc_rd_req[config_pkg::VECTOR_EX_N-1:0]; // Read sc_prf for vc alu & read vc_prf for lsu
     
     // PRF -> EX signals
     packet_pkg::sc_ex_request_t sc_ex_req[config_pkg::SCALAR_EX_N-1:0];
     packet_pkg::sc_ex_request_t br_ex_req;
     packet_pkg::vc_alu_ex_request_t vc_alu_ex_req;
-    packet_pkg::vc_lsu_ex_request_t vc_lsu_ex_req;
-
-    signal_pkg::data_t sc_ls_store_data;
-    signal_pkg::data_t vc_alu_sc_operand; 
-    signal_pkg::vector_data_t vc_ls_store_data;
-
-    // functional units output signals
-    // EX -> WB
     
-    packet_pkg::sc_ex_result_t sc_ex_result[config_pkg::SCALAR_EX_N-1:0];
-    packet_pkg::br_result_t br_ex_result;
-    packet_pkg::vc_ex_result_t vc_ex_result[config_pkg::VECTOR_EX_N-1:0];
-    packet_pkg::sc_ex_result_t sc_lsu_result;
-    packet_pkg::vc_ex_result_t vc_lsu_result;
+    signal_pkg::data_t vc_alu_sc_operand; // scalar operand for .vx operations
 
-    packet_pkg::load_store_entry_t lsu_output;
-    packet_pkg::store_retire_request_t store_retire_req;
+    // extra signal send to load-store for store data (src2 in ex_request is not used; part of imm)
+    signal_pkg::data_t sc_ls_store_data;
+    signal_pkg::vector_data_t vc_store_data;
+
+    // EX -> WB    
+    packet_pkg::sc_ex_result_t sc_ex_res[config_pkg::SCALAR_EX_N-1:0];
+    packet_pkg::vc_ex_result_t vc_ex_res[config_pkg::VECTOR_EX_N-1:0];
+    packet_pkg::sc_ex_result_t sc_lsu_fwd_res;
+    packet_pkg::vc_ex_result_t vc_lsu_fwd_res;
+
+    // EX -> ROB
+    packet_pkg::br_result_t br_ex_res; // Branch bypasses writeback
+    packet_pkg::store_retire_request_t store_retire_req; // LSU sends signal to retire to ROB
+
+    // LSU <-> Dcache Signals
+    packet_pkg::load_store_entry_t dcache_req;
+    logic dcache_rdy; // (b)
 
     // Dcache <-> AXI controller signals
     packet_pkg::mem_read_request_t mem_rd_req;
@@ -131,19 +148,18 @@ module core #()(
     // SCALAR: EX -> RS
     // VECTOR: EX -> PRF
 
-    logic sc_ex_ready[config_pkg::SCALAR_EX_N-1:0];
-    logic br_ex_ready;
-    logic vc_ex_ready[config_pkg::VECTOR_EX_N-1:0];
-    logic lsu_ready;
+    logic sc_ex_rdy[config_pkg::SCALAR_EX_N-1:0];
+    logic br_ex_rdy;
+    logic vc_ex_rdy[config_pkg::VECTOR_EX_N-1:0];
 
     // ready signals from WB
     // WB -> RS
-    logic sc_wb_ready[config_pkg::SCALAR_EX_N-1:0];
-    logic vc_wb_ready[config_pkg::VECTOR_EX_N-1:0];
+    logic sc_wb_rdy[config_pkg::SCALAR_EX_N-1:0];
+    logic vc_wb_rdy[config_pkg::VECTOR_EX_N-1:0];
 
     // ready inputs into RS, bitwise and of sc_ex_ready and sc_wb_ready
-    logic sc_rs_ex_ready[config_pkg::SCALAR_EX_N-1:0];
-    logic vc_rs_ex_ready[config_pkg::VECTOR_EX_N-1:0];
+    logic sc_rs_ex_rdy[config_pkg::SCALAR_EX_N-1:0];
+    logic vc_rs_ex_rdy[config_pkg::VECTOR_EX_N-1:0];
 
     /*  Naming Convention
         Fetched OP -> fetched_instr
@@ -159,7 +175,7 @@ module core #()(
     */
     
 // ------------------------------------------------------------------------------------------------
-//                                           ALL INTERFACES
+//                                           INTERFACES
 // ------------------------------------------------------------------------------------------------
 
     if_alloc_bus u_alloc_bus();
@@ -172,19 +188,22 @@ module core #()(
     if_data_bus #(.T(signal_pkg::data_t)) u_sc_prf_input();
     if_data_bus #(.T(signal_pkg::vector_data_t)) u_vc_prf_input();
 
-    genvar i;
+// ------------------------------------------------------------------------------------------------
+//                                   Ready Arbitration
+// ------------------------------------------------------------------------------------------------
 
     always_comb begin
-        sc_rs_ex_ready[0] = sc_ex_ready[0] && sc_wb_ready[0];
-        sc_rs_ex_ready[1] = sc_ex_ready[1] && sc_wb_ready[1];
-        sc_rs_ex_ready[2] = sc_ex_ready[2] && sc_wb_ready[2] && !(sc_rd_req[2].valid) && !(sc_ex_req[2].valid);
-        sc_rs_ex_ready[3] = sc_ex_ready[3] && sc_wb_ready[3] && !(sc_rd_req[3].valid) && !(sc_ex_req[3].valid);
+        sc_rs_ex_rdy[0] = sc_ex_rdy[0] && sc_wb_rdy[0];
+        sc_rs_ex_rdy[1] = sc_ex_rdy[1] && sc_wb_rdy[1];
 
-        vc_rs_ex_ready[0] = vc_ex_ready[0] && vc_wb_ready[0];
-        vc_rs_ex_ready[1] = vc_ex_ready[1] && vc_wb_ready[1];
+        sc_rs_ex_rdy[2] = sc_ex_rdy[2] && sc_wb_rdy[2]
+                                && !(sc_rd_req[2].valid) && !(sc_ex_req[2].valid);
+        sc_rs_ex_rdy[3] = sc_ex_rdy[3] && sc_wb_rdy[3]
+                                && !(sc_rd_req[3].valid) && !(sc_ex_req[3].valid);
+
+        vc_rs_ex_rdy[0] = vc_ex_rdy[0] && vc_wb_rdy[0];
+        vc_rs_ex_rdy[1] = vc_ex_rdy[1] && vc_wb_rdy[1];
     end
-
-    assign lsu_ready = sc_rs_ex_ready[3] && vc_rs_ex_ready[1];
 
 //  -----------------------------------------------------------------------------------------------
 //                                          INPUT/OUTPUT
@@ -205,12 +224,11 @@ module core #()(
 // ------------------------------------------------------------------------------------------------
 //                                        IN ORDER FRONT END
 // ------------------------------------------------------------------------------------------------
-
+  
     fe_fetch u_fetch (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
+        .clk_i(clk_i), .reset_ni(reset_ni),
         .compute_i(compute_i),
-        .ready_i(decode_ready),
+        .ready_i(decode_rdy),
         .retire_instr_i(u_retirement_bus),
         .fetched_instr_o(fetched_instr),
         .fetched_pc_o(fetched_pc),
@@ -221,31 +239,28 @@ module core #()(
     );
 
     fe_decode u_decode (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .fetched_instr_i(fetched_instr),
         .fetched_pc_i(fetched_pc),
         .fetch_valid_i(fetch_valid),
-        .decode_ready_o(decode_ready),
-        .queue_ready_i(queue_ready),
+        .decode_ready_o(decode_rdy),
+        .queue_ready_i(queue_rdy),
         .decoded_instr_o(decoded_instr),
         .decoded_instr_en_o(decoded_instr_en)
     );
 
-    fe_instruction_queue u_instr_q ( // TODO: integrate with refactored LSU ports
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+    fe_instruction_queue #(
+        .POOL_DEPTH(POOL_DEPTH),
+        .POOL_CREDITS(POOL_CREDITS)
+    ) u_instr_q ( 
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .decoded_instr_i(decoded_instr),
         .decoded_instr_en_i(decoded_instr_en),
-        .released_rs_slot_id_i(released_rs_slot_id_arr),
-        .rs_slot_released_i(rs_slot_released_arr),
+        .queue_ready_o(queue_rdy),
+        .instr_dispatched_i(instr_dispatched),
         .rob_full_i(rob_full),
         .arr_full_i(arr_full),
-        .dispatched_instr_o(dispatched_instr),
-        .rs_slot_id_o(dispatched_instr_rs_slot_id),
-        .queue_ready_o(queue_ready)
+        .dispatched_instr_o(dispatched_instr)
     );
 
 // ------------------------------------------------------------------------------------------------
@@ -253,11 +268,8 @@ module core #()(
 // ------------------------------------------------------------------------------------------------
 
     ooo_arr_unit u_alloc_rename_retire (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .dispatched_instr_i(dispatched_instr),
-        .rs_slot_id_i(dispatched_instr_rs_slot_id),
         .retire_instr_i(u_retirement_bus),
         .sc_wb_instr_i(u_sc_data_bus),
         .vc_wb_instr_i(u_vc_data_bus),
@@ -266,13 +278,11 @@ module core #()(
     );
 
     ooo_reorder_buffer u_reorder_buffer (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .alloc_instr_io(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
-        .branch_result_i(br_ex_result),
+        .branch_result_i(br_ex_res),
         .store_retire_req_i(store_retire_req),
         .retire_instr_o(u_retirement_bus),
         .rob_full_o(rob_full),
@@ -283,70 +293,69 @@ module core #()(
 //                                           SCHEDULING
 // ------------------------------------------------------------------------------------------------
 
-    rs_scalar_2issue #(.CHIP_SELECT(signal_pkg::CS_SALU)) u_scalar_alu_rs (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+    rs_scalar_2issue #(
+        .CHIP_SELECT(signal_pkg::CS_SALU),
+        .DEPTH(config_pkg::RS_SC_ALU_DEPTH)
+    ) u_scalar_alu_rs (
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
-        .sc_ex0_ready_i(sc_rs_ex_ready[0]),
-        .sc_ex1_ready_i(sc_rs_ex_ready[1]),
+        .sc_ex0_ready_i(sc_rs_ex_rdy[0]),
+        .sc_ex1_ready_i(sc_rs_ex_rdy[1]),
         .sc_rd_req0_o(sc_rd_req[0]),
         .sc_rd_req1_o(sc_rd_req[1]),
-        .released_rs_slot_id_o(released_rs_slot_id_arr[1:0]),
-        .rs_slot_released_o(rs_slot_released_arr[1:0])
+        .instr_dispatched_o(instr_dispatched[0:1])
     );
 
-    rs_scalar_1issue #(.CHIP_SELECT(signal_pkg::CS_MULDIV)) u_scalar_muldiv_rs (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+    rs_scalar_1issue #(
+        .CHIP_SELECT(signal_pkg::CS_MULDIV),
+        .DEPTH(config_pkg::RS_MULDIV_DEPTH)
+    ) u_scalar_muldiv_rs (
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
-        .sc_ex_ready_i(sc_rs_ex_ready[2]),
+        .sc_ex_ready_i(sc_rs_ex_rdy[2]),
         .sc_rd_req_o(sc_rd_req[2]),
-        .released_rs_slot_id_o(released_rs_slot_id_arr[2]),
-        .rs_slot_released_o(rs_slot_released_arr[2])
+        .instr_dispatched_o(instr_dispatched[2])
     );
 
     rs_load_store u_lsu_rs (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_req_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
         .ls_read_req_o(sc_rd_req[3]),
-        .vc_lsu_rd_req_o(vc_lsu_rd_req),
-        .lsu_rdy_i(lsu_ready),
-        .lsu_rs_rdy_o(lsu_rs_ready)
+        .vc_lsu_rd_req_o(vc_rd_req[1]),
+        .sc_lsu_rdy_i(sc_rs_ex_rdy[3]),
+        .vc_lsu_rdy_i(vc_rs_ex_rdy[1]),
+        .ld_released_o(instr_dispatched[3]),
+        .st_released_o(instr_dispatched[4])
     );
 
-    rs_scalar_1issue #(.CHIP_SELECT(signal_pkg::CS_BRANCH)) u_branch_rs (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+    rs_scalar_1issue #(
+        .CHIP_SELECT(signal_pkg::CS_BRANCH),
+        .DEPTH(config_pkg::RS_BRANCH_DEPTH)
+    ) u_branch_rs (
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
-        .sc_ex_ready_i(br_ex_ready),
+        .sc_ex_ready_i(br_ex_rdy),
         .sc_rd_req_o(br_rd_req),
-        .released_rs_slot_id_o(released_rs_slot_id_arr[4]),
-        .rs_slot_released_o(rs_slot_released_arr[4])
+        .instr_dispatched_o(instr_dispatched[5])
     );
 
-    rs_vector_1issue #(.CHIP_SELECT(signal_pkg::CS_VALU)) u_vector_alu_rs (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+    rs_vector_1issue #(
+        .CHIP_SELECT(signal_pkg::CS_VALU),
+        .DEPTH(config_pkg::RS_VC_ALU_DEPTH)
+    ) u_vector_alu_rs (
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),
         .sc_data_bus_i(u_sc_data_bus),
         .vc_data_bus_i(u_vc_data_bus),
-        .vc_ex_ready_i(vc_rs_ex_ready[0]),
+        .vc_ex_ready_i(vc_rs_ex_rdy[0]),     
         .vc_read_request_o(vc_alu_rd_req),
-        .sc_read_request_tag_o(vc_alu_rd_req_tag),
-        .released_rs_slot_id_o(released_rs_slot_id_arr[5]),
-        .rs_slot_released_o(rs_slot_released_arr[5])
-        
+        .sc_read_request_tag_o(vc_rd_req[0]),
+        .instr_dispatched_o(instr_dispatched[6])
     );
 
 // ------------------------------------------------------------------------------------------------
@@ -354,13 +363,11 @@ module core #()(
 // ------------------------------------------------------------------------------------------------
 
     data_l1_dcache u_dcache (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
-        .lsu_output_i(lsu_output),
-        .l1_dcache_ready_o(),
-        .sc_wb_o(sc_ex_result[3]),
-        .vc_wb_o(vc_ex_result[1]),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
+        .lsu_output_i(dcache_req),
+        .l1_dcache_ready_o(dcache_rdy),
+        .sc_wb_o(sc_ex_res[3]),
+        .vc_wb_o(vc_ex_res[1]),
         .mem_rd_req_o(mem_rd_req),
         .mem_rd_res_i(mem_rd_res),
         .mem_rd_rdy_i(mem_rd_rdy),
@@ -370,9 +377,7 @@ module core #()(
     );
     
     data_sc_regfile_3sc u_scalar_prf_replica0 (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .precalc_i(u_alloc_bus),
         .sc_wb_instr_i(u_sc_prf_input),
         .sc_rd_req0_i(sc_rd_req[0]),
@@ -384,14 +389,12 @@ module core #()(
     ); 
 
     data_sc_regfile_br_valu_ls u_scalar_prf_replica1 (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .precalc_i(u_alloc_bus),
         .sc_wb_instr_i(u_sc_prf_input),
         .sc_br_rd_req_i(br_rd_req),
         .sc_br_ex_req_o(br_ex_req),
-        .vc_alu_rd_req_tag_i(vc_alu_rd_req_tag),
+        .vc_alu_rd_req_tag_i(vc_rd_req[0]),
         .vc_alu_sc_operand_o(vc_alu_sc_operand),
         .ls_rd_req_i(sc_rd_req[3]),
         .ls_ex_req_o(sc_ex_req[3]),
@@ -399,14 +402,12 @@ module core #()(
     );  
 
     data_vc_regfile_valu_ls u_vector_prf (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .vc_wb_instr_i(u_vc_prf_input),
         .vc_alu_rd_req_i(vc_alu_rd_req),
         .vc_alu_ex_req_o(vc_alu_ex_req),
-        .vc_lsu_rd_req_i(vc_lsu_rd_req),
-        .vc_lsu_ex_req_o(vc_lsu_ex_req)
+        .vc_lsu_rd_req_i(vc_rd_req[1]),
+        .vc_lsu_ex_req_o(vc_store_data)
     ); 
 
 // ------------------------------------------------------------------------------------------------
@@ -414,65 +415,54 @@ module core #()(
 // ------------------------------------------------------------------------------------------------
 
     ex_scalar_alu u_scalar_alu0 (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .sc_ex_request_i(sc_ex_req[0]),
-        .sc_ex_result_o(sc_ex_result[0]),
-        .sc_ex_ready_o(sc_ex_ready[0])
+        .sc_ex_result_o(sc_ex_res[0]),
+        .sc_ex_ready_o(sc_ex_rdy[0])
     );
 
     ex_scalar_alu u_scalar_alu1 (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .sc_ex_request_i(sc_ex_req[1]),
-        .sc_ex_result_o(sc_ex_result[1]),
-        .sc_ex_ready_o(sc_ex_ready[1])
+        .sc_ex_result_o(sc_ex_res[1]),
+        .sc_ex_ready_o(sc_ex_rdy[1])
     );
 
     ex_scalar_muldiv u_scalar_muldiv(
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .sc_ex_request_i(sc_ex_req[2]),
-        .sc_ex_result_o(sc_ex_result[2]),
-        .sc_ex_ready_o(sc_ex_ready[2])
+        .sc_ex_result_o(sc_ex_res[2]),
+        .sc_ex_ready_o(sc_ex_rdy[2])
     ); 
 
     ex_branch u_branch (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .br_ex_request_i(br_ex_req),
-        .br_ex_result_o(br_ex_result),
-        .br_ex_ready_o(br_ex_ready)
+        .br_ex_result_o(br_ex_res),
+        .br_ex_ready_o(br_ex_rdy)
     );
 
     ex_load_store u_lsu (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
-        .lsu_request_i(sc_ex_req[3]),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
+        .sc_ex_req_i(sc_ex_req[3]),
         .sc_store_data_i(sc_ls_store_data),
-        .vc_lsu_ex_request_i(vc_lsu_ex_req),
+        .vc_store_data_i(vc_store_data),
         .retire_instr_i(u_retirement_bus),
-        .lsu_output_o(lsu_output),
-        .sc_fwd_load_o(sc_lsu_result),
-        .vc_fwd_load_o(vc_lsu_result),
         .store_retire_req_o(store_retire_req),
-        .sc_ex_ready_o(sc_ex_ready[3]),
-        .vc_ex_ready_o(vc_ex_ready[1])
+        .dcache_req_o(dcache_req),
+        .dcache_rdy_i(dcache_rdy),
+        .sc_fwd_res_o(sc_lsu_fwd_res),
+        .vc_fwd_res_o(vc_lsu_fwd_res),
+        .sc_ex_rdy_o(sc_ex_rdy[3]),
+        .vc_ex_rdy_o(vc_ex_rdy[1])
     );
 
     ex_vector_alu u_vector_alu (
-        .clk_i(clk_i),
-        .reset_ni(reset_ni),
-        .flush_i(flush),
+        .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .vc_ex_request_i(vc_alu_ex_req),
         .sc_operand_i(vc_alu_sc_operand),
-        .vc_ex_result_o(vc_ex_result[0]),
-        .vc_ex_ready_o(vc_ex_ready[0])
+        .vc_ex_result_o(vc_ex_res[0]),
+        .vc_ex_ready_o(vc_ex_rdy[0])
     );
 
 
@@ -484,9 +474,9 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .ex_result_i(sc_ex_result),
-        .lsu_result_i(sc_lsu_result),
-        .wb_ready_o(sc_wb_ready),
+        .ex_result_i(sc_ex_res),
+        .lsu_result_i(sc_lsu_fwd_res),
+        .wb_ready_o(sc_wb_rdy),
         .data_bus_o(u_sc_data_bus)
     );
 
@@ -494,9 +484,9 @@ module core #()(
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .flush_i(flush),
-        .ex_result_i(vc_ex_result),
-        .lsu_result_i(vc_lsu_result),
-        .wb_ready_o(vc_wb_ready),
+        .ex_result_i(vc_ex_res),
+        .lsu_result_i(vc_lsu_fwd_res),
+        .wb_ready_o(vc_wb_rdy),
         .data_bus_o(u_vc_data_bus)
     );
 

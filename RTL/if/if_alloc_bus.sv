@@ -39,7 +39,6 @@
 interface if_alloc_bus;
     
     logic sc_valid, vc_valid, valid, precalc_valid;
-    signal_pkg::rs_slot_id_t rs_slot_id;
     signal_pkg::rob_address_t rob_id;
     packet_pkg::decoded_instr_t instr;
     signal_pkg::prf_tag_t prf_tag;
@@ -68,7 +67,6 @@ interface if_alloc_bus;
 
     modport arr (
         output sc_valid, vc_valid,
-        output rs_slot_id,
         output instr,
         output prf_tag,
         output operand_a_tag, operand_b_tag,
@@ -87,8 +85,7 @@ interface if_alloc_bus;
     modport rs (
         input valid,
         input chip_select,
-        input rs_entry,
-        input rs_slot_id
+        input rs_entry
     );
 
     modport precalc (

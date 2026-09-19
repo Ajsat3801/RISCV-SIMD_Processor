@@ -3,229 +3,197 @@
  * ------------------------------------------------------------------------------------------------
  *
  *  Functions/Behavior:
- *  ->  Maintains queue of instructions that are ready to dispatch
- *  ->  Keeps a FIFO of available slots of each reservation station
- *  ->  Enqueue if instruction is valid
- *  ->  3 conditions for dequeue
- *      1) FIFO is not empty
- *      2) RS slot is available for the instruction at head of FIFO
- *      3) ROB is not full
- *  ->  Refer to module definition of RS slot FIFO for behavior of RS slot FIFO
- *  ->  On flush or reset all FIFO entries, pointers & outputs cleared to zero. RS slot free queues
- *      also reset on flush.
- *  ->  Signals upstream readiness via queue_ready_o, 0 when FIFO is full or will be full next cycle
- *      unless a simultaneous dequeue creates room.
+ *  <TODO>
 
  *  Inputs:
  *  ->  clk, reset_n, flush
  *  ->  decoded_instr_i — Decoded instruction packet from the decode stage, to be enqueued.
  *  ->  decoded_instr_en_i — Enable qualifying decoded_instr_i.
- *  ->  released_rs_slot_id_i — Array of RS slot IDs being freed by completing execution units, one
- *      per dispatch channel.
- *  ->  rs_slot_released_i — Valid flags for released_rs_slot_id_i.
+ *  ->  instr_dispatched_i — Signal indicating an instruction has been dispatched from the RS.
  *  ->  rob_full_i — signal indicating Reorder Buffer is full.
  *  ->  arr_full_i — signal indicating ARR is full.
  *
  *  Outputs:
  *  ->  dispatched_instr_o — Dispatched instruction from head of queue.
- *  ->  rs_slot_id_o — RS slot ID allocated to the dispatched instruction.
  *  ->  queue_ready_o — 1 when queue can accept at least one more instruction.
  *
  *  Notes:
- *  ->  Head and tail use an epoch+address struct pointer scheme.
- *  ->  queue_ready_o deasserts one cycle before the FIFO fills.
- *  ->  NOP instructions bypass the RS slot availability check and sent directly to ROB if valid.
- *  ->  Both CS_SLSU and CS_VLSU share the same resource. Separated for decoding uniformity
- *  ->  Slot repopulation after a flush is driven externally via rs_slot_released_i.
- *  ->  Buffer overflow is not handled internally. The decoder is responsible for halting valid
- *      instruction input when queue_ready_o is 0.
-
- *  Future Improvements:
- *   -> Implement bypass and remove 1 cycle lag when queue is empty
+ *  <TODO>
  *
  * ------------------------------------------------------------------------------------------------
  */
 
 
-module fe_instruction_queue (
+module fe_instruction_queue #(
+    parameter int unsigned POOL_DEPTH [config_pkg::RS_POOL_N] = '{
+        config_pkg::RS_SC_ALU_DEPTH,  config_pkg::RS_MULDIV_DEPTH,
+        config_pkg::RS_LSU_LOAD_DEPTH, config_pkg::RS_LSU_STORE_DEPTH,
+        config_pkg::RS_BRANCH_DEPTH, config_pkg::RS_VC_ALU_DEPTH 
+    },
+
+    parameter int unsigned POOL_CREDITS [config_pkg::RS_POOL_N] = '{
+        config_pkg::EX_SC_ALU_N, config_pkg::EX_MULDIV_N,
+        config_pkg::EX_LSU_N, config_pkg::EX_LSU_N,
+        config_pkg::EX_BRANCH_N, config_pkg::EX_VC_ALU_N}
+) (
 
     input logic clk_i,
     input logic reset_ni,
     input logic flush_i,
 
+    // Queue <- Decode connection
     input packet_pkg::decoded_instr_t decoded_instr_i,
     input logic decoded_instr_en_i,
-    input signal_pkg::rs_slot_id_t released_rs_slot_id_i [config_pkg::RS_TOT_DISPATCH_N-1:0],
-    input logic rs_slot_released_i [config_pkg::RS_TOT_DISPATCH_N-1:0],
+    output logic queue_ready_o,
+
+    // Queue <- RS connection for credit return
+    input logic instr_dispatched_i [config_pkg::RS_DISPATCH_N],
     
+    // Queue <- ARR & ROB for backpressure
     input logic rob_full_i,
     input logic arr_full_i,
 
-    output packet_pkg::decoded_instr_t dispatched_instr_o,
-    output signal_pkg::rs_slot_id_t rs_slot_id_o,
-    output logic queue_ready_o
+    // Queue -> RS connection
+    output packet_pkg::decoded_instr_t dispatched_instr_o
+
 );
 
-    typedef enum logic[2:0] {IDX_ALU, IDX_MULDIV, IDX_LSU, IDX_BRANCH, IDX_VALU, IDX_NOP} rs_index_e;
-    
-    localparam int unsigned INSTRUCTION_QUEUE_PTR_LEN = $clog2(config_pkg::INSTR_QUEUE_DEPTH);
-    typedef struct packed {logic epoch; logic[INSTRUCTION_QUEUE_PTR_LEN-1:0] address;} q_ptr_t;
+    // ---------------------------------------------------------------------------------------------
+    //   Typedefs and localparams
 
-    // RS Slot tracking buffer
-    signal_pkg::rs_slot_id_t next_rs_slot[config_pkg::RS_TOT_N-1:0];
-    logic[config_pkg::RS_TOT_N-1:0] rs_full, rs_empty, dequeue_rs_fifo;
+    function automatic int unsigned max_of(input int unsigned d [config_pkg::RS_POOL_N]);
+        max_of = 0;
+        foreach (d[i]) if (d[i] > max_of) max_of = d[i];
+    endfunction
 
-    // Instruction FIFO
-    packet_pkg::decoded_instr_t instr_fifo[config_pkg::INSTR_QUEUE_DEPTH-1:0];
-    q_ptr_t head, tail, head_next, tail_next, tail_next_next;
-    logic full, empty, enqueue, dequeue, upstream_ready, full_next, in_valid;
+    localparam int unsigned CNT_W = $clog2(max_of(POOL_DEPTH) + 1);
+    localparam int unsigned REL_W = $clog2(max_of(POOL_CREDITS) + 1);
 
-    // intermediate variables
-    rs_index_e rs_index;
-    logic reset_wb_n;
-    packet_pkg::decoded_instr_t dispatched_instr_q;
+    typedef logic [CNT_W-1:0] cnt_t;
 
-    lib_rs_slot_freeq_2push #(
-        .BUFFER_SIZE(16),
-        .T(logic[config_pkg::RS_ADDR_W-1:0])
-    ) alu_fifo (
-        .clk_i(clk_i),
-        .reset_ni(reset_wb_n),
-        .push1_i(rs_slot_released_i[0]),
-        .push_data1_i(released_rs_slot_id_i[0]),
-        .push2_i(rs_slot_released_i[1]),
-        .push_data2_i(released_rs_slot_id_i[1]),
-        .pop_i(dequeue_rs_fifo[0]),
-        .data_o(next_rs_slot[0]),
-        .empty_o(rs_empty[0]),
-        .full_o(rs_full[0])
-    );
+    localparam int unsigned PTR_W = $clog2(config_pkg::INSTR_QUEUE_DEPTH);
 
-    lib_rs_slot_freeq_1push #(
-        .BUFFER_SIZE(8),
-        .T(logic[config_pkg::RS_ADDR_W-1:0])
-    ) muldiv_fifo (
-        .clk_i(clk_i),
-        .reset_ni(reset_wb_n),
-        .push_i(rs_slot_released_i[2]),
-        .push_data_i(released_rs_slot_id_i[2]),
-        .pop_i(dequeue_rs_fifo[1]),
-        .data_o(next_rs_slot[1]),
-        .empty_o(rs_empty[1]),
-        .full_o(rs_full[1])
-    );
-    
-    lib_rs_slot_freeq_1push #(
-        .BUFFER_SIZE(8),
-        .T(logic[config_pkg::RS_ADDR_W-1:0])
-    ) lsu_fifo (
-        .clk_i(clk_i),
-        .reset_ni(reset_wb_n),
-        .push_i(rs_slot_released_i[3]),
-        .push_data_i(released_rs_slot_id_i[3]),
-        .pop_i(dequeue_rs_fifo[2]),
-        .data_o(next_rs_slot[2]),
-        .empty_o(rs_empty[2]),
-        .full_o(rs_full[2])
-    );
+    typedef struct packed {
+        logic epoch;
+        logic [PTR_W-1:0] addr;
+    } q_ptr_t;
 
-    lib_rs_slot_freeq_1push #(
-        .BUFFER_SIZE(8),
-        .T(logic[config_pkg::RS_ADDR_W-1:0])
-    ) branch_fifo (
-        .clk_i(clk_i),
-        .reset_ni(reset_wb_n),
-        .push_i(rs_slot_released_i[4]),
-        .push_data_i(released_rs_slot_id_i[4]),
-        .pop_i(dequeue_rs_fifo[3]),
-        .data_o(next_rs_slot[3]),
-        .empty_o(rs_empty[3]),
-        .full_o(rs_full[3])
-    );
-    
-    lib_rs_slot_freeq_1push #(
-        .BUFFER_SIZE(8),
-        .T(logic[config_pkg::RS_ADDR_W-1:0])
-    ) valu_fifo (
-        .clk_i(clk_i),
-        .reset_ni(reset_wb_n),
-        .push_i(rs_slot_released_i[5]),
-        .push_data_i(released_rs_slot_id_i[5]),
-        .pop_i(dequeue_rs_fifo[4]),
-        .data_o(next_rs_slot[4]),
-        .empty_o(rs_empty[4]),
-        .full_o(rs_full[4])
-    );
+    // ---------------------------------------------------------------------------------------------
+    //   Queue status
+
+    packet_pkg::decoded_instr_t instr_fifo[config_pkg::INSTR_QUEUE_DEPTH];
+    q_ptr_t head, tail, head_next, tail_next;
+    logic full, empty, full_next;
 
     always_comb begin
-        dequeue_rs_fifo = '0;
+        head_next = head + 1'b1;
+        tail_next = tail + 1'b1;
 
-        {head_next.epoch, head_next.address} = {head.epoch, head.address} + 1'b1;
-        {tail_next.epoch, tail_next.address} = {tail.epoch, tail.address} + 1'b1;
-
-        full  = (head.address == tail.address) && (head.epoch != tail.epoch);
-        empty = (head.address == tail.address) && (head.epoch == tail.epoch);
-
-        full_next  = (head.address == tail_next.address) && (head.epoch != tail_next.epoch);
-
-        upstream_ready = !rob_full_i && !arr_full_i;
-
-        case(instr_fifo[head.address].chip_select)
-            signal_pkg::CS_SALU   : rs_index = IDX_ALU;
-            signal_pkg::CS_MULDIV : rs_index = IDX_MULDIV;
-            signal_pkg::CS_BRANCH : rs_index = IDX_BRANCH;
-            signal_pkg::CS_SLSU   : rs_index = IDX_LSU;
-            signal_pkg::CS_VALU   : rs_index = IDX_VALU;
-            signal_pkg::CS_VLSU   : rs_index = IDX_LSU;
-            default   : rs_index = IDX_NOP;
-        endcase
-
-        if (!empty && instr_fifo[head.address].valid ) begin
-            if (rs_index != IDX_NOP) begin
-                dequeue  = !rs_empty[rs_index] && upstream_ready;
-                dequeue_rs_fifo[rs_index] = dequeue;
-            end
-            else dequeue = upstream_ready;
-        end
-        else dequeue = 1'b0;
-        in_valid = decoded_instr_i.valid && decoded_instr_en_i;
-        enqueue    = (!full || dequeue) && in_valid;
-        reset_wb_n = (reset_ni && !flush_i) ;
-
-        queue_ready_o = !(full_next || full )|| dequeue;
-        
+        full  = (head.addr == tail.addr) && (head.epoch != tail.epoch);
+        empty = (head.addr == tail.addr) && (head.epoch == tail.epoch);
+        full_next = (head.addr == tail_next.addr) && (head.epoch != tail_next.epoch);
     end
 
+    // ---------------------------------------------------------------------------------------------
+    //   Head Decode
+
+    packet_pkg::decoded_instr_t head_instr;
+    signal_pkg::pool_e head_pool;
+
     always_comb begin
-        dispatched_instr_o = (!flush_i) ? dispatched_instr_q : '0;
+        head_instr = instr_fifo[head.addr];
+        case(head_instr.chip_select) 
+            signal_pkg::CS_SALU : head_pool = signal_pkg::POOL_SC_ALU;
+            signal_pkg::CS_MULDIV : head_pool = signal_pkg::POOL_MULDIV;
+            signal_pkg::CS_BRANCH : head_pool = signal_pkg::POOL_BRANCH;
+            signal_pkg::CS_VALU : head_pool = signal_pkg::POOL_VC_ALU;
+            signal_pkg::CS_SLSU, signal_pkg::CS_VLSU :
+                head_pool = (head_instr.operation[3]) ? signal_pkg::POOL_STORE : signal_pkg::POOL_LOAD;
+            default : head_pool = signal_pkg::POOL_NONE;
+        endcase
+    end
+
+    // ---------------------------------------------------------------------------------------------
+    //   RS POOL counters
+
+    cnt_t pool_cnt_q [config_pkg::RS_POOL_N];
+    cnt_t pool_cnt_d [config_pkg::RS_POOL_N];
+
+    logic[REL_W-1:0] pool_release [config_pkg::RS_POOL_N];
+    logic[config_pkg::RS_POOL_N-1:0] pool_full, pool_alloc;
+
+    always_comb begin
+        int unsigned base;
+        base = 0;
+
+        for(int unsigned i = 0; i<config_pkg::RS_POOL_N; i++) begin
+            pool_release[i] = '0;
+            for (int unsigned c = 0; c < POOL_CREDITS[i]; c++)
+                pool_release[i] += REL_W'(instr_dispatched_i[base + c]);
+            base += POOL_CREDITS[i];
+
+            pool_full[i] = pool_cnt_q[i][$clog2(POOL_DEPTH[i])];
+            pool_cnt_d[i] = pool_cnt_q[i] + cnt_t'(pool_alloc[i]) - cnt_t'(pool_release[i]);
+        end
     end
 
     always_ff @(posedge clk_i) begin
-        if (!reset_ni || flush_i) begin
+        if(!reset_ni || flush_i) begin
+            for(int unsigned i=0; i<config_pkg::RS_POOL_N; i++) pool_cnt_q[i] <= '0;
+        end
+        else pool_cnt_q <= pool_cnt_d;
+    end
 
-            for (int i=0; i<config_pkg::INSTR_QUEUE_DEPTH; i++) instr_fifo[i] <= '0;
+    // ---------------------------------------------------------------------------------------------
+    //   Enqueue and Dequeue decisions
 
+    logic in_valid, enqueue, dequeue, upstream_ready;
+
+    always_comb begin
+        upstream_ready = !arr_full_i && !rob_full_i;
+        if (empty || !head_instr.valid) dequeue = 1'b0;
+        else if(head_pool == signal_pkg::POOL_NONE) dequeue = upstream_ready;
+        else dequeue = upstream_ready && !pool_full[head_pool];
+
+        pool_alloc = '0;
+        if(dequeue && (head_pool != signal_pkg::POOL_NONE)) pool_alloc[head_pool] = 1'b1;
+
+        in_valid = decoded_instr_i.valid  && decoded_instr_en_i;
+        enqueue = in_valid && (!full || dequeue);
+
+    end
+
+    //  -------------------------------------------------------------------------------------------
+    //      Queue next state
+
+    packet_pkg::decoded_instr_t dispatched_instr_q;
+
+    always_ff @(posedge clk_i) begin
+        if(!reset_ni || flush_i) begin
+            for(int unsigned i=0; i<config_pkg::INSTR_QUEUE_DEPTH; i++)
+                instr_fifo[i].valid <= 1'b0;
             dispatched_instr_q <= '0;
-            rs_slot_id_o  <= '0;
             head <= '0;
             tail <= '0;
         end
-
         else begin
-            if (dequeue) begin
-                dispatched_instr_q <= instr_fifo[head.address];
-                rs_slot_id_o  <= (rs_index != IDX_NOP) ? next_rs_slot[rs_index] : '0;
+            if(dequeue) begin
+                dispatched_instr_q <= instr_fifo[head.addr];
                 head <= head_next;
             end
-            else begin 
-                dispatched_instr_q <= '0;
-                rs_slot_id_o  <= '0;
-            end
-            if (enqueue) begin
-                instr_fifo[tail.address] <= decoded_instr_i;
+            else dispatched_instr_q <= '0;
+            
+            if(enqueue) begin
+                instr_fifo[tail.addr] <= decoded_instr_i;
                 tail <= tail_next;
             end
         end
     end
+
+    //  -------------------------------------------------------------------------------------------
+    //      Outputs
+
+    assign dispatched_instr_o = (flush_i) ? '0 : dispatched_instr_q; 
+    assign queue_ready_o = !(full_next || full) || dequeue;
     
 endmodule

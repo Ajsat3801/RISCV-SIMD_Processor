@@ -47,13 +47,13 @@ module wb_scalar (
     if_data_bus.writeback data_bus_o
 );
 
-    localparam int unsigned EX_IDX_W = $clog2(config_pkg::EX_TOT_N);
-
+    localparam EX_IDX_W = $clog2(config_pkg::SCALAR_EX_N);
+    
     packet_pkg::sc_ex_result_t fifo_heads[config_pkg::SCALAR_EX_N-1:0]; 
 
     logic[EX_IDX_W-1:0] choice;
     logic[config_pkg::SCALAR_EX_N-1:0] empty, full, next_full, eligible;
-    logic[config_pkg::SCALAR_EX_N-1:0] dequeue, dequeue_next;
+    logic[config_pkg::SCALAR_EX_N-1:0] dequeue;
     logic[config_pkg::SCALAR_EX_N-1:0] mask, mask_upper, mask_next;
     logic[config_pkg::SCALAR_EX_N-1:0] candidates1, candidates2_upper, candidates2_lower;
     logic[config_pkg::SCALAR_EX_N-1:0] winner_upper, winner_lower, winner1, winner2;
@@ -69,7 +69,7 @@ module wb_scalar (
         .reset_ni(reset_wb_n),
         .push_i(ex_result_i[0].valid && !flush_i),
         .push_data_i(ex_result_i[0]),
-        .pop_i(dequeue_next[0]),
+        .pop_i(dequeue[0]),
         .data_o(fifo_heads[0]),
         .empty_o(empty[0]),
         .full_o(full[0]),
@@ -84,7 +84,7 @@ module wb_scalar (
         .reset_ni(reset_wb_n),
         .push_i(ex_result_i[1].valid && !flush_i),
         .push_data_i(ex_result_i[1]),
-        .pop_i(dequeue_next[1]),
+        .pop_i(dequeue[1]),
         .data_o(fifo_heads[1]),
         .empty_o(empty[1]),
         .full_o(full[1]),
@@ -99,7 +99,7 @@ module wb_scalar (
         .reset_ni(reset_wb_n),
         .push_i(ex_result_i[2].valid  && !flush_i),
         .push_data_i(ex_result_i[2]),
-        .pop_i(dequeue_next[2]),
+        .pop_i(dequeue[2]),
         .data_o(fifo_heads[2]),
         .empty_o(empty[2]),
         .full_o(full[2]),
@@ -116,7 +116,7 @@ module wb_scalar (
         .push0_data_i(ex_result_i[3]),
         .push1_i(lsu_result_i.valid && !flush_i),
         .push1_data_i(lsu_result_i),
-        .pop_i(dequeue_next[3]),
+        .pop_i(dequeue[3]),
         .data_o(fifo_heads[3]),
         .empty_o(empty[3]),
         .full_o(full[3]),
@@ -127,9 +127,10 @@ module wb_scalar (
 
     always_comb begin
 
+        choice = '0;
         eligible = ~empty;
 
-        mask_upper = mask[0];
+        mask_upper[0] = mask[0];
         for(int i=1;i<config_pkg::SCALAR_EX_N; i++) begin
             mask_upper[i] = mask_upper[i-1] | mask[i];
         end
@@ -151,7 +152,7 @@ module wb_scalar (
                 if(winner1[i]) choice = i[EX_IDX_W-1:0];
             end
             mask_next = {winner1[config_pkg::SCALAR_EX_N-2:0], winner1[config_pkg::SCALAR_EX_N-1]};
-            dequeue_next = winner1;
+            dequeue = winner1;
             data_bus_o.valid   = 1'b1;
             data_bus_o.prf_tag = fifo_heads[choice].prf_tag;
             data_bus_o.rob_id  = fifo_heads[choice].rob_id;
@@ -162,7 +163,7 @@ module wb_scalar (
                 if(winner2[i]) choice = i[EX_IDX_W-1:0];
             end
             mask_next = {winner2[config_pkg::SCALAR_EX_N-2:0], winner2[config_pkg::SCALAR_EX_N-1]};
-            dequeue_next = winner2;
+            dequeue = winner2;
             data_bus_o.valid   = 1'b1;
             data_bus_o.prf_tag = fifo_heads[choice].prf_tag;
             data_bus_o.rob_id  = fifo_heads[choice].rob_id;
@@ -174,7 +175,7 @@ module wb_scalar (
             data_bus_o.rob_id  = '0;
             data_bus_o.data    = '0;
             mask_next = mask;
-            dequeue_next = '0;
+            dequeue = '0;
         end
 
         wb_ready_o[0] = ~(full[0] | next_full[0]);
@@ -186,15 +187,9 @@ module wb_scalar (
 
     always_ff @(posedge clk_i) begin
 
-        if(!reset_ni || flush_i) begin
-            mask <= {{config_pkg::SCALAR_EX_N-1{1'b0}},1'b1};
-            dequeue <= '0;
-        end
+        if(!reset_ni || flush_i) mask <= {{config_pkg::SCALAR_EX_N-1{1'b0}},1'b1};
+        else mask <= mask_next;
 
-        else begin
-            mask <= mask_next;
-            dequeue <= dequeue_next;
-        end
     end
 
 endmodule

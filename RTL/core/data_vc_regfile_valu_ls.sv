@@ -43,7 +43,7 @@ module data_vc_regfile_valu_ls (
     output signal_pkg::vector_data_t vc_lsu_ex_req_o
 );
 
-    signal_pkg::vector_data_t regfile[PRF_DEPTH-1:0];
+    signal_pkg::vector_data_t regfile[config_pkg::PRF_DEPTH-1:0];
     signal_pkg::vector_data_t operand_a0, operand_b0, operand_sd;
 
     always_comb begin
@@ -55,7 +55,7 @@ module data_vc_regfile_valu_ls (
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
 
-            for (int i=0; i<PRF_DEPTH; i++) regfile[i] <= '0;
+            for (int i=0; i<config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
 
             vc_alu_ex_req_o <= '0;
             vc_lsu_ex_req_o <= '0;

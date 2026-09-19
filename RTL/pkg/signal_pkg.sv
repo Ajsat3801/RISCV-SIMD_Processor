@@ -13,10 +13,13 @@ package signal_pkg;
 //  ->  chip_select_e[1:0] is 01 for ALU, 10 for MULDIV and 11 for LSU
 
     typedef enum logic[2:0] { 
-        NONE    = 3'b000, CS_BRANCH  = 3'b100,
-        CS_SALU = 3'b001, CS_MULDIV = 3'b010, CS_SLSU = 3'b011,
-        CS_VALU = 3'b101,                     CS_VLSU = 3'b111
+        NONE      = 3'b000, CS_SALU = 3'b001, CS_MULDIV = 3'b010, CS_SLSU = 3'b011,
+        CS_BRANCH = 3'b100, CS_VALU = 3'b101,                     CS_VLSU = 3'b111
     } chip_select_e;
+
+    typedef enum logic[$clog2(RS_POOL_N+1)-1:0] {
+        POOL_SC_ALU, POOL_MULDIV, POOL_LOAD, POOL_STORE, POOL_BRANCH, POOL_VC_ALU, POOL_NONE
+    } pool_e;
 
 //  -----------------------------------------------------------------------------------------------
 //                                         Operations Enum
@@ -94,10 +97,9 @@ package signal_pkg;
     // Aliases for various standard signals
 
     typedef logic [config_pkg::DATA_W-1:0] data_t;
-    typedef logic [VECTOR_LEN-1:0] [config_pkg::DATA_W-1:0] vector_data_t;
+    typedef logic [config_pkg::VECTOR_LEN-1:0] [config_pkg::DATA_W-1:0] vector_data_t;
 
     typedef logic [REG_ADDR_W-1:0] arf_address_t;
-    typedef logic [RS_ADDR_W-1:0]  rs_slot_id_t;
     
     typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
     typedef logic [(PHY_MEM_ADDR_W)-1:0] mem_address_t;

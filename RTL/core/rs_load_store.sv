@@ -14,7 +14,8 @@
  *  Outputs
  *  ->  ls_read_req_o — Scalar LSU read request driven to PRF
  *  ->  vc_lsu_rd_req_o — Vector LSU read request driven to PRF
- *  ->  lsu_rs_rdy_o — Handshake with Instruction queue indicating RS an accept new instruction. 
+ *  ->  ld_released_o — Pulse to instruction queue indicating a load left the RS
+ *  ->  st_released_o — Pulse to instruction queue indicating a store left the RS 
  *
  *  Notes
  *  ->  Priority order when load and store is ready to dispatch -> if(load or store is full), the
@@ -40,10 +41,12 @@ module rs_load_store (
     output signal_pkg::prf_tag_t vc_lsu_rd_req_o,
 
     //  RS <- LSU ready connection for backpressure
-    input  logic lsu_rdy_i,
-    
-    // RS -> Instruction Queue connection for backpressure
-    output logic lsu_rs_rdy_o
+    input  logic sc_lsu_rdy_i,
+    input  logic vc_lsu_rdy_i,
+
+    // RS -> Instruction Queue connection for credit return
+    output logic ld_released_o,
+    output logic st_released_o
 
 );
 
@@ -62,7 +65,7 @@ module rs_load_store (
 
 
     //  -------------------------------------------------------------------------------------------
-    //      Input Output declaration
+    //      Helper Function
     
     function automatic logic tag_match( // CDB snoop
         input logic rs_is_vec, input signal_pkg::prf_tag_t rs_tag ,
@@ -74,8 +77,24 @@ module rs_load_store (
 
     endfunction
 
-    logic in_valid, in_is_store, in_ready;
+    function automatic lsu_rs_load_addr_t oneHot_to_binary(
+        input logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] addr_oh
+    );
+        lsu_rs_load_addr_t addr;
+        addr = '0;
+        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+                if(addr_oh[i]) addr = i;
+        end
+        return addr;
+    endfunction
+
+    //  -------------------------------------------------------------------------------------------
+    //      Input Output declaration
+
+    logic in_valid, in_is_store, in_ready, lsu_ready;
     packet_pkg::rs_entry_t in_entry_d;
+    
+    assign lsu_ready = sc_lsu_rdy_i && vc_lsu_rdy_i;
 
     assign in_valid =   rs_req_i.valid
                     && (rs_req_i.chip_select == signal_pkg::CS_SLSU
@@ -154,11 +173,11 @@ module rs_load_store (
 
         eligible_bypass = store_q_empty && !(|ld_eligible);
 
-        load_bypass  = lsu_rdy_i && in_valid && in_ready && !(in_is_store) && eligible_bypass;
-        store_bypass = lsu_rdy_i && in_valid && in_ready && in_is_store && eligible_bypass;
+        load_bypass  = lsu_ready && in_valid && in_ready && !(in_is_store) && eligible_bypass;
+        store_bypass = lsu_ready && in_valid && in_ready && in_is_store && eligible_bypass;
 
-        store_dispatch = lsu_rdy_i && st_eligible && (store_q_full || !(|ld_eligible));
-        load_dispatch  = lsu_rdy_i && (|ld_eligible) && !store_dispatch;
+        store_dispatch = lsu_ready && st_eligible && (store_q_full || !(|ld_eligible));
+        load_dispatch  = lsu_ready && (|ld_eligible) && !store_dispatch;
         
         load_alloc = in_valid && !in_is_store && !load_bypass;
         store_alloc = in_valid && in_is_store && !store_bypass;    
@@ -169,31 +188,8 @@ module rs_load_store (
 
     logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] rr_mask_q, rr_mask_d;
     logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] mask_upper, rr_upper, rr_lower, ld_winner;
-    lsu_rs_load_addr_t load_dispatch_addr, load_alloc_addr;
-
-        // helper functions
-    function automatic lsu_rs_load_addr_t oneHot_to_binary(
-        input logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] addr_oh
-    );
-        lsu_rs_load_addr_t addr;
-        addr = '0;
-        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
-                if(addr_oh[i]) addr = i;
-        end
-        return addr;
-    endfunction
-    
-    function automatic lsu_rs_load_addr_t find_ld_push_addr();
-        lsu_rs_load_addr_t push_addr;
-        if (!load_dispatch) begin
-            push_addr = '0;
-            for (int i = config_pkg::RS_LSU_LOAD_DEPTH-1; i >= 0; i--) begin
-                if (!occupied[i]) push_addr = i;
-            end
-        end
-        else push_addr = load_dispatch_addr;
-        return push_addr;
-    endfunction
+    lsu_rs_load_addr_t load_dispatch_addr;
+    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] load_alloc_addr;
 
     always_comb begin
         // round robin arbitation
@@ -224,7 +220,7 @@ module rs_load_store (
     end
 
     always_comb load_dispatch_addr = oneHot_to_binary(ld_winner);
-    always_comb load_alloc_addr = find_ld_push_addr();
+    always_comb load_alloc_addr = ~occupied & (occupied + 1'b1);
     
     //  -------------------------------------------------------------------------------------------
     //      CDB Snoop
@@ -312,7 +308,10 @@ module rs_load_store (
         for (int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++)
             no_prev_store_d[i] = occupied[i] ? no_prev_store_q[i] | (stq_head_d == alloc_tail[i]): 1'b0;
 
-        if (load_alloc) no_prev_store_d[load_alloc_addr] = (stq_head_d == stq_tail);
+        for(int unsigned i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+            if (load_alloc && load_alloc_addr[i]) 
+                no_prev_store_d[i] = (stq_head_d == stq_tail);
+        end
 
     end
 
@@ -332,10 +331,12 @@ module rs_load_store (
                 occupied[load_dispatch_addr] <= 1'b0;
             end
 
-            if(load_alloc) begin // add to buffer
-                load_buf[load_alloc_addr] <= in_entry_d;
-                alloc_tail[load_alloc_addr] <= stq_tail;
-                occupied[load_alloc_addr] <= 1'b1;
+            for(int unsigned i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+                if(load_alloc && load_alloc_addr[i]) begin // add to buffer
+                    load_buf[i] <= in_entry_d;
+                    alloc_tail[i] <= stq_tail;
+                    occupied[i] <= 1'b1;
+                end
             end
 
             no_prev_store_q <= no_prev_store_d;
@@ -360,10 +361,14 @@ module rs_load_store (
         if(!reset_ni || flush_i) begin
             out_q <= '0;
             out_valid_q <= '0;
+            ld_released_o <= 1'b0;
+            st_released_o <= 1'b0;
         end
         else begin
             out_q <= out_d;
             out_valid_q <= out_valid_d;
+            ld_released_o <= load_dispatch || load_bypass;
+            st_released_o <= store_dispatch || store_bypass;
         end
     end
 
@@ -381,7 +386,5 @@ module rs_load_store (
     };
     
     assign vc_lsu_rd_req_o = out_q.operand_b_tag;
-
-    assign lsu_rs_rdy_o = (!store_q_full || store_dispatch) && (!ld_buf_full || load_dispatch);
 
 endmodule

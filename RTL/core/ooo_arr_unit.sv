@@ -20,7 +20,6 @@
  *  Inputs
  *  ->  clk, reset_n & flush
  *  ->  dispatched_instr_i — decoded instruction from the dispatch stage requiring rename.
- *  ->  rs_slot_id_i — reservation station slot assigned at dispatch
  *  ->  retire_instr_i — retirement bus from the ROB. 
  *  ->  sc_wb_instr_i — scalar writeback bus snooped to mark scalar PRF ready bits.
  *  ->  vc_wb_instr_i — vector writeback bus snooped to mark vector PRF ready bits.
@@ -46,7 +45,6 @@ module ooo_arr_unit (
     input  logic flush_i,
 
     input packet_pkg::decoded_instr_t dispatched_instr_i,
-    input signal_pkg::rs_slot_id_t rs_slot_id_i,
     if_retirement_bus.arr retire_instr_i,
     if_data_bus.snoop sc_wb_instr_i,
     if_data_bus.snoop vc_wb_instr_i,
@@ -56,24 +54,24 @@ module ooo_arr_unit (
 );
 
     // {epoch[FIFO_WIDTH], ptr[FIFO_WIDTH-1:0]}
-    localparam int FIFO_WIDTH = $clog2(PRF_DEPTH); 
+    localparam int FIFO_WIDTH = $clog2(config_pkg::PRF_DEPTH); 
     typedef logic [FIFO_WIDTH:0] fifo_pointer_t;  
 
-    signal_pkg::prf_address_t sc_free_list[PRF_DEPTH];
-    signal_pkg::prf_address_t vc_free_list[PRF_DEPTH];
+    signal_pkg::prf_address_t sc_free_list[config_pkg::PRF_DEPTH];
+    signal_pkg::prf_address_t vc_free_list[config_pkg::PRF_DEPTH];
 
     fifo_pointer_t sc_head, vc_head;
     fifo_pointer_t sc_tail, vc_tail; 
     fifo_pointer_t sc_head_committed, sc_tail_committed;
     fifo_pointer_t vc_head_committed, vc_tail_committed;
 
-    logic[PRF_DEPTH-1:0] sc_ready, vc_ready;
+    logic[config_pkg::PRF_DEPTH-1:0] sc_ready, vc_ready;
 
-    signal_pkg::prf_address_t sc_reg_alloc_table [ARCH_REG_DEPTH];
-    signal_pkg::prf_address_t vc_reg_alloc_table [ARCH_REG_DEPTH];
+    signal_pkg::prf_address_t sc_reg_alloc_table [config_pkg::ARCH_REG_DEPTH];
+    signal_pkg::prf_address_t vc_reg_alloc_table [config_pkg::ARCH_REG_DEPTH];
 
-    signal_pkg::prf_address_t sc_commit_table [ARCH_REG_DEPTH];
-    signal_pkg::prf_address_t vc_commit_table [ARCH_REG_DEPTH];
+    signal_pkg::prf_address_t sc_commit_table [config_pkg::ARCH_REG_DEPTH];
+    signal_pkg::prf_address_t vc_commit_table [config_pkg::ARCH_REG_DEPTH];
 
     logic sc_alloc_valid, vc_alloc_valid;
     logic sc_instr_valid, vc_instr_valid;
@@ -145,12 +143,12 @@ module ooo_arr_unit (
 
         // RESET
         //   arch reg i maps to PRF i for both channels.
-        //   Free list is loaded with PRF[ARCH_REG_DEPTH .. PRF_DEPTH-1].
+        //   Free list is loaded with PRF[config_pkg::ARCH_REG_DEPTH .. config_pkg::PRF_DEPTH-1].
         //   All PRFs start ready (reset values are architecturally valid).
 
         if (!reset_ni) begin
 
-            for (int i=0; i<ARCH_REG_DEPTH; i++) begin
+            for (int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
                 sc_reg_alloc_table[i] <= signal_pkg::prf_address_t'(i);
                 vc_reg_alloc_table[i] <= signal_pkg::prf_address_t'(i);
                 sc_commit_table[i]    <= signal_pkg::prf_address_t'(i);
@@ -159,9 +157,9 @@ module ooo_arr_unit (
                 vc_ready[i] <= 1'b1;
             end
 
-            for (int i=ARCH_REG_DEPTH; i<PRF_DEPTH; i++) begin
-                sc_free_list[i-ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
-                vc_free_list[i-ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
+            for (int i=config_pkg::ARCH_REG_DEPTH; i<config_pkg::PRF_DEPTH; i++) begin
+                sc_free_list[i-config_pkg::ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
+                vc_free_list[i-config_pkg::ARCH_REG_DEPTH] <= signal_pkg::prf_address_t'(i);
                 sc_ready[i] <= 1'b0;
                 vc_ready[i] <= 1'b0;
             end
@@ -171,11 +169,11 @@ module ooo_arr_unit (
             sc_head_committed <= '0;
             vc_head_committed <= '0;
 
-            sc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
-            vc_tail <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
+            sc_tail <= fifo_pointer_t'(config_pkg::PRF_DEPTH - config_pkg::ARCH_REG_DEPTH);
+            vc_tail <= fifo_pointer_t'(config_pkg::PRF_DEPTH - config_pkg::ARCH_REG_DEPTH);
 
-            sc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH);
-            vc_tail_committed <= fifo_pointer_t'(PRF_DEPTH - ARCH_REG_DEPTH); 
+            sc_tail_committed <= fifo_pointer_t'(config_pkg::PRF_DEPTH - config_pkg::ARCH_REG_DEPTH);
+            vc_tail_committed <= fifo_pointer_t'(config_pkg::PRF_DEPTH - config_pkg::ARCH_REG_DEPTH); 
 
             alloc_instr_o.sc_valid    <= 1'b0; 
             alloc_instr_o.vc_valid    <= 1'b0;
@@ -192,7 +190,7 @@ module ooo_arr_unit (
             //   and are instantly reclaimed by moving the pointer.
             //   tail is untouched; retirements are permanent.
 
-            for (int i=0; i<ARCH_REG_DEPTH; i++) begin
+            for (int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
                 // Restoring state of scalar registers
 
                 // handling simultaneous flush + scalar retire
@@ -294,7 +292,6 @@ module ooo_arr_unit (
              */
             alloc_instr_o.sc_valid    <= (sc_alloc_valid || sc_store_valid) || dispatched_instr_i.is_branch; 
             alloc_instr_o.vc_valid    <= (vc_alloc_valid || vc_store_valid);
-            alloc_instr_o.rs_slot_id  <= rs_slot_id_i;
             alloc_instr_o.instr       <= dispatched_instr_i;
             alloc_instr_o.a_is_vector <= dispatched_instr_i.src1_vector;
             alloc_instr_o.b_is_vector <= dispatched_instr_i.src2_vector;

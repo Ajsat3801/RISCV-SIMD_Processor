@@ -213,6 +213,7 @@ module fe_decode(
                     input_instr.operation   = {fetched_instr_i[5],fetched_instr_i[14:12]};
                     input_instr.imm = '0;
                     legal = (fetched_instr_i[31:20] == 12'h020);
+                    input_instr.src2_address = '0;
                 end
 
                 7'b0100111: begin 
