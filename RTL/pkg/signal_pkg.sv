@@ -102,7 +102,7 @@ package signal_pkg;
     typedef logic [REG_ADDR_W-1:0] arf_address_t;
     
     typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
-    typedef logic [(PHY_MEM_ADDR_W)-1:0] mem_address_t;
+    typedef logic [(config_pkg::PHY_MEM_ADDR_W)-1:0] mem_address_t;
     typedef logic [(PC_W)-1:0] pc_t;
     
 /*

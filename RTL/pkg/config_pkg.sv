@@ -48,7 +48,7 @@ package config_pkg;
 
 /* Notes
  *  -> the number of banks in a cache will always be equal to the number of elements in a vector
- *  -> All RS depths must be powers of 2.
+ *  -> All RS depths & store buffer depth must be powers of 2.
  *  -> EX_LSU_N counted twice in RS_DISPATCH_N because of decoupled dispatched signals for loads and stores
  */
 
