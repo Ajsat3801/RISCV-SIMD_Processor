@@ -60,7 +60,7 @@ packet_pkg::rob_entry_t rob_input;
 signal_pkg::rob_address_t head, tail;
 logic full, empty;
 logic push_allowed, pop_allowed;
-logic [$clog2(ROB_DEPTH+1)-1:0]  occupancy;
+logic [$clog2(config_pkg::ROB_DEPTH+1)-1:0]  occupancy;
 
 always_comb begin
     // compiling instruction into rob entry

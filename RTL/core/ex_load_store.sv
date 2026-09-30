@@ -36,7 +36,9 @@ module ex_load_store(
         store_buf_addr_t addr;
     } store_buf_ptr_t;
 
-    localparam int unsigned WORD_OFFSET_W = $clog2(config_pkg::VECTOR_LEN);
+    localparam int unsigned BYTE_OFF_W = $clog2(config_pkg::DATA_W/8);
+    localparam int unsigned BANK_ID_W  = $clog2(config_pkg::VECTOR_LEN);
+    localparam int unsigned LINE_OFF_W = BANK_ID_W + BYTE_OFF_W;
     localparam int unsigned PAD_W = (config_pkg::VECTOR_LEN - 1)* config_pkg::DATA_W;
 
     //  -------------------------------------------------------------------------------------------
@@ -103,6 +105,12 @@ module ex_load_store(
 
     packet_pkg::load_store_entry_t store_buf[config_pkg::STORE_BUFFER_DEPTH];
     store_buf_onehot_t  store_rdy_q;
+    
+    store_buf_ptr_t head_nxt, head, tail_nxt, tail;
+    store_buf_ptr_t commit, commit_nxt_ptr;
+    logic full_nxt, commit_advance;
+
+    packet_pkg::load_store_entry_t store_out;
     logic st_to_dcache;
 
     function automatic logic ret_match (store_buf_addr_t i);
@@ -127,9 +135,10 @@ module ex_load_store(
     function automatic logic match(store_buf_addr_t i);
         logic addr_match, match_sc, match_vc, match_older;
 
-        match_sc = ld_q.mem_addr == store_buf[i].mem_addr;
-        match_vc = (ld_q.mem_addr[config_pkg::PHY_MEM_ADDR_W-1:WORD_OFFSET_W]
-                == store_buf[i].mem_addr[config_pkg::PHY_MEM_ADDR_W-1:WORD_OFFSET_W]);
+        match_sc = (ld_q.mem_addr[config_pkg::PHY_MEM_ADDR_W-1:BYTE_OFF_W]
+                == store_buf[i].mem_addr[config_pkg::PHY_MEM_ADDR_W-1:BYTE_OFF_W]);
+        match_vc = (ld_q.mem_addr[config_pkg::PHY_MEM_ADDR_W-1:LINE_OFF_W]
+                == store_buf[i].mem_addr[config_pkg::PHY_MEM_ADDR_W-1:LINE_OFF_W]);
         
         addr_match = (ld_q.is_vector || store_buf[i].is_vector) ? match_vc : match_sc;
         match_older = store_rdy_q[i] || norm_epoch(store_buf[i].rob_id) < norm_epoch(ld_q.rob_id);
@@ -161,10 +170,7 @@ module ex_load_store(
     //  -------------------------------------------------------------------------------------------
     //      Store buffer - FIFO implementation 
     
-    packet_pkg::load_store_entry_t store_out;
-    store_buf_ptr_t head_nxt, head, tail_nxt, tail;
-    store_buf_ptr_t commit, commit_nxt_ptr;
-    logic full_nxt, commit_advance;
+
 
     assign head_nxt = head + 1'b1;
     assign tail_nxt = tail + 1'b1;
@@ -218,9 +224,9 @@ module ex_load_store(
 
     signal_pkg::vector_data_t fwd_store_data;
     logic fwd_is_vector;
-    logic [WORD_OFFSET_W-1:0] block_offset;
+    logic [BANK_ID_W-1:0] block_offset;
 
-    assign block_offset = ld_q.mem_addr[WORD_OFFSET_W-1:0];
+    assign block_offset = ld_q.mem_addr[LINE_OFF_W-1:BYTE_OFF_W];
 
     always_comb begin
         fwd_store_data = '0;
