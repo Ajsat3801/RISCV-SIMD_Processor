@@ -27,7 +27,7 @@ Goal: outperform a scalar core + loosely-coupled vector coprocessor whenever vec
 | ADDI, SLLI, SRLI, ANDI, ORI, XORI, SLTI, SLTIU       | Scalar ALU          |
 | BEQ, BNE, BLT, BGE, BLTU, BGEU                       | Branch Unit         |
 | JAL, LUI, AUIPC                                      | Procesed in decoder |
-| LW, SW                                               | LSU                 |
+| LB, LH, LW, LBU, LHU, SB, SH, SW                     | LSU                 |
 
 ### RV32M instructions
 
@@ -48,13 +48,13 @@ Note: Fixed configuration: `VLEN = 128`, `SEW = 32`, `LMUL = 1`. No `vsetvli`; v
 
 ## Configuration
 
-| Parameter | Value | | Parameter | Value |
-|---|---|---|---|---|
-| Instruction queue | 16 | | ROB | 32 |
-| Scalar / vector PRF | 64 each | | Arch regs | 32 + 32 |
-| Scalar ALU RS (dual-issue) | 32 | | Other RS (x4) | 8 each |
-| Vector length | 4 lanes x 32b | | Store buffer | 4 |
-| IMEM | 256 x 32b | | DMEM | 4 banks x 256 x 32b |
+| Parameter                  | Value         | | Parameter     | Value               |
+|----------------------------|---------------|-|---------------|---------------------|
+| Instruction queue          | 16            | | ROB           | 32                  |
+| Scalar / vector PRF        | 64 each       | | Arch regs     | 32 + 32             |
+| Scalar ALU RS (dual-issue) | 32            | | Other RS (x4) | 8 each              |
+| Vector length              | 4 lanes x 32b | | Store buffer  | 4                   |
+| IMEM                       | 256 x 32b     | | DMEM          | 4 banks x 256 x 32b |
 
 Five identical `sky130_sram_1kbyte_1rw_32x256_32` macros: one IMEM, four banked for 128-bit DMEM access.
 

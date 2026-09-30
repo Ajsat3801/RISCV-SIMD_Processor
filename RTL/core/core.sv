@@ -364,8 +364,8 @@ module core #()(
 
     data_l1_dcache u_dcache (
         .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
-        .lsu_output_i(dcache_req),
-        .l1_dcache_ready_o(dcache_rdy),
+        .dcache_req_i(dcache_req),
+        .dcache_rdy_o(dcache_rdy),
         .sc_wb_o(sc_ex_res[3]),
         .vc_wb_o(vc_ex_res[1]),
         .mem_rd_req_o(mem_rd_req),
