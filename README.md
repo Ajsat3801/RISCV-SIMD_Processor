@@ -66,12 +66,14 @@ Five identical `sky130_sram_1kbyte_1rw_32x256_32` macros: one IMEM, four banked 
 ## Directory Structure
 ```
 ├── doc                       // Block diagrams, execution path diagrams and result images
-├── rtl                       // RTL source. Top level holds top.sv, imem.sv and dmem.sv
+├── rtl                       // RTL source.
 │   ├── core                  // The core pipeline, one module per stage/unit
-│   ├── if                    // SystemVerilog interfaces for the alloc, data and retirement buses
-│   ├── lib                   // Reusable blocks - FIFOs, free queues, multiplier, divider, ALU lane
-│   ├── macros                // SRAM macro, instanced 5 times (1 IMEM + 4 DMEM banks)
-│   └── pkg                   // Config parameters, packet structs and signal typedefs
+│   │   ├── if                // SystemVerilog interfaces for the alloc, data and retirement buses
+│   │   ├── lib               // Reusable blocks - FIFOs, free queues, multiplier, divider, ALU lane
+│   │   └── pkg               // Config parameters, packet structs and signal typedefs
+│   ├── interconnect          // Interconnections between 2 Master ports in Core and Memory
+│   └── macros                // SRAM macro, instanced 5 times (1 IMEM + 4 DMEM banks)
+│   
 └── tb                        // Verification
     ├── sanity_check_tb       // Directed testbench with per-unit display tasks, used for bring-up
     └── top_tb                // UVM constrained random testbench for full chip verification

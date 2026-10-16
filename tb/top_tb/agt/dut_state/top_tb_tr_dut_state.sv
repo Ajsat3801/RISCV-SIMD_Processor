@@ -12,12 +12,12 @@ class top_tb_tr_dut_state extends uvm_sequence_item;
      * --------------------------------------------------------------------------------------------
      */
 
-    signal_pkg::data_t sc_reg_sample[config_pkg::ARCH_REG_DEPTH];
+    signal_pkg::data_t sc_reg_sample[core_config_pkg::ARCH_REG_DEPTH];
     bit sc_replicas_match;
 
-    signal_pkg::vector_data_t vc_reg_sample[config_pkg::ARCH_REG_DEPTH];
+    signal_pkg::vector_data_t vc_reg_sample[core_config_pkg::ARCH_REG_DEPTH];
     
-    signal_pkg::data_t dmem_sample[config_pkg::DMEM_DEPTH];
+    signal_pkg::data_t dmem_sample[core_config_pkg::DMEM_DEPTH];
 
     /* --------------------------------------------------------------------------------------------
      * Utils & constraints
@@ -85,7 +85,7 @@ class top_tb_tr_dut_state extends uvm_sequence_item;
         $sformat(s, "%s\n", s);
         $sformat(s, "%sScalar Registers:\n",s);
 
-        for (int i = 0; i < config_pkg::ARCH_REG_DEPTH; i += 4) begin
+        for (int i = 0; i < core_config_pkg::ARCH_REG_DEPTH; i += 4) begin
             $sformat(s, "%sx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\n",
              s, i, sc_reg_sample[i], i+1, sc_reg_sample[i+1], i+2, sc_reg_sample[i+2], i+3, sc_reg_sample[i+3]);
         end
@@ -95,13 +95,13 @@ class top_tb_tr_dut_state extends uvm_sequence_item;
 
         $sformat(s, "%s\nVector Registers:\n",s);
 
-        for (int i = 0; i < config_pkg::ARCH_REG_DEPTH; i++) begin
+        for (int i = 0; i < core_config_pkg::ARCH_REG_DEPTH; i++) begin
             $sformat(s, "%sx%0d:%d %d %d %d\n",
              s, i, vc_reg_sample[i][0], vc_reg_sample[i][1], vc_reg_sample[i][2], vc_reg_sample[i][3]);
         end
 
         $sformat(s, "%s\nDMEM:\n",s);
-        for (int i = 0; i < config_pkg::DMEM_DEPTH; i += 8) begin
+        for (int i = 0; i < core_config_pkg::DMEM_DEPTH; i += 8) begin
             $sformat(s, "%sx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\tx%0d:%d\n",
              s, i, dmem_sample[i], i+1, dmem_sample[i+1], i+2, dmem_sample[i+2], i+3, dmem_sample[i+3],
              i+4, dmem_sample[i+4], i+5, dmem_sample[i+5], i+6, dmem_sample[i+6], i+7, dmem_sample[i+7]);

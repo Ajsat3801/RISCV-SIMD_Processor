@@ -59,7 +59,7 @@ module data_sc_regfile_3sc (
     output packet_pkg::sc_ex_request_t sc_ex_req2_o
 );
 
-    signal_pkg::data_t regfile[config_pkg::PRF_DEPTH-1:0];
+    signal_pkg::data_t regfile[core_config_pkg::PRF_DEPTH-1:0];
     signal_pkg::data_t operand_a0, operand_a1, operand_a2;
     signal_pkg::data_t operand_b0, operand_b1, operand_b2;
 
@@ -75,7 +75,7 @@ module data_sc_regfile_3sc (
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
-            for (int i=0; i<config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
+            for (int i=0; i<core_config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
 
             sc_ex_req0_o <= '0;
             sc_ex_req1_o <= '0;

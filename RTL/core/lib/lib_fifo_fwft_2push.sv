@@ -7,7 +7,7 @@
  * Sequential block only updates the data to and from the buffer
 */
 
-// import config_pkg::*;
+// import core_config_pkg::*;
 
 module lib_fifo_fwft_2push #(
     parameter BUFFER_SIZE = 8,

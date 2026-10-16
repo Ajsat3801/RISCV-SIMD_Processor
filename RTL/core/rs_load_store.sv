@@ -53,8 +53,8 @@ module rs_load_store (
     //  -------------------------------------------------------------------------------------------
     //      Types & local params
 
-    localparam int unsigned RS_LSU_LDQ_ADDR_W = $clog2(config_pkg::RS_LSU_LOAD_DEPTH);
-    localparam int unsigned RS_LSU_STQ_ADDR_W = $clog2(config_pkg::RS_LSU_STORE_DEPTH);
+    localparam int unsigned RS_LSU_LDQ_ADDR_W = $clog2(core_config_pkg::RS_LSU_LOAD_DEPTH);
+    localparam int unsigned RS_LSU_STQ_ADDR_W = $clog2(core_config_pkg::RS_LSU_STORE_DEPTH);
 
     typedef struct packed {
         logic epoch;
@@ -78,11 +78,11 @@ module rs_load_store (
     endfunction
 
     function automatic lsu_rs_load_addr_t oneHot_to_binary(
-        input logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] addr_oh
+        input logic [core_config_pkg::RS_LSU_LOAD_DEPTH-1:0] addr_oh
     );
         lsu_rs_load_addr_t addr;
         addr = '0;
-        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
                 if(addr_oh[i]) addr = i;
         end
         return addr;
@@ -118,7 +118,7 @@ module rs_load_store (
     //  -------------------------------------------------------------------------------------------
     //      Store queue
 
-    packet_pkg::rs_entry_t store_queue [config_pkg::RS_LSU_STORE_DEPTH];
+    packet_pkg::rs_entry_t store_queue [core_config_pkg::RS_LSU_STORE_DEPTH];
     
     lsu_rs_store_q_addr_t stq_head, stq_tail;
     logic st_eligible, store_q_empty, store_q_full;
@@ -136,10 +136,10 @@ module rs_load_store (
     //  -------------------------------------------------------------------------------------------
     //      Load Buffer
 
-    packet_pkg::rs_entry_t load_buf [config_pkg::RS_LSU_LOAD_DEPTH];
-    lsu_rs_store_q_addr_t alloc_tail [config_pkg::RS_LSU_LOAD_DEPTH]; // tail when load was allocated
-    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] occupied, ld_eligible;
-    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] no_prev_store_q, no_prev_store_d;
+    packet_pkg::rs_entry_t load_buf [core_config_pkg::RS_LSU_LOAD_DEPTH];
+    lsu_rs_store_q_addr_t alloc_tail [core_config_pkg::RS_LSU_LOAD_DEPTH]; // tail when load was allocated
+    logic [core_config_pkg::RS_LSU_LOAD_DEPTH-1:0] occupied, ld_eligible;
+    logic [core_config_pkg::RS_LSU_LOAD_DEPTH-1:0] no_prev_store_q, no_prev_store_d;
 
     logic ld_buf_full, ld_buf_empty;
 
@@ -147,7 +147,7 @@ module rs_load_store (
     assign ld_buf_empty = (occupied == '0);
 
     always_comb begin
-        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
             ld_eligible[i] = occupied[i] && no_prev_store_q[i]
                             && load_buf[i].operand_a_ready && load_buf[i].operand_b_ready;
         end
@@ -186,16 +186,16 @@ module rs_load_store (
     //  -------------------------------------------------------------------------------------------
     //      Load allocate and dispatch arbitration
 
-    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] rr_mask_q, rr_mask_d;
-    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] mask_upper, rr_upper, rr_lower, ld_winner;
+    logic [core_config_pkg::RS_LSU_LOAD_DEPTH-1:0] rr_mask_q, rr_mask_d;
+    logic [core_config_pkg::RS_LSU_LOAD_DEPTH-1:0] mask_upper, rr_upper, rr_lower, ld_winner;
     lsu_rs_load_addr_t load_dispatch_addr;
-    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] load_alloc_addr;
+    logic [core_config_pkg::RS_LSU_LOAD_DEPTH-1:0] load_alloc_addr;
 
     always_comb begin
         // round robin arbitation
 
         mask_upper[0] = rr_mask_q[0];
-        for(int i=1; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+        for(int i=1; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
             mask_upper[i] = mask_upper[i-1] | rr_mask_q[i];
         end
 
@@ -207,14 +207,14 @@ module rs_load_store (
                   : (rr_lower & (~rr_lower + 1'b1));
 
         rr_mask_d = load_dispatch
-                  ? { ld_winner[config_pkg::RS_LSU_LOAD_DEPTH-2:0],
-                      ld_winner[config_pkg::RS_LSU_LOAD_DEPTH-1]}
+                  ? { ld_winner[core_config_pkg::RS_LSU_LOAD_DEPTH-2:0],
+                      ld_winner[core_config_pkg::RS_LSU_LOAD_DEPTH-1]}
                   : rr_mask_q;
 
     end
 
     always_ff @(posedge clk_i) begin
-        if(!reset_ni || flush_i) rr_mask_q <= {{(config_pkg::RS_LSU_LOAD_DEPTH-1){1'b0}}, 1'b1};
+        if(!reset_ni || flush_i) rr_mask_q <= {{(core_config_pkg::RS_LSU_LOAD_DEPTH-1){1'b0}}, 1'b1};
         else rr_mask_q <= rr_mask_d;
 
     end
@@ -225,12 +225,12 @@ module rs_load_store (
     //  -------------------------------------------------------------------------------------------
     //      CDB Snoop
 
-    logic [config_pkg::RS_LSU_STORE_DEPTH-1:0] st_op_a_ready_d, st_op_b_ready_d;
-    logic [config_pkg::RS_LSU_LOAD_DEPTH-1:0] ld_op_a_ready_d, ld_op_b_ready_d;
+    logic [core_config_pkg::RS_LSU_STORE_DEPTH-1:0] st_op_a_ready_d, st_op_b_ready_d;
+    logic [core_config_pkg::RS_LSU_LOAD_DEPTH-1:0] ld_op_a_ready_d, ld_op_b_ready_d;
 
     always_comb begin
         // snoop for store queue entries
-        for(int i=0; i<config_pkg::RS_LSU_STORE_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::RS_LSU_STORE_DEPTH; i++) begin
             st_op_a_ready_d[i] = store_queue[i].occupied && (store_queue[i].operand_a_ready || 
                                 tag_match ( store_queue[i].a_is_vector, store_queue[i].operand_a_tag,
                                             sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
@@ -244,7 +244,7 @@ module rs_load_store (
 
     always_comb begin
         // snoop for load buffer entries
-        for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
             ld_op_a_ready_d[i] = occupied[i] && (load_buf[i].operand_a_ready ||
                                 tag_match ( load_buf[i].a_is_vector, load_buf[i].operand_a_tag,
                                             sc_data_bus_i.valid, sc_data_bus_i.prf_tag,
@@ -268,7 +268,7 @@ module rs_load_store (
         if(!reset_ni || flush_i) begin
             stq_head <= '0;
             stq_tail <= '0;
-            for(int i=0; i<config_pkg::RS_LSU_STORE_DEPTH; i++) begin
+            for(int i=0; i<core_config_pkg::RS_LSU_STORE_DEPTH; i++) begin
                 store_queue[i].occupied <= '0;
                 store_queue[i].operand_a_ready <= '0;
                 store_queue[i].operand_b_ready <= '0;
@@ -276,7 +276,7 @@ module rs_load_store (
         end
         else begin
             // update snoop results
-            for(int i=0; i<config_pkg::RS_LSU_STORE_DEPTH; i++) begin
+            for(int i=0; i<core_config_pkg::RS_LSU_STORE_DEPTH; i++) begin
                 store_queue[i].operand_a_ready <= st_op_a_ready_d[i];
                 store_queue[i].operand_b_ready <= st_op_b_ready_d[i];
             end
@@ -305,10 +305,10 @@ module rs_load_store (
 
     always_comb begin
         // ensure there is no older store waiting to be dispatched
-        for (int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++)
+        for (int i=0; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++)
             no_prev_store_d[i] = occupied[i] ? no_prev_store_q[i] | (stq_head_d == alloc_tail[i]): 1'b0;
 
-        for(int unsigned i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+        for(int unsigned i=0; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
             if (load_alloc && load_alloc_addr[i]) 
                 no_prev_store_d[i] = (stq_head_d == stq_tail);
         end
@@ -322,7 +322,7 @@ module rs_load_store (
         end
         else begin
             // snoop
-            for(int i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+            for(int i=0; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
                 load_buf[i].operand_a_ready <= ld_op_a_ready_d[i];
                 load_buf[i].operand_b_ready <= ld_op_b_ready_d[i];
             end
@@ -331,7 +331,7 @@ module rs_load_store (
                 occupied[load_dispatch_addr] <= 1'b0;
             end
 
-            for(int unsigned i=0; i<config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
+            for(int unsigned i=0; i<core_config_pkg::RS_LSU_LOAD_DEPTH; i++) begin
                 if(load_alloc && load_alloc_addr[i]) begin // add to buffer
                     load_buf[i] <= in_entry_d;
                     alloc_tail[i] <= stq_tail;

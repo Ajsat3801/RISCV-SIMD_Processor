@@ -59,7 +59,7 @@ module data_sc_regfile_br_valu_ls (
     output signal_pkg::data_t ls_store_data_o
 );
 
-    signal_pkg::data_t regfile[config_pkg::PRF_DEPTH-1:0];
+    signal_pkg::data_t regfile[core_config_pkg::PRF_DEPTH-1:0];
     signal_pkg::data_t operand_a0, operand_a1, operand_vc;
     signal_pkg::data_t operand_b0, operand_b1;
 
@@ -75,7 +75,7 @@ module data_sc_regfile_br_valu_ls (
     always_ff @(posedge clk_i) begin
         if (!reset_ni) begin
 
-            for (int i=0; i<config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
+            for (int i=0; i<core_config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
 
             sc_br_ex_req_o <= '0;
             vc_alu_sc_operand_o <= '0;

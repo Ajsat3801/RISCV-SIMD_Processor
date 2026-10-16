@@ -32,18 +32,18 @@ module wb_vector (
     input logic reset_ni,
     input logic flush_i,
 
-    input packet_pkg::vc_ex_result_t ex_result_i[config_pkg::VECTOR_EX_N-1:0],
+    input packet_pkg::vc_ex_result_t ex_result_i[core_config_pkg::VECTOR_EX_N-1:0],
     input packet_pkg::vc_ex_result_t lsu_result_i,
-    output logic wb_ready_o[config_pkg::VECTOR_EX_N-1:0],
+    output logic wb_ready_o[core_config_pkg::VECTOR_EX_N-1:0],
 
     if_data_bus.writeback data_bus_o
 );
 
-    packet_pkg::vc_ex_result_t fifo_heads[config_pkg::VECTOR_EX_N-1:0]; 
+    packet_pkg::vc_ex_result_t fifo_heads[core_config_pkg::VECTOR_EX_N-1:0]; 
 
     logic choice;
-    logic[config_pkg::VECTOR_EX_N-1:0] empty, full, next_full;
-    logic[config_pkg::VECTOR_EX_N-1:0] dequeue;
+    logic[core_config_pkg::VECTOR_EX_N-1:0] empty, full, next_full;
+    logic[core_config_pkg::VECTOR_EX_N-1:0] dequeue;
 
     logic wb_chosen, reset_wb_n;
 

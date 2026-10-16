@@ -33,15 +33,15 @@ module data_l1_dcache (
     //  -------------------------------------------------------------------------------------------
     //      Localparams and typedefs
 
-    localparam int unsigned DCACHE_BANKS_N = config_pkg::VECTOR_LEN;
-    localparam int unsigned DATA_BYTES_N   = config_pkg::DATA_W/8; 
+    localparam int unsigned DCACHE_BANKS_N = core_config_pkg::VECTOR_LEN;
+    localparam int unsigned DATA_BYTES_N   = core_config_pkg::DATA_W/8; 
 
     localparam int unsigned BYTE_OFF_W = $clog2(DATA_BYTES_N);
     localparam int unsigned BANK_ID_W  = $clog2(DCACHE_BANKS_N);
     localparam int unsigned LINE_OFF_W = BANK_ID_W + BYTE_OFF_W;
 
-    localparam int unsigned INDEX_W = $clog2(config_pkg::DCACHE_BANK_DEPTH);   
-    localparam int unsigned TAG_W   = config_pkg::PHY_MEM_ADDR_W - INDEX_W - LINE_OFF_W;
+    localparam int unsigned INDEX_W = $clog2(core_config_pkg::DCACHE_BANK_DEPTH);   
+    localparam int unsigned TAG_W   = core_config_pkg::PHY_MEM_ADDR_W - INDEX_W - LINE_OFF_W;
 
     typedef logic [TAG_W-1:0] tag_t;
     typedef logic [INDEX_W-1:0] index_t;
@@ -99,7 +99,7 @@ module data_l1_dcache (
     state_e state_q, state_d;
     request_t req_q, req_d;
     evict_reg_t evict_reg_q, evict_reg_d;
-    dcache_metadata_t meta_q [config_pkg::DCACHE_BANK_DEPTH-1:0]; 
+    dcache_metadata_t meta_q [core_config_pkg::DCACHE_BANK_DEPTH-1:0]; 
     
     logic wb_valid_q, wb_valid_d;   // 1= load result on the writeback port this cycle
     logic wb_fwd_q, wb_fwd_d;       // 1 = source is evict buffer, not array
@@ -114,7 +114,7 @@ module data_l1_dcache (
     dcache_metadata_t victim;
     request_t in_req;
 
-    assign in_tag = dcache_req_i.mem_addr[config_pkg::PHY_MEM_ADDR_W-1 -: TAG_W];
+    assign in_tag = dcache_req_i.mem_addr[core_config_pkg::PHY_MEM_ADDR_W-1 -: TAG_W];
     assign in_index = dcache_req_i.mem_addr[INDEX_W+LINE_OFF_W-1 -: INDEX_W];
     assign victim = meta_q[in_index];
 
@@ -316,7 +316,7 @@ module data_l1_dcache (
 
     always_ff @(posedge clk_i) begin
         if(!reset_ni) begin
-            for(int unsigned i=0; i<config_pkg::DCACHE_BANK_DEPTH; i++)
+            for(int unsigned i=0; i<core_config_pkg::DCACHE_BANK_DEPTH; i++)
                 meta_q[i].state <= CS_I;
         end
         else if(sram_wrt_en) begin

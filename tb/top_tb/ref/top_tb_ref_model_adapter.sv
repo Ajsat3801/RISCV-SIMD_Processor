@@ -1,14 +1,14 @@
 
 class top_tb_ref_model_adapter;
 
-    localparam int VLEN = config_pkg::VECTOR_LEN;
-    localparam int VC_REG_NUM_ELEM = config_pkg::ARCH_REG_DEPTH*VLEN;
+    localparam int VLEN = core_config_pkg::VECTOR_LEN;
+    localparam int VC_REG_NUM_ELEM = core_config_pkg::ARCH_REG_DEPTH*VLEN;
     
     function void create_model();
 
         top_tb_ref_model_init (
-            config_pkg::IMEM_DEPTH,
-            config_pkg::DMEM_BANK_DEPTH,
+            core_config_pkg::IMEM_DEPTH,
+            core_config_pkg::DMEM_BANK_DEPTH,
             VLEN
         );
 
@@ -66,14 +66,14 @@ class top_tb_ref_model_adapter;
     endfunction : preload
 
     function void simulate(
-        output signal_pkg::data_t sc_reg_res[config_pkg::ARCH_REG_DEPTH],
-        output signal_pkg::vector_data_t vc_reg_res[config_pkg::ARCH_REG_DEPTH],
-        output signal_pkg::data_t dmem_res[config_pkg::DMEM_DEPTH]
+        output signal_pkg::data_t sc_reg_res[core_config_pkg::ARCH_REG_DEPTH],
+        output signal_pkg::vector_data_t vc_reg_res[core_config_pkg::ARCH_REG_DEPTH],
+        output signal_pkg::data_t dmem_res[core_config_pkg::DMEM_DEPTH]
     );
 
-        int unsigned sc_reg_res_o[config_pkg::ARCH_REG_DEPTH];
+        int unsigned sc_reg_res_o[core_config_pkg::ARCH_REG_DEPTH];
         int unsigned vc_reg_res_o[VC_REG_NUM_ELEM];
-        int unsigned dmem_res_o[config_pkg::DMEM_DEPTH];
+        int unsigned dmem_res_o[core_config_pkg::DMEM_DEPTH];
         
         top_tb_ref_model_simulate(
             .sc_regs_final(sc_reg_res_o),
@@ -81,16 +81,16 @@ class top_tb_ref_model_adapter;
             .dmem_final(dmem_res_o)
         );
 
-        for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) sc_reg_res[i] = sc_reg_res_o[i];
+        for(int i=0; i<core_config_pkg::ARCH_REG_DEPTH; i++) sc_reg_res[i] = sc_reg_res_o[i];
 
-        for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::ARCH_REG_DEPTH; i++) begin
             vc_reg_res[i] = '{  vc_reg_res_o[(VLEN*i)+3],
                                 vc_reg_res_o[(VLEN*i)+2],
                                 vc_reg_res_o[(VLEN*i)+1],
                                 vc_reg_res_o[(VLEN*i)]};
         end
 
-        for(int i=0; i<config_pkg::DMEM_DEPTH; i++) dmem_res[i] = dmem_res_o[i];
+        for(int i=0; i<core_config_pkg::DMEM_DEPTH; i++) dmem_res[i] = dmem_res_o[i];
 
     endfunction : simulate
 

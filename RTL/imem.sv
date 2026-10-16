@@ -31,7 +31,7 @@ module imem (
     output logic[31:0] data_o,
     output logic[7:0] address_o
 );
-    localparam TAG_SIZE = config_pkg::PC_W - config_pkg::IMEM_ADDR_W;
+    localparam TAG_SIZE = core_config_pkg::PC_W - config_pkg::IMEM_ADDR_W;
     
     logic[32:0] read;
     logic [config_pkg::IMEM_ADDR_W:0] imem_address;

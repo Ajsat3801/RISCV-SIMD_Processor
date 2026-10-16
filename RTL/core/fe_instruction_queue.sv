@@ -25,16 +25,16 @@
 
 
 module fe_instruction_queue #(
-    parameter int unsigned POOL_DEPTH [config_pkg::RS_POOL_N] = '{
-        config_pkg::RS_SC_ALU_DEPTH,  config_pkg::RS_MULDIV_DEPTH,
-        config_pkg::RS_LSU_LOAD_DEPTH, config_pkg::RS_LSU_STORE_DEPTH,
-        config_pkg::RS_BRANCH_DEPTH, config_pkg::RS_VC_ALU_DEPTH 
+    parameter int unsigned POOL_DEPTH [core_config_pkg::RS_POOL_N] = '{
+        core_config_pkg::RS_SC_ALU_DEPTH,  core_config_pkg::RS_MULDIV_DEPTH,
+        core_config_pkg::RS_LSU_LOAD_DEPTH, core_config_pkg::RS_LSU_STORE_DEPTH,
+        core_config_pkg::RS_BRANCH_DEPTH, core_config_pkg::RS_VC_ALU_DEPTH 
     },
 
-    parameter int unsigned POOL_CREDITS [config_pkg::RS_POOL_N] = '{
-        config_pkg::EX_SC_ALU_N, config_pkg::EX_MULDIV_N,
-        config_pkg::EX_LSU_N, config_pkg::EX_LSU_N,
-        config_pkg::EX_BRANCH_N, config_pkg::EX_VC_ALU_N}
+    parameter int unsigned POOL_CREDITS [core_config_pkg::RS_POOL_N] = '{
+        core_config_pkg::EX_SC_ALU_N, core_config_pkg::EX_MULDIV_N,
+        core_config_pkg::EX_LSU_N, core_config_pkg::EX_LSU_N,
+        core_config_pkg::EX_BRANCH_N, core_config_pkg::EX_VC_ALU_N}
 ) (
 
     input logic clk_i,
@@ -47,7 +47,7 @@ module fe_instruction_queue #(
     output logic queue_ready_o,
 
     // Queue <- RS connection for credit return
-    input logic instr_dispatched_i [config_pkg::RS_DISPATCH_N],
+    input logic instr_dispatched_i [core_config_pkg::RS_DISPATCH_N],
     
     // Queue <- ARR & ROB for backpressure
     input logic rob_full_i,
@@ -61,7 +61,7 @@ module fe_instruction_queue #(
     // ---------------------------------------------------------------------------------------------
     //   Typedefs and localparams
 
-    function automatic int unsigned max_of(input int unsigned d [config_pkg::RS_POOL_N]);
+    function automatic int unsigned max_of(input int unsigned d [core_config_pkg::RS_POOL_N]);
         max_of = 0;
         foreach (d[i]) if (d[i] > max_of) max_of = d[i];
     endfunction
@@ -71,7 +71,7 @@ module fe_instruction_queue #(
 
     typedef logic [CNT_W-1:0] cnt_t;
 
-    localparam int unsigned PTR_W = $clog2(config_pkg::INSTR_QUEUE_DEPTH);
+    localparam int unsigned PTR_W = $clog2(core_config_pkg::INSTR_QUEUE_DEPTH);
 
     typedef struct packed {
         logic epoch;
@@ -81,7 +81,7 @@ module fe_instruction_queue #(
     // ---------------------------------------------------------------------------------------------
     //   Queue status
 
-    packet_pkg::decoded_instr_t instr_fifo[config_pkg::INSTR_QUEUE_DEPTH];
+    packet_pkg::decoded_instr_t instr_fifo[core_config_pkg::INSTR_QUEUE_DEPTH];
     q_ptr_t head, tail, head_next, tail_next;
     logic full, empty, full_next;
 
@@ -116,17 +116,17 @@ module fe_instruction_queue #(
     // ---------------------------------------------------------------------------------------------
     //   RS POOL counters
 
-    cnt_t pool_cnt_q [config_pkg::RS_POOL_N];
-    cnt_t pool_cnt_d [config_pkg::RS_POOL_N];
+    cnt_t pool_cnt_q [core_config_pkg::RS_POOL_N];
+    cnt_t pool_cnt_d [core_config_pkg::RS_POOL_N];
 
-    logic[REL_W-1:0] pool_release [config_pkg::RS_POOL_N];
-    logic[config_pkg::RS_POOL_N-1:0] pool_full, pool_alloc;
+    logic[REL_W-1:0] pool_release [core_config_pkg::RS_POOL_N];
+    logic[core_config_pkg::RS_POOL_N-1:0] pool_full, pool_alloc;
 
     always_comb begin
         int unsigned base;
         base = 0;
 
-        for(int unsigned i = 0; i<config_pkg::RS_POOL_N; i++) begin
+        for(int unsigned i = 0; i<core_config_pkg::RS_POOL_N; i++) begin
             pool_release[i] = '0;
             for (int unsigned c = 0; c < POOL_CREDITS[i]; c++)
                 pool_release[i] += REL_W'(instr_dispatched_i[base + c]);
@@ -139,7 +139,7 @@ module fe_instruction_queue #(
 
     always_ff @(posedge clk_i) begin
         if(!reset_ni || flush_i) begin
-            for(int unsigned i=0; i<config_pkg::RS_POOL_N; i++) pool_cnt_q[i] <= '0;
+            for(int unsigned i=0; i<core_config_pkg::RS_POOL_N; i++) pool_cnt_q[i] <= '0;
         end
         else pool_cnt_q <= pool_cnt_d;
     end
@@ -170,7 +170,7 @@ module fe_instruction_queue #(
 
     always_ff @(posedge clk_i) begin
         if(!reset_ni || flush_i) begin
-            for(int unsigned i=0; i<config_pkg::INSTR_QUEUE_DEPTH; i++)
+            for(int unsigned i=0; i<core_config_pkg::INSTR_QUEUE_DEPTH; i++)
                 instr_fifo[i].valid <= 1'b0;
             dispatched_instr_q <= '0;
             head <= '0;

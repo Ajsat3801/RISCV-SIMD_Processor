@@ -41,7 +41,7 @@
  * ------------------------------------------------------------------------------------------------
  */
 
-//import config_pkg::*;
+//import core_config_pkg::*;
 
 module fe_decode(
     input  logic clk_i,

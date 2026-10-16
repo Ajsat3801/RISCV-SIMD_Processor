@@ -4,7 +4,7 @@
 
 package signal_pkg;
 
-    import config_pkg::*;
+    import core_config_pkg::*;
 
 //  -----------------------------------------------------------------------------------------------
 //                                          Chip Select
@@ -96,13 +96,13 @@ package signal_pkg;
 
     // Aliases for various standard signals
 
-    typedef logic [config_pkg::DATA_W-1:0] data_t;
-    typedef logic [config_pkg::VECTOR_LEN-1:0] [config_pkg::DATA_W-1:0] vector_data_t;
+    typedef logic [core_config_pkg::DATA_W-1:0] data_t;
+    typedef logic [core_config_pkg::VECTOR_LEN-1:0] [core_config_pkg::DATA_W-1:0] vector_data_t;
 
     typedef logic [REG_ADDR_W-1:0] arf_address_t;
     
     typedef logic [(PRF_ADDR_W-1):0] prf_address_t;
-    typedef logic [(config_pkg::PHY_MEM_ADDR_W)-1:0] mem_address_t;
+    typedef logic [(core_config_pkg::PHY_MEM_ADDR_W)-1:0] mem_address_t;
     typedef logic [(PC_W)-1:0] pc_t;
     
 /*

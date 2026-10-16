@@ -6,7 +6,7 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
     rand int unsigned n_instr;
 
     int unsigned n_instr_min = 16;
-    int unsigned n_instr_max = config_pkg::IMEM_DEPTH;
+    int unsigned n_instr_max = core_config_pkg::IMEM_DEPTH;
 
     constraint c_n_instr { n_instr inside {[n_instr_min : n_instr_max]}; }
     
@@ -26,10 +26,10 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
 
         gen.set_program_length(n_instr);
 
-        dmem_preload = new[config_pkg::DMEM_BANK_DEPTH];
+        dmem_preload = new[core_config_pkg::DMEM_BANK_DEPTH];
         foreach(dmem_preload[i]) dmem_preload[i] = random_vector();
 
-        sc_prf_preload = new[config_pkg::ARCH_REG_DEPTH];
+        sc_prf_preload = new[core_config_pkg::ARCH_REG_DEPTH];
         foreach(sc_prf_preload[i]) sc_prf_preload[i] = '0;
 
         // fixed values to get edge cases
@@ -41,7 +41,7 @@ class top_tb_seq_random_tb extends top_tb_seq_program_base;
 
         gen.set_random_small_no(sc_prf_preload[4]);
 
-        vc_prf_preload = new[config_pkg::ARCH_REG_DEPTH];  
+        vc_prf_preload = new[core_config_pkg::ARCH_REG_DEPTH];  
         foreach(vc_prf_preload[i]) vc_prf_preload[i] = '0;
 
         imem_preload = new[n_instr];

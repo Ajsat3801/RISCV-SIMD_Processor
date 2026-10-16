@@ -34,8 +34,8 @@ class top_tb_cov extends uvm_component;
 
     endgroup
 
-    top_tb_typedef_pkg::alloc_snapshot_t alloc_buf[config_pkg::ROB_DEPTH];
-    bit alloc_buf_populated[config_pkg::ROB_DEPTH];
+    top_tb_typedef_pkg::alloc_snapshot_t alloc_buf[core_config_pkg::ROB_DEPTH];
+    bit alloc_buf_populated[core_config_pkg::ROB_DEPTH];
 
     int unsigned num_alloc;
     int unsigned num_retired_matched;

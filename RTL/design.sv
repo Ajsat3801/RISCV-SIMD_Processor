@@ -5,7 +5,7 @@
  *  -----------------------------------------------------------------------------------------------
  */
 
-`include "config_pkg.sv"
+`include "core_config_pkg.sv"
 `include "signal_pkg.sv"
 `include "packet_pkg.sv"
 

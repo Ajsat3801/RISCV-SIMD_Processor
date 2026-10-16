@@ -1,4 +1,4 @@
-package config_pkg;
+package core_config_pkg;
 
     // ----------------------------------------------------------------------------------------------------------------
     //                                          GLOBAL CONFIG PARAMETERS 
@@ -12,17 +12,17 @@ package config_pkg;
     parameter int unsigned ARCH_REG_DEPTH = 32;             // Number of registers in the core
     parameter int unsigned PRF_DEPTH = 64;                  // Number of physical registers in the core
 
-    parameter int unsigned EX_SC_ALU_N = 2;
-    parameter int unsigned EX_MULDIV_N = 1;
-    parameter int unsigned EX_BRANCH_N = 1;
-    parameter int unsigned EX_LSU_N = 1;
-    parameter int unsigned EX_VC_ALU_N = 1;
+    parameter int unsigned EX_SC_ALU_N = 2;                 // Number of scalar ALUs
+    parameter int unsigned EX_MULDIV_N = 1;                 // Number of multiply divide units
+    parameter int unsigned EX_BRANCH_N = 1;                 // Number of branching units
+    parameter int unsigned EX_LSU_N = 1;                    // Number of load-store units
+    parameter int unsigned EX_VC_ALU_N = 1;                 // Number of vector ALUs
 
-    parameter int unsigned RS_POOL_N = 6;
-    parameter int unsigned RS_SC_ALU_DEPTH = 16;
-    parameter int unsigned RS_MULDIV_DEPTH = 8;
-    parameter int unsigned RS_BRANCH_DEPTH = 8;
-    parameter int unsigned RS_VC_ALU_DEPTH = 8;
+    parameter int unsigned RS_POOL_N = 6;                   // Number of RS pools = 1 each for ALUs, MULDIV & branch; 2 for LSU
+    parameter int unsigned RS_SC_ALU_DEPTH = 16;            // Number of entries in RS for scalar ALUs
+    parameter int unsigned RS_MULDIV_DEPTH = 8;             // Number of entries in RS for multiply-divide units
+    parameter int unsigned RS_BRANCH_DEPTH = 8;             // Number of entries in RS for branching units
+    parameter int unsigned RS_VC_ALU_DEPTH = 8;             // Number of entries in RS for vector ALUs
     parameter int unsigned RS_LSU_LOAD_DEPTH  = 8;          // Number of load entries in LSU reservation station
     parameter int unsigned RS_LSU_STORE_DEPTH = 4;          // Number of store entries in LSU reservation station
     
@@ -37,11 +37,11 @@ package config_pkg;
     //                                          DERIVED CONFIG PARAMETERS 
     // ----------------------------------------------------------------------------------------------------------------
 
-    // Total Number of scalar writeback ports
+    // Total Number of scalar & vector writeback ports
     localparam int unsigned SCALAR_EX_N = EX_SC_ALU_N + EX_MULDIV_N + EX_LSU_N;  
-    // Total number of vector writeback ports
     localparam int unsigned VECTOR_EX_N = EX_LSU_N + EX_VC_ALU_N;        
 
+    // Maximum number of dispatches per cycle
     localparam int unsigned RS_DISPATCH_N = SCALAR_EX_N + VECTOR_EX_N + EX_BRANCH_N;
     
     localparam int unsigned IMEM_ADDR_W = $clog2(IMEM_DEPTH);

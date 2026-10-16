@@ -52,9 +52,6 @@
  * ------------------------------------------------------------------------------------------------
  */
 
-// import statements for OpenROAD, already included in EDA playground
-//import config_pkg::*;
-
 module core #()(
     input  logic clk_i,
     input  logic reset_ni,
@@ -73,16 +70,16 @@ module core #()(
 //                                   Localparams and Typedefs
 // ------------------------------------------------------------------------------------------------
 
-    localparam int unsigned POOL_DEPTH [config_pkg::RS_POOL_N] = '{
-        config_pkg::RS_SC_ALU_DEPTH,  config_pkg::RS_MULDIV_DEPTH,
-        config_pkg::RS_LSU_LOAD_DEPTH, config_pkg::RS_LSU_STORE_DEPTH,
-        config_pkg::RS_BRANCH_DEPTH, config_pkg::RS_VC_ALU_DEPTH 
+    localparam int unsigned POOL_DEPTH [core_config_pkg::RS_POOL_N] = '{
+        core_config_pkg::RS_SC_ALU_DEPTH,  core_config_pkg::RS_MULDIV_DEPTH,
+        core_config_pkg::RS_LSU_LOAD_DEPTH, core_config_pkg::RS_LSU_STORE_DEPTH,
+        core_config_pkg::RS_BRANCH_DEPTH, core_config_pkg::RS_VC_ALU_DEPTH 
     };
 
-    localparam int unsigned POOL_CREDITS [config_pkg::RS_POOL_N] = '{
-        config_pkg::EX_SC_ALU_N, config_pkg::EX_MULDIV_N,
-        config_pkg::EX_LSU_N, config_pkg::EX_LSU_N,
-        config_pkg::EX_BRANCH_N, config_pkg::EX_VC_ALU_N};
+    localparam int unsigned POOL_CREDITS [core_config_pkg::RS_POOL_N] = '{
+        core_config_pkg::EX_SC_ALU_N, core_config_pkg::EX_MULDIV_N,
+        core_config_pkg::EX_LSU_N, core_config_pkg::EX_LSU_N,
+        core_config_pkg::EX_BRANCH_N, core_config_pkg::EX_VC_ALU_N};
 
 // ------------------------------------------------------------------------------------------------
 //                                      Signal Declarations
@@ -103,18 +100,18 @@ module core #()(
 
     // Queue <-> RS signals (dispatch via ARR and Alloc bus)
     packet_pkg::decoded_instr_t dispatched_instr;
-    logic instr_dispatched[config_pkg::RS_DISPATCH_N];
+    logic instr_dispatched[core_config_pkg::RS_DISPATCH_N];
     logic rob_full, arr_full; // (b)
 
     // RS -> PRF signals
-    packet_pkg::read_request_t sc_rd_req[config_pkg::SCALAR_EX_N-1:0]; 
+    packet_pkg::read_request_t sc_rd_req[core_config_pkg::SCALAR_EX_N-1:0]; 
     packet_pkg::read_request_t br_rd_req;
     packet_pkg::read_request_t vc_alu_rd_req; 
     
-    signal_pkg::prf_tag_t vc_rd_req[config_pkg::VECTOR_EX_N-1:0]; // Read sc_prf for vc alu & read vc_prf for lsu
+    signal_pkg::prf_tag_t vc_rd_req[core_config_pkg::VECTOR_EX_N-1:0]; // Read sc_prf for vc alu & read vc_prf for lsu
     
     // PRF -> EX signals
-    packet_pkg::sc_ex_request_t sc_ex_req[config_pkg::SCALAR_EX_N-1:0];
+    packet_pkg::sc_ex_request_t sc_ex_req[core_config_pkg::SCALAR_EX_N-1:0];
     packet_pkg::sc_ex_request_t br_ex_req;
     packet_pkg::vc_alu_ex_request_t vc_alu_ex_req;
     
@@ -125,8 +122,8 @@ module core #()(
     signal_pkg::vector_data_t vc_store_data;
 
     // EX -> WB    
-    packet_pkg::sc_ex_result_t sc_ex_res[config_pkg::SCALAR_EX_N-1:0];
-    packet_pkg::vc_ex_result_t vc_ex_res[config_pkg::VECTOR_EX_N-1:0];
+    packet_pkg::sc_ex_result_t sc_ex_res[core_config_pkg::SCALAR_EX_N-1:0];
+    packet_pkg::vc_ex_result_t vc_ex_res[core_config_pkg::VECTOR_EX_N-1:0];
     packet_pkg::sc_ex_result_t sc_lsu_fwd_res;
     packet_pkg::vc_ex_result_t vc_lsu_fwd_res;
 
@@ -148,18 +145,18 @@ module core #()(
     // SCALAR: EX -> RS
     // VECTOR: EX -> PRF
 
-    logic sc_ex_rdy[config_pkg::SCALAR_EX_N-1:0];
+    logic sc_ex_rdy[core_config_pkg::SCALAR_EX_N-1:0];
     logic br_ex_rdy;
-    logic vc_ex_rdy[config_pkg::VECTOR_EX_N-1:0];
+    logic vc_ex_rdy[core_config_pkg::VECTOR_EX_N-1:0];
 
     // ready signals from WB
     // WB -> RS
-    logic sc_wb_rdy[config_pkg::SCALAR_EX_N-1:0];
-    logic vc_wb_rdy[config_pkg::VECTOR_EX_N-1:0];
+    logic sc_wb_rdy[core_config_pkg::SCALAR_EX_N-1:0];
+    logic vc_wb_rdy[core_config_pkg::VECTOR_EX_N-1:0];
 
     // ready inputs into RS, bitwise and of sc_ex_ready and sc_wb_ready
-    logic sc_rs_ex_rdy[config_pkg::SCALAR_EX_N-1:0];
-    logic vc_rs_ex_rdy[config_pkg::VECTOR_EX_N-1:0];
+    logic sc_rs_ex_rdy[core_config_pkg::SCALAR_EX_N-1:0];
+    logic vc_rs_ex_rdy[core_config_pkg::VECTOR_EX_N-1:0];
 
     /*  Naming Convention
         Fetched OP -> fetched_instr
@@ -206,10 +203,10 @@ module core #()(
     end
 
 //  -----------------------------------------------------------------------------------------------
-//                                          INPUT/OUTPUT
+//                                    Connection with interconnects
 //  -----------------------------------------------------------------------------------------------
 
-    axi_controller u_axi_controller(
+    axi_master_dcache u_axi_master_dcache (
         .clk_i(clk_i),
         .reset_ni(reset_ni),
         .dcache_mem_rd_req_i(mem_rd_req),
@@ -217,9 +214,11 @@ module core #()(
         .dcache_mem_rd_rdy_o(mem_rd_rdy),
         .dcache_mem_wrt_req_i(mem_wrt_req),
         .dcache_mem_wrt_done_o(mem_wrt_done),
-        .dcache_mem_wrt_rdy_o(mem_wrt_rdy),
-        .axi_connection(axi_connection)
+        .dcache_mem_wrt_rdy_o(mem_wrt_rdy)
+        //<TODO: AXI connection>
     );
+
+    //<TODO: AXI master for icache>
 
 // ------------------------------------------------------------------------------------------------
 //                                        IN ORDER FRONT END
@@ -295,7 +294,7 @@ module core #()(
 
     rs_scalar_2issue #(
         .CHIP_SELECT(signal_pkg::CS_SALU),
-        .DEPTH(config_pkg::RS_SC_ALU_DEPTH)
+        .DEPTH(core_config_pkg::RS_SC_ALU_DEPTH)
     ) u_scalar_alu_rs (
         .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),
@@ -309,7 +308,7 @@ module core #()(
 
     rs_scalar_1issue #(
         .CHIP_SELECT(signal_pkg::CS_MULDIV),
-        .DEPTH(config_pkg::RS_MULDIV_DEPTH)
+        .DEPTH(core_config_pkg::RS_MULDIV_DEPTH)
     ) u_scalar_muldiv_rs (
         .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),
@@ -334,7 +333,7 @@ module core #()(
 
     rs_scalar_1issue #(
         .CHIP_SELECT(signal_pkg::CS_BRANCH),
-        .DEPTH(config_pkg::RS_BRANCH_DEPTH)
+        .DEPTH(core_config_pkg::RS_BRANCH_DEPTH)
     ) u_branch_rs (
         .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),
@@ -346,7 +345,7 @@ module core #()(
 
     rs_vector_1issue #(
         .CHIP_SELECT(signal_pkg::CS_VALU),
-        .DEPTH(config_pkg::RS_VC_ALU_DEPTH)
+        .DEPTH(core_config_pkg::RS_VC_ALU_DEPTH)
     ) u_vector_alu_rs (
         .clk_i(clk_i), .reset_ni(reset_ni), .flush_i(flush),
         .rs_request_i(u_alloc_bus),

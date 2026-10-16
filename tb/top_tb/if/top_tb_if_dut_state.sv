@@ -13,7 +13,7 @@ interface top_tb_if_dut_state (input logic clk_i);
 
         bit match = 1'b1;
 
-        for(int i=0; i<config_pkg::PRF_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::PRF_DEPTH; i++) begin
             match &= (dut.u_core.u_scalar_prf_replica0.regfile[i] ===
                       dut.u_core.u_scalar_prf_replica1.regfile[i]);
         end
@@ -43,11 +43,11 @@ interface top_tb_if_dut_state (input logic clk_i);
 
 
     function automatic void dump_sc_regs (
-        output signal_pkg::data_t arr[config_pkg::ARCH_REG_DEPTH],
+        output signal_pkg::data_t arr[core_config_pkg::ARCH_REG_DEPTH],
         output logic match
     );
         // Dumps the arch register values from R0 to R31
-        for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::ARCH_REG_DEPTH; i++) begin
             arr[i] = get_sc_reg(i);
         end
 
@@ -79,10 +79,10 @@ interface top_tb_if_dut_state (input logic clk_i);
 
 
     function automatic void dump_vc_regs (
-        output signal_pkg::vector_data_t arr[config_pkg::ARCH_REG_DEPTH]
+        output signal_pkg::vector_data_t arr[core_config_pkg::ARCH_REG_DEPTH]
     );
         // Dumps the arch register values from V0 to V31
-        for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::ARCH_REG_DEPTH; i++) begin
             arr[i] = get_vc_reg(i);
         end
         
@@ -106,11 +106,11 @@ interface top_tb_if_dut_state (input logic clk_i);
 
 
     function automatic void dump_dmem(
-        output signal_pkg::data_t arr[config_pkg::DMEM_DEPTH]
+        output signal_pkg::data_t arr[core_config_pkg::DMEM_DEPTH]
     );
         // dumps full DMEM values
         // note: output data is not banked
-        for(int i=0; i<config_pkg::DMEM_BANK_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::DMEM_BANK_DEPTH; i++) begin
             signal_pkg::vector_data_t row = get_dmem_row(i);
             arr[4*i] = row[0];
             arr[(4*i)+1] = row[1];

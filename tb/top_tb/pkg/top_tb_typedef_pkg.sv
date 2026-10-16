@@ -143,4 +143,6 @@ package top_tb_typedef_pkg;
 
     } alloc_snapshot_t;
 
+    typedef logic [] dmem_word_address_t;
+
 endpackage

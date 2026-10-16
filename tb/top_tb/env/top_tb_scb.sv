@@ -84,9 +84,9 @@ class top_tb_scb extends uvm_scoreboard;
     virtual function void write_dut_state(top_tb_tr_dut_state tr);
         // this is the function that does all the scoreboard stuff
 
-        signal_pkg::data_t sc_reg_res[config_pkg::ARCH_REG_DEPTH];
-        signal_pkg::vector_data_t vc_reg_res[config_pkg::ARCH_REG_DEPTH];
-        signal_pkg::data_t dmem_res[config_pkg::DMEM_DEPTH];
+        signal_pkg::data_t sc_reg_res[core_config_pkg::ARCH_REG_DEPTH];
+        signal_pkg::vector_data_t vc_reg_res[core_config_pkg::ARCH_REG_DEPTH];
+        signal_pkg::data_t dmem_res[core_config_pkg::DMEM_DEPTH];
 
         int unsigned sc_regs_mismatches, vc_regs_mismatches, dmem_mismatches;
         bit sc_regs_pass, vc_regs_pass, dmem_pass;
@@ -122,10 +122,10 @@ class top_tb_scb extends uvm_scoreboard;
 
     function int unsigned compare_sc_regs(
         top_tb_tr_dut_state tr,
-        signal_pkg::data_t sc_reg_res[config_pkg::ARCH_REG_DEPTH]
+        signal_pkg::data_t sc_reg_res[core_config_pkg::ARCH_REG_DEPTH]
     );
         int unsigned mismatches = 0;
-        for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::ARCH_REG_DEPTH; i++) begin
             if(tr.sc_reg_sample[i]!== sc_reg_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/SC_REG_MISMATCH",
@@ -141,12 +141,12 @@ class top_tb_scb extends uvm_scoreboard;
 
     function int unsigned compare_vc_regs(
         top_tb_tr_dut_state tr,
-        signal_pkg::vector_data_t vc_reg_res[config_pkg::ARCH_REG_DEPTH]
+        signal_pkg::vector_data_t vc_reg_res[core_config_pkg::ARCH_REG_DEPTH]
     );
 
         int unsigned mismatches = 0;
 
-        for(int i=0; i<config_pkg::ARCH_REG_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::ARCH_REG_DEPTH; i++) begin
             if(tr.vc_reg_sample[i] !== vc_reg_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/VC_REG_MISMATCH",
@@ -165,12 +165,12 @@ class top_tb_scb extends uvm_scoreboard;
 
     function int unsigned compare_dmem(
         top_tb_tr_dut_state tr,
-        signal_pkg::data_t dmem_res[config_pkg::DMEM_DEPTH]
+        signal_pkg::data_t dmem_res[core_config_pkg::DMEM_DEPTH]
     );
 
         int unsigned mismatches = 0;
 
-        for(int i=0; i<config_pkg::DMEM_DEPTH; i++) begin
+        for(int i=0; i<core_config_pkg::DMEM_DEPTH; i++) begin
             if(tr.dmem_sample[i] !== dmem_res[i]) begin
                 mismatches++;
                 `uvm_error( "SCB/DMEM_MISMATCH",
