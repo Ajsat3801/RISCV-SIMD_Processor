@@ -16,7 +16,9 @@ module axi_controller (
     output logic dcache_mem_wrt_rdy_o,
 
     // AXI input/output
-    //<TODO: AXI Port>
+    input  ic_packet_pkg::sub_out_t data_mgr_port_i,
+    output ic_packet_pkg::mgr_out_t data_mgr_port_o,
+    output logic axi_error
 );
 
 endmodule
