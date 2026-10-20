@@ -72,31 +72,31 @@ package ic_packet_pkg;
     //          Ports by direction
 
     typedef struct packed {
-        logic axi_arvalid;
-        axi_ar_t axi_ar;
+        logic arvalid;
+        axi_ar_t ar;
 
-        logic axi_awvalid;
-        axi_aw_t axi_aw;
+        logic awvalid;
+        axi_aw_t aw;
 
-        logic axi_wvalid;
-        axi_w_t axi_w;
+        logic wvalid;
+        axi_w_t w;
 
-        logic axi_rready;
-        logic axi_bready;
+        logic rready;
+        logic bready;
 
     } mgr_out_t; // manager to subordinate
 
     typedef struct packed {
         
-        logic axi_rvalid;
-        axi_r_t axi_r;
+        logic rvalid;
+        axi_r_t r;
 
-        logic axi_bvalid;
-        axi_b_t axi_b;
+        logic bvalid;
+        axi_b_t b;
 
-        logic axi_arready;
-        logic axi_awready;
-        logic axi_wready;
+        logic arready;
+        logic awready;
+        logic wready;
     } sub_out_t; // subordinate to manager
 
 endpackage
