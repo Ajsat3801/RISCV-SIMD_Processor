@@ -65,10 +65,6 @@ module fe_decode(
     signal_pkg::pc_t link_pc;
     logic legal;
 
-    
-    //assign decoded_instr_en_o = in_to_out || hold_to_out; // send to queue
-    assign decode_ready_o     = !hold_en || (in_to_out || hold_to_out); // send to fetch
-
     always_comb begin
         // logic values
         in_to_out   = fetch_valid_i && !hold_en && queue_ready_i;
@@ -239,8 +235,8 @@ module fe_decode(
 
     always_ff @(posedge clk_i) begin
         if (!reset_ni || flush_i) begin
-            decoded_instr_o <= '0;
-            hold_instr  <= '0;
+            decoded_instr_o.valid <= 1'b0;
+            hold_instr.valid <= 1'b0;
             hold_en <= 1'b0;
             decoded_instr_en_o <= 1'b0;
         end
@@ -270,5 +266,8 @@ module fe_decode(
         end
     
     end
+
+    //assign decoded_instr_en_o = in_to_out || hold_to_out; // send to queue
+    assign decode_ready_o = !hold_en || (in_to_out || hold_to_out); // send to fetch
 
 endmodule

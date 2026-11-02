@@ -23,6 +23,7 @@
  *
  * ------------------------------------------------------------------------------------------------
  */
+
 module ex_vector_alu (
     input  logic clk_i,
     input  logic reset_ni,
@@ -36,8 +37,13 @@ module ex_vector_alu (
 );
 
     genvar i;
-    signal_pkg::vector_data_t valu_operand_a, valu_operand_b, valu_output;
+    signal_pkg::vector_data_t valu_operand_a, valu_output;
     logic[core_config_pkg::VECTOR_LEN-1:0] valid;
+
+    always_comb begin
+        if(vc_ex_request_i.a_is_vector) valu_operand_a = vc_ex_request_i.operand_a;
+        else valu_operand_a = {core_config_pkg::VECTOR_LEN{sc_operand_i}};
+    end
 
     generate 
 
@@ -54,22 +60,20 @@ module ex_vector_alu (
 
     endgenerate
 
+    packet_pkg::vc_ex_result_t valu_res;
+
     always_comb begin
-        valu_operand_a = (vc_ex_request_i.a_is_vector) ? vc_ex_request_i.operand_a : {core_config_pkg::VECTOR_LEN{sc_operand_i}};
+        valu_res = '{
+            valid: (&valid), prf_tag: vc_ex_request_i.prf_tag,
+            rob_id: vc_ex_request_i.rob_id, data: valu_output
+        };
     end
 
     always_ff @(posedge clk_i) begin
-        if(!reset_ni || flush_i) begin
-            vc_ex_result_o <= '0;
-            vc_ex_ready_o <= 1'b1;
-        end
-        else begin
-            vc_ex_result_o.valid   <= (&valid);
-            vc_ex_result_o.prf_tag <= vc_ex_request_i.prf_tag;
-            vc_ex_result_o.rob_id  <= vc_ex_request_i.rob_id;
-            vc_ex_result_o.data    <= valu_output;
-            vc_ex_ready_o <= 1'b1;
-        end
+        vc_ex_result_o <= valu_res;
+        if(!reset_ni || flush_i) vc_ex_result_o.valid <= 1'b0;
     end
+
+    assign vc_ex_ready_o = 1'b1; // will always be 1 unless we add multi-cycle execution
 
 endmodule

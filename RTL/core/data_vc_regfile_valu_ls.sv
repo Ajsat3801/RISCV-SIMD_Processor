@@ -15,7 +15,7 @@
  *
  *  Outputs
  *  ->  vc_alu_ex_req_o — Registered packet sent to the VALU execution unit.
- *  ->  vc_lsu_ex_req_o — Registered packet sent to the VLSU execution unit.
+ *  ->  vc_lsu_ex_req_o — Vector data packet sent to the VLSU execution unit.
  *
  *  Notes
  *  ->  No ready output, this module only stores and retrieves data values.
@@ -44,43 +44,44 @@ module data_vc_regfile_valu_ls (
 );
 
     signal_pkg::vector_data_t regfile[core_config_pkg::PRF_DEPTH-1:0];
-    signal_pkg::vector_data_t operand_a0, operand_b0, operand_sd;
 
-    always_comb begin
-        operand_a0 = regfile[vc_alu_rd_req_i.operand_a_tag.tag];
-        operand_b0 = regfile[vc_alu_rd_req_i.operand_b_tag.tag];
-        operand_sd = regfile[vc_lsu_rd_req_i.tag];
+//  -----------------------------------------------------------------------------------------------
+//          Write port 0 (Vector Writeback)
+
+    logic write_en;
+    assign write_en = vc_wb_instr_i.valid && vc_wb_instr_i.prf_tag.vector;
+    
+    always_ff @(posedge clk_i) begin
+        if (!reset_ni) regfile[0] <= '0;
+        if (write_en)  regfile[vc_wb_instr_i.prf_tag.tag] <= vc_wb_instr_i.data;
     end
 
+//  -----------------------------------------------------------------------------------------------
+//          Read port 0 (Vector ALU ex request)
+    
+    signal_pkg::vector_data_t operand_a0, operand_b0;
+
+    assign operand_a0 = regfile[vc_alu_rd_req_i.operand_a_tag.tag];
+    assign operand_b0 = regfile[vc_alu_rd_req_i.operand_b_tag.tag];
+
     always_ff @(posedge clk_i) begin
-        if (!reset_ni) begin
+        vc_alu_ex_req_o <= '{
+            valid: vc_alu_rd_req_i.valid, prf_tag: vc_alu_rd_req_i.prf_tag,
+            rob_id: vc_alu_rd_req_i.rob_id, operation: vc_alu_rd_req_i.operation,
+            operand_a: operand_a0, operand_b: operand_b0,
+            a_is_vector: vc_alu_rd_req_i.a_is_vector, b_is_vector: vc_alu_rd_req_i.b_is_vector
+        };
+        if(!reset_ni || flush_i) vc_alu_ex_req_o.valid <= 1'b0;
+    end
 
-            for (int i=0; i<core_config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
+//  -----------------------------------------------------------------------------------------------
+//          Read port 1 (Vector operand for LSU)
 
-            vc_alu_ex_req_o <= '0;
-            vc_lsu_ex_req_o <= '0;
-        end
-        else if(flush_i) begin
-            vc_alu_ex_req_o <= '0;
-            vc_lsu_ex_req_o <= '0;
-        end
+    signal_pkg::vector_data_t operand_sd;
+    assign operand_sd = regfile[vc_lsu_rd_req_i.tag];
 
-        else begin
-
-            // writeback
-            if (vc_wb_instr_i.valid && vc_wb_instr_i.prf_tag.vector) begin
-                regfile[vc_wb_instr_i.prf_tag.tag] <= vc_wb_instr_i.data;
-            end
-
-            // read VALU operands
-            vc_alu_ex_req_o <= '{   vc_alu_rd_req_i.valid, vc_alu_rd_req_i.prf_tag, vc_alu_rd_req_i.rob_id, 
-                                    vc_alu_rd_req_i.operation, operand_a0, operand_b0,
-                                    vc_alu_rd_req_i.a_is_vector, vc_alu_rd_req_i.b_is_vector
-                                };
-
-            // read LSU operands
-            vc_lsu_ex_req_o <= operand_sd;
-        end
+    always_ff @(posedge clk_i) begin
+        vc_lsu_ex_req_o <= operand_sd;
     end
 
 endmodule

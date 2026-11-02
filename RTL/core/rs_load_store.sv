@@ -353,36 +353,30 @@ module rs_load_store (
         out_valid_d = (load_bypass || store_bypass || load_dispatch || store_dispatch);
         if(load_bypass || store_bypass) out_d = in_entry_d;
         else if(load_dispatch) out_d = load_out;
-        else if(store_dispatch) out_d = store_out;
-        else out_d = '0;
+        else out_d = store_out;
     end
 
     always_ff @(posedge clk_i) begin
+        out_q <= out_d;
+
         if(!reset_ni || flush_i) begin
-            out_q <= '0;
             out_valid_q <= '0;
             ld_released_o <= 1'b0;
             st_released_o <= 1'b0;
         end
         else begin
-            out_q <= out_d;
             out_valid_q <= out_valid_d;
             ld_released_o <= load_dispatch || load_bypass;
             st_released_o <= store_dispatch || store_bypass;
         end
     end
-
+    
     assign ls_read_req_o = '{
-        valid   : out_valid_q,
-        prf_tag : out_q.prf_tag,
-        rob_id  : out_q.rob_id,
-        operation : out_q.operation,
-        operand_a_tag : out_q.operand_a_tag,
-        operand_b_tag : out_q.operand_b_tag,
-        imm : out_q.imm,
-        read_src2   : out_q.read_src2,
-        a_is_vector : out_q.a_is_vector,
-        b_is_vector : out_q.b_is_vector
+        valid: out_valid_q, prf_tag: out_q.prf_tag,
+        rob_id: out_q.rob_id, operation: out_q.operation,
+        operand_a_tag: out_q.operand_a_tag, operand_b_tag: out_q.operand_b_tag,
+        imm: out_q.imm, read_src2: out_q.read_src2,
+        a_is_vector: out_q.a_is_vector, b_is_vector: out_q.b_is_vector
     };
     
     assign vc_lsu_rd_req_o = out_q.operand_b_tag;

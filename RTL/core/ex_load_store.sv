@@ -85,19 +85,19 @@ module ex_load_store(
     packet_pkg::load_store_entry_t ld_q, ld_d;
     logic ld_to_dcache, ld_fwd, ld_clear;
 
-    always_comb begin
+    assign ld_clear = (ld_to_dcache && dcache_rdy_i) || ld_fwd;
 
-        ld_clear = (ld_to_dcache && dcache_rdy_i) || ld_fwd;
+    always_comb begin        
+        ld_d = ld_q;
 
         // Note: load bypass not possible due to upstream logic, provision given here.
         if (in_is_load && (ld_clear || !ld_q.valid )) ld_d = in;
-        else if (ld_clear) ld_d = '0;
-        else ld_d = ld_q; 
+        else if (ld_clear) ld_d.valid = 1'b0;
     end
 
     always_ff @(posedge clk_i) begin
-        if (!reset_ni || flush_i) ld_q <= '0;
-        else ld_q <= ld_d;
+        ld_q <= ld_d;
+        if (!reset_ni || flush_i) ld_q.valid <= 1'b0;
     end
 
     //  -------------------------------------------------------------------------------------------
@@ -164,7 +164,6 @@ module ex_load_store(
         end
 
         ld_to_dcache = ld_q.valid && !(|match_addr);
-
     end
 
     //  -------------------------------------------------------------------------------------------
@@ -224,9 +223,6 @@ module ex_load_store(
 
     signal_pkg::vector_data_t fwd_store_data;
     logic fwd_is_vector;
-    logic [BANK_ID_W-1:0] block_offset;
-
-    assign block_offset = ld_q.mem_addr[LINE_OFF_W-1:BYTE_OFF_W];
 
     always_comb begin
         fwd_store_data = '0;
@@ -239,28 +235,30 @@ module ex_load_store(
         end
     end
 
+    logic sc_valid, vc_valid;
+    signal_pkg::data_t sc_data;
+
+    assign sc_valid = ld_fwd && !ld_q.is_vector;
+    assign vc_valid = ld_fwd && ld_q.is_vector;
+    assign sc_data = signal_pkg::extract_subword(
+        fwd_store_data[fwd_is_vector ? ld_q.mem_addr[LINE_OFF_W-1:BYTE_OFF_W] : '0],
+        ld_q.mem_addr,
+        ld_q.operation
+    );
+
     always_ff @(posedge clk_i) begin
+        sc_fwd_res_o <= '{
+            valid: sc_valid, prf_tag: ld_q.prf_tag,
+            rob_id: ld_q.rob_id, data: sc_data
+        };
+        vc_fwd_res_o <= '{
+            valid: vc_valid, prf_tag: ld_q.prf_tag,
+            rob_id: ld_q.rob_id, data: fwd_store_data
+        };
+
         if(!reset_ni || flush_i) begin
-            sc_fwd_res_o <= '0;
-            vc_fwd_res_o <= '0;
-        end
-        else begin
-            sc_fwd_res_o <= '{
-                valid : ld_fwd && !ld_q.is_vector,
-                prf_tag : ld_q.prf_tag,
-                rob_id  : ld_q.rob_id,
-                data  : signal_pkg::extract_subword(
-                            fwd_store_data[fwd_is_vector ? block_offset : '0],
-                            ld_q.mem_addr,
-                            ld_q.operation
-                        )
-            };
-            vc_fwd_res_o <= '{
-                valid : ld_fwd && ld_q.is_vector,
-                prf_tag : ld_q.prf_tag,
-                rob_id  : ld_q.rob_id,
-                data  : fwd_store_data
-            };
+            sc_fwd_res_o.valid <= 1'b0;
+            vc_fwd_res_o.valid <= 1'b0;
         end
     end
 
@@ -268,12 +266,8 @@ module ex_load_store(
     //      Outputs
 
     always_comb begin
-        if(flush_i) dcache_req_o = '0;
-        else begin
-            if(ld_to_dcache) dcache_req_o = ld_q;
-            else if(st_to_dcache) dcache_req_o = store_out;
-            else dcache_req_o = '0;
-        end
+        dcache_req_o = (ld_to_dcache) ? ld_q : store_out;
+        dcache_req_o.valid = !flush_i && (ld_to_dcache || st_to_dcache);
     end
 
     assign sc_ex_rdy_o = !ld_d.valid && (!full_nxt || (st_to_dcache && dcache_rdy_i));

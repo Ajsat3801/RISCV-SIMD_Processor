@@ -36,47 +36,42 @@ module ex_scalar_alu(
 
     //connection to writeback arbitrer
     output packet_pkg::sc_ex_result_t sc_ex_result_o,
-    output sc_ex_ready_o
+    output logic sc_ex_ready_o
 );
     
     packet_pkg::sc_ex_result_t alu_result;
-    logic ex_ready;
 
-    always_ff @(posedge clk_i) begin
-        if(!reset_ni || flush_i) begin
-            alu_result <= 'd0;
-            ex_ready   <= 1'b1;
-        end
-        else begin
+    always_comb begin
+        
+        alu_result.valid   = sc_ex_request_i.valid;
+        alu_result.prf_tag = sc_ex_request_i.prf_tag;
+        alu_result.rob_id  = sc_ex_request_i.rob_id;
 
-            alu_result.valid   <= sc_ex_request_i.valid;
-            alu_result.prf_tag <= sc_ex_request_i.prf_tag;
-            alu_result.rob_id  <= sc_ex_request_i.rob_id;
-
-            unique case (sc_ex_request_i.operation.alu)
-                signal_pkg::ALU_ADD  : alu_result.data <= sc_ex_request_i.operand_a + sc_ex_request_i.operand_b;
-                signal_pkg::ALU_SUB  : alu_result.data <= sc_ex_request_i.operand_a - sc_ex_request_i.operand_b;
-                signal_pkg::ALU_SLL  : alu_result.data <= sc_ex_request_i.operand_a << sc_ex_request_i.operand_b[4:0];
-                signal_pkg::ALU_SLT  : begin
-                    alu_result.data[0] <= ($signed(sc_ex_request_i.operand_a) < $signed(sc_ex_request_i.operand_b)) ? 1'b1 : 1'b0;
-                    alu_result.data[31:1] <= '0;
-                end
-                signal_pkg::ALU_SLTU : begin
-                    alu_result.data[0] <= (sc_ex_request_i.operand_a < sc_ex_request_i.operand_b) ? 1'b1 : 1'b0;
-                    alu_result.data[31:1] <= '0;
-                end
-                signal_pkg::ALU_XOR  : alu_result.data <= sc_ex_request_i.operand_a ^ sc_ex_request_i.operand_b;
-                signal_pkg::ALU_SRL  : alu_result.data <= sc_ex_request_i.operand_a >> sc_ex_request_i.operand_b[4:0];
-                signal_pkg::ALU_OR   : alu_result.data <= sc_ex_request_i.operand_a | sc_ex_request_i.operand_b;
-                signal_pkg::ALU_AND  : alu_result.data <= sc_ex_request_i.operand_a & sc_ex_request_i.operand_b;
-                default: alu_result.data <= '0;
-            endcase
-        end
-
-        ex_ready <= 1'b1;
+        unique case (sc_ex_request_i.operation.alu)
+            signal_pkg::ALU_ADD  : alu_result.data = sc_ex_request_i.operand_a + sc_ex_request_i.operand_b;
+            signal_pkg::ALU_SUB  : alu_result.data = sc_ex_request_i.operand_a - sc_ex_request_i.operand_b;
+            signal_pkg::ALU_SLL  : alu_result.data = sc_ex_request_i.operand_a << sc_ex_request_i.operand_b[4:0];
+            signal_pkg::ALU_SLT  : begin
+                alu_result.data[0] = ($signed(sc_ex_request_i.operand_a) < $signed(sc_ex_request_i.operand_b)) ? 1'b1 : 1'b0;
+                alu_result.data[31:1] = '0;
+            end
+            signal_pkg::ALU_SLTU : begin
+                alu_result.data[0] = (sc_ex_request_i.operand_a < sc_ex_request_i.operand_b) ? 1'b1 : 1'b0;
+                alu_result.data[31:1] = '0;
+            end
+            signal_pkg::ALU_XOR  : alu_result.data = sc_ex_request_i.operand_a ^ sc_ex_request_i.operand_b;
+            signal_pkg::ALU_SRL  : alu_result.data = sc_ex_request_i.operand_a >> sc_ex_request_i.operand_b[4:0];
+            signal_pkg::ALU_OR   : alu_result.data = sc_ex_request_i.operand_a | sc_ex_request_i.operand_b;
+            signal_pkg::ALU_AND  : alu_result.data = sc_ex_request_i.operand_a & sc_ex_request_i.operand_b;
+            default: alu_result.data = '0;
+        endcase
     end
 
-    assign sc_ex_ready_o  = ex_ready;
-    assign sc_ex_result_o = alu_result;
+    always_ff @(posedge clk_i) begin
+        sc_ex_result_o <= alu_result;
+        if(!reset_ni || flush_i) sc_ex_result_o.valid <= 1'b0;
+    end
+
+    assign sc_ex_ready_o  = 1'b1; // will always be 1 unless we add multi-cycle execution
 
 endmodule

@@ -172,7 +172,7 @@ module fe_instruction_queue #(
         if(!reset_ni || flush_i) begin
             for(int unsigned i=0; i<core_config_pkg::INSTR_QUEUE_DEPTH; i++)
                 instr_fifo[i].valid <= 1'b0;
-            dispatched_instr_q <= '0;
+            dispatched_instr_q.valid <= 1'b0;
             head <= '0;
             tail <= '0;
         end

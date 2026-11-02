@@ -230,52 +230,32 @@ module rs_scalar_2issue #(
         out_valid_d[0] = p0_w1 || p0_byp;
         out_valid_d[1] = p1_w1 || p1_w2 || p1_byp;
 
-        if (p0_byp) out0_d = in_entry_d;
-        else if (p0_w1) out0_d = buffer[p0_addr];
-        else out0_d = '0;
-
-        if (p1_byp) out1_d = in_entry_d;
-        else if (p1_w1 || p1_w2) out1_d = buffer[p1_addr];
-        else out1_d = '0;
+        out0_d = (p0_byp) ? in_entry_d : buffer[p0_addr];
+        out1_d = (p1_byp) ? in_entry_d : buffer[p1_addr];
     end
 
     always_ff @(posedge clk_i) begin
-        if (!reset_ni || flush_i) begin
-            out0_q <= '0;
-            out1_q <= '0;
-            out_valid_q <= '0;
-        end
-        else begin
-            out0_q <= out0_d;
-            out1_q <= out1_d;
-            out_valid_q <= out_valid_d;
-        end
+        out0_q <= out0_d;
+        out1_q <= out1_d;
+
+        if (!reset_ni || flush_i) out_valid_q <= '0;
+        else out_valid_q <= out_valid_d;
     end
 
     assign sc_rd_req0_o = '{
-        valid   : out_valid_q[0],
-        prf_tag : out0_q.prf_tag,
-        rob_id  : out0_q.rob_id,
-        operation : out0_q.operation,
-        operand_a_tag : out0_q.operand_a_tag,
-        operand_b_tag : out0_q.operand_b_tag,
-        imm : out0_q.imm,
-        read_src2   : out0_q.read_src2,
-        a_is_vector : out0_q.a_is_vector,
-        b_is_vector : out0_q.b_is_vector
+        valid: out_valid_q[0], prf_tag: out0_q.prf_tag,
+        rob_id: out0_q.rob_id, operation: out0_q.operation,
+        operand_a_tag: out0_q.operand_a_tag, operand_b_tag: out0_q.operand_b_tag,
+        imm: out0_q.imm, read_src2: out0_q.read_src2,
+        a_is_vector: out0_q.a_is_vector, b_is_vector: out0_q.b_is_vector
     };
 
     assign sc_rd_req1_o = '{
-        valid   : out_valid_q[1],
-        prf_tag : out1_q.prf_tag,
-        rob_id  : out1_q.rob_id,
-        operation : out1_q.operation,
-        operand_a_tag : out1_q.operand_a_tag,
-        operand_b_tag : out1_q.operand_b_tag,
-        imm : out1_q.imm,
-        read_src2   : out1_q.read_src2,
-        a_is_vector : out1_q.a_is_vector,
-        b_is_vector : out1_q.b_is_vector
+        valid: out_valid_q[1], prf_tag: out1_q.prf_tag,
+        rob_id: out1_q.rob_id, operation: out1_q.operation,
+        operand_a_tag: out1_q.operand_a_tag, operand_b_tag: out1_q.operand_b_tag,
+        imm: out1_q.imm, read_src2: out1_q.read_src2,
+        a_is_vector: out1_q.a_is_vector, b_is_vector: out1_q.b_is_vector
     };
 
     assign instr_dispatched_o[0] = out_valid_q[0];

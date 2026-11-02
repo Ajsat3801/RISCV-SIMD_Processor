@@ -59,90 +59,77 @@ module data_sc_regfile_br_valu_ls (
     output signal_pkg::data_t ls_store_data_o
 );
 
-    signal_pkg::data_t regfile[core_config_pkg::PRF_DEPTH-1:0];
-    signal_pkg::data_t operand_a0, operand_a1, operand_vc;
-    signal_pkg::data_t operand_b0, operand_b1;
+//  -----------------------------------------------------------------------------------------------
+//          Register flop array
 
-    always_comb begin
-        // combinational read for operands
-        operand_a0 = regfile[sc_br_rd_req_i.operand_a_tag.tag];
-        operand_b0 = regfile[sc_br_rd_req_i.operand_b_tag.tag];
-        operand_a1 = regfile[ls_rd_req_i.operand_a_tag.tag];
-        operand_b1 = regfile[ls_rd_req_i.operand_b_tag.tag];
-        operand_vc = regfile[vc_alu_rd_req_tag_i.tag];
+    signal_pkg::data_t regfile[core_config_pkg::PRF_DEPTH-1:0];
+    
+//  -----------------------------------------------------------------------------------------------
+//          Write port 0 (Scalar writeback with mux for precalculated results from ARR)
+
+    logic wrt_wb, wrt_precalc;
+
+    assign wrt_wb = sc_wb_instr_i.valid;
+    assign wrt_precalc = precalc_i.precalc_valid;
+    
+    always_ff @(posedge clk_i) begin
+
+        if(wrt_precalc) regfile[precalc_i.precalc_prf_tag.tag] <= precalc_i.precalc_data;
+        if (wrt_wb) regfile[sc_wb_instr_i.prf_tag.tag] <= sc_wb_instr_i.data;
+
+        if(!reset_ni) regfile[0] <= '0;
+
     end
 
+//  -----------------------------------------------------------------------------------------------
+//          Read port 0 (Branch unit request)  
+
+    signal_pkg::data_t operand_a0, operand_b0;
+
+    always_comb begin
+        operand_a0 = regfile[sc_br_rd_req_i.operand_a_tag.tag];
+        operand_b0 = regfile[sc_br_rd_req_i.operand_b_tag.tag];
+    end 
+
     always_ff @(posedge clk_i) begin
-        if (!reset_ni) begin
+        sc_br_ex_req_o <= '{
+            valid: sc_br_rd_req_i.valid, prf_tag: sc_br_rd_req_i.prf_tag,
+            rob_id: sc_br_rd_req_i.rob_id, operation: sc_br_rd_req_i.operation,
+            operand_a:operand_a0, operand_b: operand_b0
+        };
+        if(!reset_ni || flush_i) sc_br_ex_req_o.valid <= 1'b0;
+    end
 
-            for (int i=0; i<core_config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
+//  -----------------------------------------------------------------------------------------------
+//          Read port 1 (LSU request)
+    
+    signal_pkg::data_t operand_a1, operand_b1;
 
-            sc_br_ex_req_o <= '0;
-            vc_alu_sc_operand_o <= '0;
-            ls_ex_req_o <= '0;
-            ls_store_data_o <= '0;
-        end
-        else if(flush_i) begin
-            sc_br_ex_req_o <= '0;
-            vc_alu_sc_operand_o <= '0;
-            ls_ex_req_o <= '0;
-            ls_store_data_o <= '0;
-            if(precalc_i.precalc_valid) begin
-                regfile[precalc_i.precalc_prf_tag.tag] <= precalc_i.precalc_data;
-            end
-        end
-        else begin
-            // ------------------------------------------------------------------------------------
-            //                                          WRITES
-            // ------------------------------------------------------------------------------------
-            /*  2 scenarios where writing done
-             *  ->  there is a pre-calculated value that needs to be stored
-             *  ->  instruction is written back
-             *  Note: Exact same block as data_sc_regfile_3sc.sv
-             */
+    always_comb begin
+        operand_a1 = regfile[ls_rd_req_i.operand_a_tag.tag];
+        operand_b1 = regfile[ls_rd_req_i.operand_b_tag.tag];
+    end 
 
-            if(precalc_i.precalc_valid) begin
-                regfile[precalc_i.precalc_prf_tag.tag] <= precalc_i.precalc_data;
-            end
+    always_ff @(posedge clk_i) begin
+        ls_ex_req_o <= '{
+            valid: ls_rd_req_i.valid, prf_tag: ls_rd_req_i.prf_tag,
+            rob_id: ls_rd_req_i.rob_id, operation: ls_rd_req_i.operation,
+            operand_a:operand_a1, operand_b: {{20{ls_rd_req_i.imm[11]}},ls_rd_req_i.imm}
+        };
+        ls_store_data_o <= operand_b1;
 
-            if (sc_wb_instr_i.valid) begin
-                regfile[sc_wb_instr_i.prf_tag.tag] <= sc_wb_instr_i.data;
-            end
+        if(!reset_ni || flush_i) ls_ex_req_o.valid <= 1'b0;
+    end
 
-            // ------------------------------------------------------------------------------------
-            //                                          READS
-            // ------------------------------------------------------------------------------------
+//  -----------------------------------------------------------------------------------------------
+//          Read Port 2 (Scalar operand for Vector ALU)
+    
+    signal_pkg::data_t operand_vc;
 
-            // Port 0: Scalar operands for branching unit
+    assign operand_vc = regfile[vc_alu_rd_req_tag_i.tag];
 
-            sc_br_ex_req_o.valid     <= sc_br_rd_req_i.valid;
-            sc_br_ex_req_o.prf_tag   <= sc_br_rd_req_i.prf_tag;
-            sc_br_ex_req_o.rob_id    <= sc_br_rd_req_i.rob_id;
-            sc_br_ex_req_o.operation <= sc_br_rd_req_i.operation;
-
-            sc_br_ex_req_o.operand_a <= operand_a0;
-            sc_br_ex_req_o.operand_b <= operand_b0;
-            
-            // Port 1: Scalar operands for vector ALU
-            vc_alu_sc_operand_o <= operand_vc;
-
-            /* Port 2: Scalar operands for Load-store unit
-             *  ->  operand_a is RS1, for both scalar and vector ops
-             *  ->  operand_b is imm, used to calculate dest address for scalar ops
-             *  ->  ls_store_data is store data used for scalar store operations only
-             */  
-            
-            ls_ex_req_o.valid     <= ls_rd_req_i.valid;
-            ls_ex_req_o.prf_tag   <= ls_rd_req_i.prf_tag;
-            ls_ex_req_o.rob_id    <= ls_rd_req_i.rob_id;
-            ls_ex_req_o.operation <= ls_rd_req_i.operation;
-
-            ls_ex_req_o.operand_a <= operand_a1;
-            ls_ex_req_o.operand_b <= {{20{ls_rd_req_i.imm[11]}},ls_rd_req_i.imm}; 
-            
-            ls_store_data_o <= operand_b1;
-            
-        end
+    always_ff @(posedge clk_i) begin
+        vc_alu_sc_operand_o <= operand_vc;
     end
 
 endmodule

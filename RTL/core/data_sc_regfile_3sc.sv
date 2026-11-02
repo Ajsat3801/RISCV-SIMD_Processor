@@ -59,95 +59,89 @@ module data_sc_regfile_3sc (
     output packet_pkg::sc_ex_request_t sc_ex_req2_o
 );
 
-    signal_pkg::data_t regfile[core_config_pkg::PRF_DEPTH-1:0];
-    signal_pkg::data_t operand_a0, operand_a1, operand_a2;
-    signal_pkg::data_t operand_b0, operand_b1, operand_b2;
+//  -----------------------------------------------------------------------------------------------
+//          Register flop array
 
-    always_comb begin
-        // Combinational reads for operands
-        operand_a0 = regfile[sc_rd_req0_i.operand_a_tag.tag];
-        operand_b0 = regfile[sc_rd_req0_i.operand_b_tag.tag];
-        operand_a1 = regfile[sc_rd_req1_i.operand_a_tag.tag];
-        operand_b1 = regfile[sc_rd_req1_i.operand_b_tag.tag]; 
-        operand_a2 = regfile[sc_rd_req2_i.operand_a_tag.tag];
-        operand_b2 = regfile[sc_rd_req2_i.operand_b_tag.tag]; 
+    signal_pkg::data_t regfile[core_config_pkg::PRF_DEPTH-1:0];
+    
+//  -----------------------------------------------------------------------------------------------
+//          Write port 0 (Scalar writeback with mux for precalculated results from ARR)
+
+    logic wrt_wb, wrt_precalc;
+
+    assign wrt_wb = sc_wb_instr_i.valid;
+    assign wrt_precalc = precalc_i.precalc_valid;
+    
+    always_ff @(posedge clk_i) begin
+
+        if(wrt_precalc) regfile[precalc_i.precalc_prf_tag.tag] <= precalc_i.precalc_data;
+        if (wrt_wb) regfile[sc_wb_instr_i.prf_tag.tag] <= sc_wb_instr_i.data;
+
+        if(!reset_ni) regfile[0] <= '0;
+
     end
 
+//  -----------------------------------------------------------------------------------------------
+//          Read port 0 (Scalar ALU0 request)  
+
+    signal_pkg::data_t operand_a0, operand_b0;
+
+    always_comb begin
+        operand_a0 = regfile[sc_rd_req0_i.operand_a_tag.tag];
+
+        if(sc_rd_req0_i.read_src2) operand_b0 = regfile[sc_rd_req0_i.operand_b_tag.tag];
+        else operand_b0 = {{20{sc_rd_req0_i.imm[11]}},sc_rd_req0_i.imm};
+    end 
+
     always_ff @(posedge clk_i) begin
-        if (!reset_ni) begin
-            for (int i=0; i<core_config_pkg::PRF_DEPTH; i++) regfile[i] <= '0;
+        sc_ex_req0_o <= '{
+            valid: sc_rd_req0_i.valid, prf_tag: sc_rd_req0_i.prf_tag,
+            rob_id: sc_rd_req0_i.rob_id, operation: sc_rd_req0_i.operation,
+            operand_a:operand_a0, operand_b: operand_b0
+        };
+        if(!reset_ni || flush_i) sc_ex_req0_o.valid <= 1'b0;
+    end
 
-            sc_ex_req0_o <= '0;
-            sc_ex_req1_o <= '0;
-            sc_ex_req2_o <= '0;
-        end
-        else if(flush_i) begin
-            sc_ex_req0_o <= '0;
-            sc_ex_req1_o <= '0;
-            sc_ex_req2_o <= '0;
+//  -----------------------------------------------------------------------------------------------
+//          Read port 1 (Scalar ALU1 request)  
 
-            if(precalc_i.precalc_valid) begin
-                regfile[precalc_i.precalc_prf_tag.tag] <= precalc_i.precalc_data;
-            end
-        end
+    signal_pkg::data_t operand_a1, operand_b1;
 
-        else begin
-            // ------------------------------------------------------------------------------------
-            //                                          WRITES
-            // ------------------------------------------------------------------------------------
-            /* 2 scenarios where writing done
-             *  ->  there is a pre-calculated value that needs to be stored
-             *  ->  instruction is written back
-             *  Note: Exact same block as data_sc_regfile_br_valu_ls.sv
-             */
+    always_comb begin
+        operand_a1 = regfile[sc_rd_req1_i.operand_a_tag.tag];
 
-            if(precalc_i.precalc_valid) begin
-                regfile[precalc_i.precalc_prf_tag.tag] <= precalc_i.precalc_data;
-            end
+        if(sc_rd_req1_i.read_src2) operand_b1 = regfile[sc_rd_req1_i.operand_b_tag.tag];
+        else operand_b1 = {{20{sc_rd_req1_i.imm[11]}},sc_rd_req1_i.imm};
+    end 
 
-            if (sc_wb_instr_i.valid) begin
-                regfile[sc_wb_instr_i.prf_tag.tag] <= sc_wb_instr_i.data;
-            end
+    always_ff @(posedge clk_i) begin
+        sc_ex_req1_o <= '{
+            valid: sc_rd_req1_i.valid, prf_tag: sc_rd_req1_i.prf_tag,
+            rob_id: sc_rd_req1_i.rob_id, operation: sc_rd_req1_i.operation,
+            operand_a:operand_a1, operand_b: operand_b1
+        };
+        if(!reset_ni || flush_i) sc_ex_req1_o.valid <= 1'b0;
+    end
 
-            // ------------------------------------------------------------------------------------
-            //                                          READS
-            // ------------------------------------------------------------------------------------
+//  -----------------------------------------------------------------------------------------------
+//          Read port 2 (Scalar Multiply-Divide unit request)  
+    
+    signal_pkg::data_t operand_a2, operand_b2;
 
-            // Port 1: Scalar operands for ALU0
+    always_comb begin
+        operand_a2 = regfile[sc_rd_req2_i.operand_a_tag.tag];
 
-            sc_ex_req0_o.valid     <= sc_rd_req0_i.valid;
-            sc_ex_req0_o.prf_tag   <= sc_rd_req0_i.prf_tag;
-            sc_ex_req0_o.rob_id    <= sc_rd_req0_i.rob_id;
-            sc_ex_req0_o.operation <= sc_rd_req0_i.operation;
+        if(sc_rd_req2_i.read_src2) operand_b2 = regfile[sc_rd_req2_i.operand_b_tag.tag];
+        else operand_b2 = {{20{sc_rd_req2_i.imm[11]}},sc_rd_req2_i.imm};
+    end 
 
-            sc_ex_req0_o.operand_a <= operand_a0;
-            sc_ex_req0_o.operand_b <= (sc_rd_req0_i.read_src2) ? 
-                operand_b0 : {{20{sc_rd_req0_i.imm[11]}},sc_rd_req0_i.imm};
-
-            // Port 2: Scalar Operands for ALU1
-
-            sc_ex_req1_o.valid     <= sc_rd_req1_i.valid;
-            sc_ex_req1_o.prf_tag   <= sc_rd_req1_i.prf_tag;
-            sc_ex_req1_o.rob_id    <= sc_rd_req1_i.rob_id;
-            sc_ex_req1_o.operation <= sc_rd_req1_i.operation;
-
-            sc_ex_req1_o.operand_a <= operand_a1;
-            sc_ex_req1_o.operand_b <= (sc_rd_req1_i.read_src2) ? 
-                operand_b1 : {{20{sc_rd_req1_i.imm[11]}},sc_rd_req1_i.imm};
-
-            // Port 3: Scalar Operands for Multiply-Divide unit
-
-            sc_ex_req2_o.valid     <= sc_rd_req2_i.valid;
-            sc_ex_req2_o.prf_tag   <= sc_rd_req2_i.prf_tag;
-            sc_ex_req2_o.rob_id    <= sc_rd_req2_i.rob_id;
-            sc_ex_req2_o.operation <= sc_rd_req2_i.operation;
-
-            sc_ex_req2_o.operand_a <= operand_a2;
-            sc_ex_req2_o.operand_b <= (sc_rd_req2_i.read_src2) ? 
-                operand_b2 : {{20{sc_rd_req2_i.imm[11]}},sc_rd_req2_i.imm};
-            
-        end
-
+    always_ff @(posedge clk_i) begin
+        sc_ex_req2_o <= '{
+            valid: sc_rd_req2_i.valid, prf_tag: sc_rd_req2_i.prf_tag,
+            rob_id: sc_rd_req2_i.rob_id, operation: sc_rd_req2_i.operation,
+            operand_a:operand_a2, operand_b: operand_b2
+        };
+        if(!reset_ni || flush_i) sc_ex_req2_o.valid <= 1'b0;
     end
 
 endmodule

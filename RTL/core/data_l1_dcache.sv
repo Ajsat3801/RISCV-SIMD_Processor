@@ -203,14 +203,10 @@ module data_l1_dcache (
     assign req_d = (in_op != OP_NONE) ? in_req : req_q;
 
     always_ff @(posedge clk_i) begin
-        if(!reset_ni) begin
-            state_q <= IDLE;
-            req_q <= '0;
-        end
-        else begin
-            state_q <= state_d;
-            req_q <= req_d;
-        end
+        state_q <= state_d;
+        req_q <= req_d;
+        
+        if(!reset_ni) state_q <= IDLE;    
     end
 
     //  -------------------------------------------------------------------------------------------
@@ -375,8 +371,8 @@ module data_l1_dcache (
     end
 
     always_ff @(posedge clk_i) begin
-        if (!reset_ni) evict_reg_q <= '0;
-        else evict_reg_q <= evict_reg_d;
+        evict_reg_q <= evict_reg_d;
+        if (!reset_ni) evict_reg_q.valid <= 1'b0;
     end
 
     //  -------------------------------------------------------------------------------------------

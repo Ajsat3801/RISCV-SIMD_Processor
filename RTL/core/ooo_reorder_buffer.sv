@@ -99,19 +99,11 @@ end
 always_ff @(posedge clk_i) begin
     
     if(!reset_ni || flush_i) begin
-        for(int unsigned i=0; i<core_config_pkg::ROB_DEPTH; i++) rob_table[i] <= '0;
+        for(int unsigned i=0; i<core_config_pkg::ROB_DEPTH; i++) rob_table[i].ready <= '0;
         head <= '0;
         tail <= '0;
 
         retire_instr_o.valid   <= '0;
-        retire_instr_o.prf_tag <= '0;
-        retire_instr_o.rob_id  <= '0;
-        retire_instr_o.data    <= '0;
-        retire_instr_o.write_to_reg <= '0;
-        retire_instr_o.dest_address <= '0;
-        retire_instr_o.is_branch    <= '0;
-        retire_instr_o.branch_taken <= '0;
-
         flush_o <= '0;
 
     end
